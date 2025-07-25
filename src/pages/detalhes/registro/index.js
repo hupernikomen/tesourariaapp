@@ -10,7 +10,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 
 export default function DetalheRegistro() {
   const width = Dimensions.get('window').width;
-  const { SomarReceitasEDespesasPorAno, formatoMoeda } = useContext(AppContext);
+  const { ResumoFinanceiro, formatoMoeda } = useContext(AppContext);
   const route = useRoute();
   const navigation = useNavigation();
   const [confirma, setConfirma] = useState(false);
@@ -20,7 +20,7 @@ export default function DetalheRegistro() {
     navigation.setOptions({
       title: route.params?.tipo.charAt(0).toUpperCase() + route.params?.tipo.slice(1),
       headerRight: () => (
-          <AntDesign onPress={() => setConfirma(true)}  name='delete' color={'#fff'} size={22} style={{width:50, aspectRatio:1, verticalAlign: 'middle', textAlign:"center" }}/>
+        <AntDesign onPress={() => setConfirma(true)} name='delete' color={'#fff'} size={22} style={{ width: 50, aspectRatio: 1, verticalAlign: 'middle', textAlign: "center" }} />
       )
     });
   }, [route]);
@@ -52,7 +52,7 @@ export default function DetalheRegistro() {
       console.log("Registro do Firestore excluído");
 
       // Atualizações pós-exclusão
-      await SomarReceitasEDespesasPorAno();
+      await ResumoFinanceiro();
       navigation.goBack();
 
     } catch (e) {
@@ -97,7 +97,7 @@ export default function DetalheRegistro() {
         <Text style={{ fontSize: 12, textAlign: 'right' }}>{route.params?.detalhamento}</Text>
       </View>
 
-            <View style={{ marginVertical: 14, gap: 14 }}>
+      <View style={{ marginVertical: 14, gap: 14 }}>
 
 
         {confirma ?
@@ -108,40 +108,27 @@ export default function DetalheRegistro() {
         }
       </View>
 
+
+
       {route.params?.imageUrl ? (
-        <View>
-          <TouchableOpacity 
-            onPress={() => setShowImage(!showImage)} 
-            style={{
-              backgroundColor: '#f0f0f0', 
-              padding: 10, 
-              borderRadius: 6, 
-              marginVertical: 8,
-              alignItems: 'center'
-            }}>
-            <Text style={{ fontSize: 14, color: '#333' }}>{showImage ? 'Ocultar Documento' : 'Ver Documento'}</Text>
-          </TouchableOpacity>
+        <View style={{ marginBottom: 25 }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ImgDoc', {imageUrl:route.params?.imageUrl})}
+          style={{
+            backgroundColor: '#f0f0f0',
+            padding: 10,
+            borderRadius: 6,
+            marginVertical: 8,
+            alignItems: 'center'
+          }}>
+          <Text style={{ fontSize: 14, color: '#333' }}>Ver Documento</Text>
+        </TouchableOpacity>
 
-          {showImage && (
-            <Image
-              style={{
-                width: width - 28,
-                aspectRatio: '9/16',
-                borderWidth: 0.5,
-                borderRadius: 6,
-                overflow: 'hidden',
-                borderColor: '#333',
-                marginVertical: 8,
-              }}
-              source={route.params?.imageUrl}
-              contentFit="cover"
-              transition={1000}
-            />
-          )}
-        </View>
-      ) : null}
+    </View>
+  ) : null
+}
 
 
-    </ScrollView>
+    </ScrollView >
   );
 }

@@ -11,6 +11,7 @@ import Relatorio from "./src/pages/relatorio";
 import { AppProvider } from "./src/context/appContext";
 import DetalheFuturo from './src/pages/detalhes/futuro';
 import DetalheRegistro from './src/pages/detalhes/registro';
+import ImgDoc from './src/pages/detalhes/ImgDoc';
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -45,7 +46,7 @@ export default function App() {
       positivo: '#659f99ff',
       negativo: '#C43302',
       posfraco: '#93c47d70',
-      negfraco: '#cc000030',
+      negfraco: '#9E9365',
     }
   };
 
@@ -66,9 +67,9 @@ export default function App() {
           headerTintColor: '#fff',
         }}>
           <Stack.Screen name="Main" component={TabNavigator} options={{ title:'Financeiro PSH', headerShadowVisible:false, headerTitleAlign:'center' }} />
-          {/* <Stack.Screen name="ItemRegistro" component={EdicaoImediato} options={{ headerShadowVisible: false, title: '' }} /> */}
           <Stack.Screen name="DetalheFuturo" component={DetalheFuturo} options={{ headerShadowVisible: false, title: '' }} />
           <Stack.Screen name="DetalheRegistro" component={DetalheRegistro} options={{ headerShadowVisible: false, title: '' }} />
+          <Stack.Screen name="ImgDoc" component={ImgDoc} options={{ headerShadowVisible: false, title: '', headerTransparent:true, headerStyle:{backgroundColor:'transparent'}, headerTintColor:'#659f99ff' }} />
         </Stack.Navigator>
       </AppProvider>
     </NavigationContainer>

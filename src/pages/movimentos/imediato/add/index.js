@@ -2,18 +2,19 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, ScrollView, Button, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../../../firebaseConnection';
-import { collection, addDoc,getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Importação corrigida
 import { Picker } from '@react-native-picker/picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { AppContext } from '../../../../context/appContext';
 import Input from '../../../../componentes/Input';
 import Botao from '../../../../componentes/Botao';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import { Camera } from 'expo-camera';
 
 export default function AddRegistros() {
   const [reload, setReload] = useState(false);
-  const { SomarReceitasEDespesasPorAno } = useContext(AppContext);
+  const { ResumoFinanceiro } = useContext(AppContext);
   const focus = useIsFocused();
   const navigation = useNavigation();
 
@@ -47,19 +48,19 @@ export default function AddRegistros() {
     setValor('');
     setDetalhamento('');
     setSelecionaMinisterio('');
-    setImageUri('')
+    setImageUri(null)
     setSelectedImage(undefined); // Limpa a imagem selecionada ao focar
   }, [focus]);
 
 
-  
+
   async function BuscarMinisterios() {
     const nome = collection(db, "ministerios");
     try {
       const snapshot = await getDocs(nome);
       snapshot.forEach((doc) => {
         setMinisterios(doc.data().nomes); // Assuming setMinisterio can handle multiple names
-        
+
       });
     } catch (error) {
       console.log("Erro ao buscar Saldo em Home", error);
@@ -98,7 +99,7 @@ export default function AddRegistros() {
         imageUrl: imageUrl // Armazena o URL da imagem
       });
 
-      await SomarReceitasEDespesasPorAno();
+      await ResumoFinanceiro();
       navigation.goBack();
     } catch (e) {
       console.error("Erro ao adicionar documento: ", e);
@@ -134,8 +135,8 @@ export default function AddRegistros() {
     }
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        aspect: [9,16],
+        mediaTypes: ImagePicker.mediaTypes,
+        aspect: [9, 16],
         quality: 0.7,
 
       });
@@ -228,42 +229,11 @@ export default function AddRegistros() {
         </View>
       ) : null}
 
-    
+      <View style={{ gap: 24 }}>
 
-      <View style={{ marginVertical: 10, flexDirection:'row' }}>
-
-      <TouchableOpacity
-        style={styles.imageButton}
-        onPress={takePhotoAsync}
-      >
-      {imageUri ? (
-          <Image source={{ uri: imageUri }} style={{ width: 100, aspectRatio: 9/16 }} />
-        ) : 
-        <Text style={styles.buttonText}>Foto Doc.</Text>
-        }
-      </TouchableOpacity>
-        </View>
-
-      <Botao acao={() => Registrar()} texto={'Confirmar Registro'} reload={reload} />
+        <Botao corBotao='#9E9365' icone={!imageUri ? 'camerao' : 'check'} acao={() => takePhotoAsync()} texto={!imageUri ? 'Imagem do Documento' : 'Imagem Carregada'} />
+        <Botao acao={() => Registrar()} texto={'Confirmar Registro'} reload={reload} />
+      </View>
     </ScrollView>
   );
 }
-const styles = StyleSheet.create({
-  imageButton: {
-    width:80,
-    aspectRatio:'9/16',
-    alignItems:'center',
-    justifyContent:'center',
-    borderWidth:.5,
-    borderRadius:6,
-    overflow:'hidden',
-    borderBlockColor:'#333',
-    marginVertical: 8,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#333',
-    textAlign:'center',
-    fontSize:12
-  },
-});
