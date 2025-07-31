@@ -16,13 +16,20 @@
       "supportsTablet": false
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.hupernikomen.tesourariaapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "83867f4b-7c71-4581-9d47-23b112ca1fc2"
+      }
     }
   }
 }
