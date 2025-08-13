@@ -9,10 +9,11 @@ import { AppContext } from "../../context/appContext";
 import { db } from '../../firebaseConnection'
 import { getDocs, collection, query, orderBy, limit } from "firebase/firestore"
 import Texto from '../../componentes/Texto';
+import Bxsaldo from '../../componentes/bxsaldo';
 
 export default function Home() {
 
-  const { resumoFinanceiro, saldoAtual, BuscarSaldo, formatoMoeda, obterNomeMes } = useContext(AppContext)
+  const { saldoAtual, BuscarSaldo, formatoMoeda } = useContext(AppContext)
 
   const navigation = useNavigation()
   const focus = useIsFocused()
@@ -28,28 +29,7 @@ export default function Home() {
   }, [focus])
 
 
-  function obterSaldoMesAnterior(dados) {
 
-    const dataAtual = new Date();
-    const anoAtual = dataAtual.getFullYear();
-    const mesAtual = dataAtual.getMonth() + 1; // getMonth() retorna 0-11, então adicionamos 1
-
-    // Calcular o mês anterior
-    let mesAnterior = mesAtual - 1;
-    let anoAnterior = anoAtual;
-
-    // Se o mês atual for janeiro, precisamos ajustar para dezembro do ano anterior
-    if (mesAnterior < 1) {
-      mesAnterior = 12;
-      anoAnterior -= 1;
-    }
-
-    // Encontrar o saldo do mês anterior
-    const mesAnteriorDados = dados.find(d => d.ano === anoAnterior && d.mes === mesAnterior);
-
-    // Retornar o saldo ou uma mensagem se não encontrado
-    return mesAnteriorDados ? mesAnteriorDados.saldo : null;
-  }
 
 
 
@@ -116,81 +96,52 @@ export default function Home() {
     : [];
 
 
+  function RenderItem(item) {
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={() => navigation.navigate('DetalheRegistro', item)}
+        style={[{ justifyContent: 'center', backgroundColor: '#fff', height: 75, paddingHorizontal: 21, marginBottom: 5, borderRadius: 21, marginHorizontal: 14 }]}
+      >
+        <View style={{ gap: 3 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+            <View style={{ flexDirection: 'row', backgroundColor: item.movimentacao === 'saida' ? '#F56465' : '#659f99ff', alignSelf: 'flex-start', borderRadius: 10, alignItems: 'center' }}>
+
+              <Texto texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`} size={10} estilo={{ marginLeft: -1, color: '#fff', backgroundColor: '#fff', borderRadius: 10, color: '#000', paddingHorizontal: 6, paddingVertical: 2 }} />
+              <Texto texto={`${item?.tipo.replace('_', ' ')?.toUpperCase()}`} size={9} estilo={{ color: '#fff', paddingHorizontal: 6 }} />
+            </View>
+            {!!item.imageUrl ? <AntDesign name='paperclip' /> : ''}
+          </View>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
+            <View style={{ flex: 1, maxWidth: '70%' }}>
+              <Texto linhas={2} texto={item.detalhamento} size={13} estilo={{ flexWrap: 'wrap', marginLeft: 6 }} />
+            </View>
+            <Texto texto={formatoMoeda.format(item.valor)} wheight={400} size={12} estilo={{ color: '#222' }} />
+          </View>
+        </View>
+      </TouchableOpacity>
+
+    );
+  }
+
+
   return (
     <View style={{ flex: 1 }}>
 
       <FlatList
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<ActivityIndicator color={'#659f99ff'} />}
-        contentContainerStyle={{ paddingBottom: 100 }}
         ListHeaderComponent={
-          <View>
-            <View style={{ backgroundColor: '#fff', marginBottom: 14, alignItems: 'center', height: 70, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, borderBottomStartRadius: 24, borderBottomEndRadius: 24, marginHorizontal: 14 }}>
-              {load ?
-                <View style={{ alignItems: "center", justifyContent: 'center', flex: 1 }}>
-                  <ActivityIndicator color={'#333'} />
-                </View>
-                :
-                <>
-                  <View style={{ flex: 1, alignItems: "center" }}>
-
-                    <Text style={{ fontSize: 10, color: '#333' }}>SALDO {obterNomeMes(new Date().getMonth()-1).toUpperCase()}</Text>
-                    <Text style={{ color: '#333', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}</Text>
-                  </View>
-
-                  <View style={{ alignItems: 'center', flex: 1 }}>
-
-                    <Text style={{ fontSize: 10, color: '#333' }}>SALDO {obterNomeMes(new Date().getMonth()).toUpperCase()}</Text>
-
-                    <Text style={{ color: '#333', fontSize: 16, fontWeight: 600 }}>
-                      {formatoMoeda.format(saldoAtual)}
-                    </Text>
-                  </View>
-
-
-                  <View style={{ flex: 1, alignItems: "center" }}>
-
-                    <Text style={{ fontSize: 10, color: '#333' }}>FUTUROS</Text>
-                    <Text style={{ color: '#333', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(futurosTotal)}</Text>
-                  </View>
-                </>
-              }
-            </View>
+          <View style={{ gap: 14 }}>
+            <Bxsaldo dados={{ futurosTotal, saldoAtual, load }} />
             <CarrosselParcelas dadosParcelas={dadosParcelas} />
-            <Texto texto={'Últimos Registros'} estilo={{ marginLeft: 35, marginVertical: 14 }} wheight={500} />
+            <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 40, marginVertical: 14 }} size={12} wheight={500} />
           </View>
         }
         data={sortedRegistros.slice(0, 300)} // Filtra para exibir apenas os 5 primeiros itens
-        renderItem={({ item, index }) => {
-
-          return (
-            <TouchableOpacity
-              activeOpacity={0.5}
-              onPress={() => navigation.navigate('DetalheRegistro', item)}
-              style={[{ justifyContent: 'center', backgroundColor: '#fff', height: 70, paddingHorizontal: 14, marginBottom: 3, borderRadius: 14, marginHorizontal: 14 }]}
-            >
-              <View style={{}}>
-                <View style={{flexDirection:'row', justifyContent:'space-between'}}>
-
-                  <View style={{ flexDirection: 'row', backgroundColor: item.movimentacao === 'saida' ? '#F56465' : '#659f99ff', alignSelf: 'flex-start', borderRadius: 10, alignItems: 'center' }}>
-
-                    <Texto texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`} size={10} estilo={{ marginLeft: -1, color: '#fff', backgroundColor: '#fff', borderRadius: 10, color: '#000', paddingHorizontal: 6, paddingVertical: 2 }} />
-                    <Texto texto={`${item?.tipo?.toUpperCase()}`} size={9} estilo={{ color: '#fff', paddingHorizontal: 6 }} />
-                  </View>
-                  {!!item.imageUrl ? <AntDesign name='paperclip'/> : ''}
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
-                  <View style={{ flex: 1, maxWidth: '70%' }}>
-                    <Texto linhas={2} texto={item.detalhamento} size={13} estilo={{ flexWrap: 'wrap', marginLeft: 6 }} />
-                  </View>
-                  <Texto texto={formatoMoeda.format(item.valor)} wheight={400} size={12} estilo={{ color: '#222' }} />
-                </View>
-              </View>
-            </TouchableOpacity>
-
-          );
-        }}
+        renderItem={({ item, index }) => RenderItem(item)}
       />
 
     </View>

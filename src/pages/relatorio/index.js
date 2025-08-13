@@ -41,9 +41,36 @@ export default function Relatorio() {
       mesData[key].movimentacao === 'saida' && mesData[key].total > 0
     );
 
-    const ministerios = Object.keys(mesData).filter(key =>
-      typeof mesData[key] === 'object' && mesData[key] !== null && mesData[key].total > 0 && mesData[key].ministerio
-    );
+    // Agrupar ministérios e somar valores duplicados
+    const ministeriosAgrupados = Object.keys(mesData).reduce((acc, key) => {
+      if (typeof mesData[key] === 'object' && mesData[key] !== null && mesData[key].total > 0 && mesData[key].ministerio) {
+        const ministerioNome = mesData[key].ministerio.toUpperCase();
+        if (!acc[ministerioNome]) {
+          acc[ministerioNome] = { total: 0, ministerio: ministerioNome };
+        }
+        acc[ministerioNome].total += mesData[key].total;
+      }
+      return acc;
+    }, {});
+
+    // Converter o objeto agrupado em uma lista para renderização
+    const ministerios = Object.values(ministeriosAgrupados);
+
+    // Função para pluralizar palavras, exceto as que terminam com 's'
+    const pluralizar = (palavra) => {
+      if (palavra.toLowerCase().endsWith('s')) {
+        return palavra.toUpperCase();
+      }
+      return `${palavra.toUpperCase()}S`;
+    };
+
+    // Função para formatar o nome da receita
+    const formatarNomeReceita = (key) => {
+      if (key === 'oferta_alcada') {
+        return 'OFERTAS ALCADAS';
+      }
+      return pluralizar(key.replace('_', ' '));
+    };
 
     return (
       <View style={styles.container}>
@@ -62,10 +89,9 @@ export default function Relatorio() {
           </View>
         </View>
         <View style={{padding:14}}>
-
           {receitas.map((key) => (
             <View key={key} style={styles.row}>
-              <Text style={styles.label}>{key.toUpperCase()}S</Text>
+              <Text style={styles.label}>{formatarNomeReceita(key)}</Text>
               <Text style={styles.value}>+ {formatoMoeda.format(mesData[key].total)}</Text>
             </View>
           ))}
@@ -73,16 +99,16 @@ export default function Relatorio() {
           {despesas.length > 0 && <View style={{ borderBottomColor: '#aaa', borderBottomWidth: .5 }} />}
           {despesas.map((key) => (
             <View key={key} style={styles.row}>
-              <Text style={styles.label}>{key.toUpperCase()}S</Text>
+              <Text style={styles.label}>{pluralizar(key)}</Text>
               <Text style={styles.value}>- {formatoMoeda.format(mesData[key].total)}</Text>
             </View>
           ))}
 
           {ministerios.length > 0 && <View style={{ borderBottomColor: '#aaa', borderBottomWidth: .5 }} />}
-          {ministerios.map((key) => (
-            <View key={key} style={styles.row}>
-              <Text style={styles.label}>{mesData[key].ministerio.toUpperCase()}</Text>
-              <Text style={styles.value}>- {formatoMoeda.format(mesData[key].total)}</Text>
+          {ministerios.map((min) => (
+            <View key={min.ministerio} style={styles.row}>
+              <Text style={styles.label}>{min.ministerio}</Text>
+              <Text style={styles.value}>- {formatoMoeda.format(min.total)}</Text>
             </View>
           ))}
         </View>
@@ -139,7 +165,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 21,
     padding: 16,
     marginBottom: 14,
     shadowColor: '#000',

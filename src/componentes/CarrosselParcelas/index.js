@@ -35,7 +35,7 @@ const Parcelas = ({ dadosParcelas }) => {
       {dadosParcelas.length > 0 ? (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: "center" }}>
-            <Text style={{ fontWeight: 500, fontSize: 14, color: '#000', marginLeft: 35 }}>Despesas Futuras ({dadosParcelas.length})</Text>
+            <Text style={{ fontWeight: 500, fontSize: 12, color: '#000', marginLeft: 40 }}>DESPESAS FUTURAS ({dadosParcelas.length})</Text>
           </View>
         </View>
       ) : null}
@@ -57,9 +57,9 @@ const Parcelas = ({ dadosParcelas }) => {
             <TouchableOpacity
               activeOpacity={0.5}
               onPress={() => navigation.navigate('DetalheFuturo', item)}
-              style={[{ width: width - 60, justifyContent: 'center', backgroundColor: '#fff', height: 70, paddingHorizontal: 14, marginBottom: 2.5, borderRadius: 14 }]}
+              style={[{ width: width - 60, justifyContent: 'center', backgroundColor: '#fff', height: 75, paddingHorizontal: 21, marginBottom: 2.5, borderRadius: 21, borderWidth: isVencido ? 2 : 1, borderColor:isVencido ? '#FE9900' : '#659f99ff',  }]}
             >
-              <View>
+              <View style={{gap:3}}>
                 <View style={{ flexDirection: 'row', backgroundColor: isVencido ? '#FE9900' : '#777', alignSelf: 'flex-start', borderRadius: 10 }}>
 
                   <Texto texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`} size={10} estilo={{ marginLeft: -1, color: '#fff', backgroundColor: '#fff', borderRadius: 10, color: '#000', paddingHorizontal: 6, paddingVertical: 1 }} />

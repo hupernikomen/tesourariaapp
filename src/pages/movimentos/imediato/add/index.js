@@ -11,6 +11,7 @@ import Input from '../../../../componentes/Input';
 import Botao from '../../../../componentes/Botao';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { Camera } from 'expo-camera';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function AddRegistros() {
   const [reload, setReload] = useState(false);
@@ -20,7 +21,7 @@ export default function AddRegistros() {
 
   const [movimentacao, setMovimentacao] = useState('');
   const [selecionaTipo, setSelecionaTipo] = useState("");
-  const [dataDoc, setDataDoc] = useState(new Intl.DateTimeFormat('pt-BR', options).format(new Date()));
+  const [dataDoc, setDataDoc] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
   const [valor, setValor] = useState(0);
   const [selecionaMinisterio, setSelecionaMinisterio] = useState('');
@@ -30,7 +31,7 @@ export default function AddRegistros() {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
 
   const [ministerios, setMinisterios] = useState([])
-
+const [show, setShow] = useState(false)
 
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export default function AddRegistros() {
   useEffect(() => {
     setMovimentacao('');
     setSelecionaTipo('');
-    setDataDoc(new Intl.DateTimeFormat('pt-BR', options).format(new Date()));
+    setDataDoc(new Date());
     setValor('');
     setDetalhamento('');
     setSelecionaMinisterio('');
@@ -157,10 +158,30 @@ export default function AddRegistros() {
     timeZone: 'America/Sao_Paulo',
   };
 
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || dataDoc;
+    setShow(false);
+    setDataDoc(currentDate);
+  };
+
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, margin: 14 }}>
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 6, backgroundColor: '#fff' }}>
-        <Text style={{ position: 'absolute', zIndex: 9, left: 17, fontSize: 12, fontWeight: 300, top: 10 }}>Tipo:</Text>
+
+
+      {show && (
+      <DateTimePicker
+          value={dataDoc}
+          mode="date"
+          display="spinner"
+          onChange={onChange}
+        />
+      )}
+
+      <Input editable={false} title={'Data Registro'} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={()=>setShow(true)} />
+     
+
+      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal:7 }}>
+        <Text style={{ position: 'absolute', zIndex: 9, left: 21, fontSize: 12, fontWeight: 300, top: 10 }}>Tipo:</Text>
         <Picker
           style={{ paddingTop: 18 }}
           selectedValue={movimentacao}
@@ -174,8 +195,8 @@ export default function AddRegistros() {
         </Picker>
       </View>
 
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 6, backgroundColor: '#fff' }}>
-        <Text style={{ position: 'absolute', zIndex: 9, left: 17, fontSize: 12, fontWeight: 300, top: 10 }}>Categoria:</Text>
+      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff' , paddingHorizontal:7}}>
+        <Text style={{ position: 'absolute', zIndex: 9, left: 21, fontSize: 12, fontWeight: 300, top: 10 }}>Categoria:</Text>
         {movimentacao === 'entrada' ? (
           <Picker
             style={{ paddingTop: 18 }}
@@ -209,7 +230,7 @@ export default function AddRegistros() {
         )}
       </View>
 
-      <Input title={'Data Registro'} value={dataDoc} setValue={setDataDoc} />
+
       <Input title={'Valor Pago'} value={valor} setValue={setValor} type='numeric' />
       <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 

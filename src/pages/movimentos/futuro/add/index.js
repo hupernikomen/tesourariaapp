@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { db } from '../../../../firebaseConnection';
-import { collection, addDoc,getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../../../componentes/Input';
 import Botao from '../../../../componentes/Botao';
 import Texto from '../../../../componentes/Texto';
 
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 export default function Parcelamento() {
 
   const [reload, setReload] = useState(false)
-  const [dataDoc, setDataDoc] = useState()
+  const [dataDoc, setDataDoc] = useState(new Date())
 
   const [frequencia, setFrequencia] = useState('mensal'); // Frequency of payments
   const [detalhamento, setDetalhamento] = useState('');
@@ -22,17 +24,11 @@ export default function Parcelamento() {
   const navigation = useNavigation();
   const [selecionaMinisterio, setSelecionaMinisterio] = useState('');
   const [ministerios, setMinisterios] = useState([])
-
+  const [show, setShow] = useState(false)
 
 
   useEffect(() => {
-    setDataDoc(new Intl.DateTimeFormat('pt-BR', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-      timeZone: 'America/Sao_Paulo'
-    }).format(new Date(new Date().setMonth(new Date().getMonth() + 1))))
-
+    setDataDoc(new Date());
     BuscarMinisterios()
   }, [])
 
@@ -150,10 +146,30 @@ export default function Parcelamento() {
 
 
 
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || dataDoc;
+    setShow(false);
+    setDataDoc(currentDate);
+  };
+
+
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, padding: 14 }}>
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 6, backgroundColor: '#fff' }}>
-        <Text style={{ position: 'absolute', zIndex: 9, left: 17, fontSize: 12, fontWeight: 300, top: 10 }}>Tipo:</Text>
+
+      {show && (
+        <DateTimePicker
+          value={dataDoc}
+          mode="date"
+          display="spinner"
+          onChange={onChange}
+        />
+      )}
+
+      <Input editable={false} title={'Próximo Vencimento'} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} />
+
+
+      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
+        <Text style={{ position: 'absolute', zIndex: 9, left: 21, fontSize: 12, fontWeight: 300, top: 10 }}>Tipo:</Text>
         <Picker
           style={{ paddingTop: 18 }}
           selectedValue={tipo}
@@ -168,10 +184,10 @@ export default function Parcelamento() {
       <Input title={'Valor a Pagar'} value={valor} setValue={(text) => setValor(parseFloat(text) || 0)} type='numeric' />
       <Input title={'Nº Prestações'} place={String(recorrencia)} value={recorrencia} setValue={setRecorrencia} type='numeric' info={recorrencia ? recorrencia + 'x ' + formatoMoeda.format(valor / recorrencia) : null} />
 
-      <Input title={'Próximo Vencimento'} value={dataDoc} setValue={setDataDoc} type='numeric' maxlength={10} />
 
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 6, backgroundColor: '#fff' }}>
-        <Text style={{ position: 'absolute', zIndex: 9, left: 17, fontSize: 12, fontWeight: 300, top: 10 }}>Ministério:</Text>
+
+      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
+        <Text style={{ position: 'absolute', zIndex: 9, left: 21, fontSize: 12, fontWeight: 300, top: 10 }}>Ministério:</Text>
         <Picker
           style={{ paddingTop: 18 }}
           selectedValue={selecionaMinisterio}

@@ -68,7 +68,7 @@ export default function App() {
           headerTintColor: '#fff',
         }}>
           {/* <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShadowVisible: false, title: '', headerTransparent:true, headerStyle:{backgroundColor:'transparent'}, headerTintColor:'#659f99ff' }} /> */}
-          <Stack.Screen name="Main" component={TabNavigator} options={{ title:'Financeiro PSH', headerShadowVisible:false, headerTitleAlign:'center' }} />
+          <Stack.Screen name="Main" component={TabNavigator} options={{ headerShown:false, title:'Financeiro PSH', headerShadowVisible:false, headerTitleAlign:'center' }} />
           <Stack.Screen name="DetalheFuturo" component={DetalheFuturo} options={{ headerShadowVisible: false, title: '' }} />
           <Stack.Screen name="DetalheRegistro" component={DetalheRegistro} options={{ headerShadowVisible: false, title: '' }} />
           <Stack.Screen name="ImgDoc" component={ImgDoc} options={{ headerShadowVisible: false, title: '', headerTransparent:true, headerStyle:{backgroundColor:'transparent'}, headerTintColor:'#659f99ff' }} />

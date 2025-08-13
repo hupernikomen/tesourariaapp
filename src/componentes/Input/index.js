@@ -10,7 +10,7 @@ export default function Input({ editable = true, type = 'default', title, value,
       minHeight: 60,
       paddingVertical: 8,
       marginVertical: 4,
-      borderRadius: 6,
+      borderRadius: 21,
       paddingHorizontal: 12,
       backgroundColor:"#fff"
     },
@@ -18,12 +18,13 @@ export default function Input({ editable = true, type = 'default', title, value,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 6
+      paddingHorizontal: 7
     },
     title: {
       color: '#000',
       fontSize: 12,
-      fontWeight:300
+      fontWeight:300,
+      marginLeft:4
     },
     info: {
       color: '#aaa',
@@ -37,7 +38,8 @@ export default function Input({ editable = true, type = 'default', title, value,
     },
     containerInput: {
       flexDirection: 'row',
-      justifyContent: 'space-between'
+      justifyContent: 'space-between',
+      paddingHorizontal:2
     }
   })
 
