@@ -32,13 +32,13 @@ export default function Relatorio() {
 
   const MesScreen = ({ mesData }) => {
     const receitas = Object.keys(mesData).filter(key =>
-      key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'entrada' && key !== 'saida' && key !== 'saldo' &&
-      mesData[key].movimentacao === 'entrada' && mesData[key].total > 0
+      key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
+      mesData[key].movimentacao === 'receita' && mesData[key].total > 0
     );
 
     const despesas = Object.keys(mesData).filter(key =>
-      key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'entrada' && key !== 'saida' && key !== 'saldo' &&
-      mesData[key].movimentacao === 'saida' && mesData[key].total > 0
+      key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
+      mesData[key].movimentacao === 'despesa' && mesData[key].total > 0
     );
 
     // Agrupar ministérios e somar valores duplicados
@@ -56,32 +56,19 @@ export default function Relatorio() {
     // Converter o objeto agrupado em uma lista para renderização
     const ministerios = Object.values(ministeriosAgrupados);
 
-    // Função para pluralizar palavras, exceto as que terminam com 's'
-    const pluralizar = (palavra) => {
-      if (palavra.toLowerCase().endsWith('s')) {
-        return palavra.toUpperCase();
-      }
-      return `${palavra.toUpperCase()}S`;
-    };
 
-    // Função para formatar o nome da receita
-    const formatarNomeReceita = (key) => {
-      if (key === 'oferta_alcada') {
-        return 'OFERTAS ALCADAS';
-      }
-      return pluralizar(key.replace('_', ' '));
-    };
+
 
     return (
       <View style={styles.container}>
         <View style={styles.card}>
           <View style={styles.row}>
             <Text style={styles.label}>RECEITAS</Text>
-            <Text style={styles.value}>{formatoMoeda.format(mesData.entrada)}</Text>
+            <Text style={styles.value}>{formatoMoeda.format(mesData.receita)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>DESPESAS</Text>
-            <Text style={styles.value}>{formatoMoeda.format(mesData.saida)}</Text>
+            <Text style={styles.value}>{formatoMoeda.format(mesData.despesa)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>SALDO</Text>
@@ -91,7 +78,7 @@ export default function Relatorio() {
         <View style={{padding:14}}>
           {receitas.map((key) => (
             <View key={key} style={styles.row}>
-              <Text style={styles.label}>{formatarNomeReceita(key)}</Text>
+              <Text style={styles.label}>{key.toUpperCase()}</Text>
               <Text style={styles.value}>+ {formatoMoeda.format(mesData[key].total)}</Text>
             </View>
           ))}
@@ -99,7 +86,7 @@ export default function Relatorio() {
           {despesas.length > 0 && <View style={{ borderBottomColor: '#aaa', borderBottomWidth: .5 }} />}
           {despesas.map((key) => (
             <View key={key} style={styles.row}>
-              <Text style={styles.label}>{pluralizar(key)}</Text>
+              <Text style={styles.label}>{key.toUpperCase()}</Text>
               <Text style={styles.value}>- {formatoMoeda.format(mesData[key].total)}</Text>
             </View>
           ))}
@@ -179,6 +166,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     color: '#333',
+    
   },
   value: {
     fontSize: 12,

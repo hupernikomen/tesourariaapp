@@ -23,16 +23,16 @@ function TabNavigator() {
       screenOptions={{
         tabBarScrollEnabled: true,
         tabBarItemStyle: { width: 110 },
-        tabBarActiveTintColor: '#fff',
-        tabBarIndicatorStyle: { backgroundColor: '#f3f3f3', height:3 },
-        tabBarStyle: { backgroundColor: '#659f99ff' },
-        tabBarLabelStyle:{fontSize:12}
-        
+        tabBarActiveTintColor: '#222',
+        tabBarIndicatorStyle: { backgroundColor: '#222', height: 1 },
+        tabBarStyle: { backgroundColor: '#fff' },
+        tabBarLabelStyle: { fontSize: 12 }
+
       }}
-      >
-      <Tab.Screen name="Home" component={Home} options={{title:'HOME'}} />
-      <Tab.Screen name="AddRegistros" component={AddImediato} options={{title:'REGISTRO'}}/>
-      <Tab.Screen name="Parcelamento" component={AddFuturo} options={{title: 'FUTURO'}}/>
+    >
+      <Tab.Screen name="Home" component={Home} options={{ title: 'HOME' }} />
+      <Tab.Screen name="AddRegistros" component={AddImediato} options={{ title: 'REGISTRO' }} />
+      <Tab.Screen name="Parcelamento" component={AddFuturo} options={{ title: 'FUTURO' }} />
       <Tab.Screen name="Relatorio" component={Relatorio} options={{ headerShadowVisible: false, title: 'RELATÓRIO' }} />
     </Tab.Navigator>
   );
@@ -54,24 +54,25 @@ export default function App() {
   return (
     <NavigationContainer theme={Theme} >
       <StatusBar
-        backgroundColor={'#659f99ff'}
-        barStyle={'light-content'} />
+        backgroundColor={'#fff'}
+        barStyle={'dark-content'} />
 
       <AppProvider>
         <Stack.Navigator initialRouteName='Main' screenOptions={{
           headerStyle: {
-            backgroundColor: '#659f99ff'
+            backgroundColor: '#fff'
           },
           headerTitleStyle: {
-            fontSize: 18
+            fontSize: 19,
+            fontWeight: 700
           },
-          headerTintColor: '#fff',
+          headerTintColor: '#222',
         }}>
           {/* <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShadowVisible: false, title: '', headerTransparent:true, headerStyle:{backgroundColor:'transparent'}, headerTintColor:'#659f99ff' }} /> */}
-          <Stack.Screen name="Main" component={TabNavigator} options={{ headerShown:false, title:'Financeiro PSH', headerShadowVisible:false, headerTitleAlign:'center' }} />
+          <Stack.Screen name="Main" component={TabNavigator} options={{ title: 'Financeiro PSH', headerShadowVisible: false }} />
           <Stack.Screen name="DetalheFuturo" component={DetalheFuturo} options={{ headerShadowVisible: false, title: '' }} />
           <Stack.Screen name="DetalheRegistro" component={DetalheRegistro} options={{ headerShadowVisible: false, title: '' }} />
-          <Stack.Screen name="ImgDoc" component={ImgDoc} options={{ headerShadowVisible: false, title: '', headerTransparent:true, headerStyle:{backgroundColor:'transparent'}, headerTintColor:'#659f99ff' }} />
+          <Stack.Screen name="ImgDoc" component={ImgDoc} options={{ headerShadowVisible: false, title: '', headerTransparent: true, headerStyle: { backgroundColor: 'transparent' }, headerTintColor: '#659f99ff' }} />
         </Stack.Navigator>
       </AppProvider>
     </NavigationContainer>

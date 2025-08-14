@@ -2,59 +2,58 @@ import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 
-export default function Input({ editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info, onpress, place }) {
+export default function Input({ list = [], iconName, editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info, onpress, place }) {
 
 
   const stl = StyleSheet.create({
     box: {
       minHeight: 60,
       paddingVertical: 8,
-      marginVertical: 4,
+      marginVertical: 3.5,
       borderRadius: 21,
-      paddingHorizontal: 12,
-      backgroundColor:"#fff"
+      paddingHorizontal: 21,
+      backgroundColor: "#fff"
     },
     boxtop: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 7
     },
     title: {
-      color: '#000',
+      color: '#999',
       fontSize: 12,
-      fontWeight:300,
-      marginLeft:4
+      fontWeight: 300,
+      marginLeft: 3,
+      marginTop: -5
     },
     info: {
       color: '#aaa',
       fontSize: 13
     },
     input: {
-      color: '#000',
-      marginTop:-10,
-      paddingHorizontal:7,
-      flex:1
+      color: editable ? '#000' : '#999',
+      marginTop: -10,
+      flex: 1
     },
     containerInput: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal:2
     }
   })
 
   return (
     <View style={stl.box}>
       <View style={stl.boxtop}>
-        <Text style={stl.title}>{title}</Text>
-        <Text style={stl.info}>{info}</Text>
+        <Text style={stl.title}>{value ? title : ''}</Text>
+        {info ? <Text style={stl.info}>{info}</Text> : null}
       </View>
 
       <View style={stl.containerInput}>
 
         <TextInput
-        
-        placeholder={place}
+
+          placeholder={value ? place : title}
+          placeholderTextColor={'#999'}
           editable={editable}
           maxLength={maxlength}
           multiline={multiline}
@@ -66,7 +65,7 @@ export default function Input({ editable = true, type = 'default', title, value,
 
         {!!onpress ?
           <Pressable onPress={onpress}>
-           <AntDesign name='calendar' size={22}/>
+            <AntDesign name={iconName} size={20} />
           </Pressable>
           : null}
       </View>

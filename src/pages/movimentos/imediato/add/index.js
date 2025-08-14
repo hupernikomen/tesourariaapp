@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, ScrollView, Button, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
@@ -9,9 +9,10 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { AppContext } from '../../../../context/appContext';
 import Input from '../../../../componentes/Input';
 import Botao from '../../../../componentes/Botao';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import { Camera } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Texto from '../../../../componentes/Texto';
+
 
 export default function AddRegistros() {
   const [reload, setReload] = useState(false);
@@ -31,7 +32,11 @@ export default function AddRegistros() {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
 
   const [ministerios, setMinisterios] = useState([])
-const [show, setShow] = useState(false)
+  const [show, setShow] = useState(false)
+
+
+  const [selectedOption, setSelectedOption] = useState('');
+  const [transactionType, setTransactionType] = useState(null);
 
 
   useEffect(() => {
@@ -43,8 +48,7 @@ const [show, setShow] = useState(false)
   }, []);
 
   useEffect(() => {
-    setMovimentacao('');
-    setSelecionaTipo('');
+    setSelectedOption('');
     setDataDoc(new Date());
     setValor('');
     setDetalhamento('');
@@ -53,6 +57,23 @@ const [show, setShow] = useState(false)
     setSelectedImage(undefined); // Limpa a imagem selecionada ao focar
   }, [focus]);
 
+
+  const pickerOptions = [
+    { label: 'Dízimos', type: 'receita' },
+    { label: 'Compras', type: 'despesa' },
+    { label: 'Ofertas', type: 'receita' },
+    { label: 'Ofertas Alçadas', type: 'receita' },
+    { label: 'Prebendas', type: 'despesa' },
+    { label: 'Empréstimos', type: 'despesa' },
+    { label: 'Contas Recorrentes', type: 'despesa' },
+  ];
+
+
+  const handleValueChange = (value) => {
+    setSelectedOption(value);
+    const selectedItem = pickerOptions.find((option) => option.label === value);
+    setTransactionType(selectedItem ? selectedItem.type : '');
+  };
 
 
   async function BuscarMinisterios() {
@@ -71,14 +92,10 @@ const [show, setShow] = useState(false)
 
 
   async function Registrar() {
-    if (selecionaTipo === "vazio" || !valor || reload) {
+    if (selectedOption === "vazio" || !valor || reload) {
       return;
     }
 
-    if (converteParaTimestamp(dataDoc) > Date.now()) {
-      console.log('data invalida');
-      return;
-    }
 
     setReload(true);
 
@@ -90,10 +107,10 @@ const [show, setShow] = useState(false)
 
       await addDoc(collection(db, "registros"), {
         reg: Date.now(),
-        dataDoc: converteParaTimestamp(dataDoc),
-        movimentacao,
-        tipo: selecionaTipo,
-        ministerio: selecionaMinisterio,
+        dataDoc: dataDoc.getTime(),
+        movimentacao: transactionType,
+        tipo: selectedOption,
+        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
         detalhamento: detalhamento,
         valor: parseFloat(valor),
         section: 'a vista',
@@ -121,11 +138,6 @@ const [show, setShow] = useState(false)
     return downloadURL; // Retorna o URL da imagem
   }
 
-  function converteParaTimestamp(dataStr) {
-    const [dia, mes, ano] = dataStr.split('/').map(Number);
-    const data = new Date(ano, mes - 1, dia);
-    return data.getTime();
-  }
 
 
 
@@ -151,12 +163,7 @@ const [show, setShow] = useState(false)
     }
   };
 
-  const options = {
-    month: '2-digit',
-    day: '2-digit',
-    year: 'numeric',
-    timeZone: 'America/Sao_Paulo',
-  };
+
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || dataDoc;
@@ -167,9 +174,8 @@ const [show, setShow] = useState(false)
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, margin: 14 }}>
 
-
       {show && (
-      <DateTimePicker
+        <DateTimePicker
           value={dataDoc}
           mode="date"
           display="spinner"
@@ -177,72 +183,38 @@ const [show, setShow] = useState(false)
         />
       )}
 
-      <Input editable={false} title={'Data Registro'} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={()=>setShow(true)} />
-     
+      <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)}  iconName={'calendar'}/>
 
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal:7 }}>
-        <Text style={{ position: 'absolute', zIndex: 9, left: 21, fontSize: 12, fontWeight: 300, top: 10 }}>Tipo:</Text>
+
+
+      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
+        {/* <Text style={{ position: 'absolute', zIndex: 9, left: 24, fontSize: 12, fontWeight: 300, top: 10 }}>{selectedOption === '' ?selectedOption:''}</Text> */}
+
         <Picker
-          style={{ paddingTop: 18 }}
-          selectedValue={movimentacao}
-          onValueChange={(itemValue) => {
-            setMovimentacao(itemValue);
-          }}
+          style={{ left: 4 }}
+          selectedValue={selectedOption}
+          onValueChange={handleValueChange}
         >
-          <Picker.Item label="" style={{ fontSize: 14, color: '#aaa' }} />
-          <Picker.Item label="Entrada" value="entrada" style={{ fontSize: 14 }} />
-          <Picker.Item label="Saída" value="saida" style={{ fontSize: 14 }} />
+          <Picker.Item style={{ fontSize: 14, color: '#999' }} label={'Tipo de Registro'} />
+          {pickerOptions.map((option, index) => (
+            <Picker.Item style={{ fontSize: 14 }} key={index} label={option.label} value={option.label} />
+          ))}
         </Picker>
-      </View>
 
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff' , paddingHorizontal:7}}>
-        <Text style={{ position: 'absolute', zIndex: 9, left: 21, fontSize: 12, fontWeight: 300, top: 10 }}>Categoria:</Text>
-        {movimentacao === 'entrada' ? (
-          <Picker
-            style={{ paddingTop: 18 }}
-            selectedValue={selecionaTipo}
-            onValueChange={(itemValue) => {
-              setSelecionaTipo(itemValue);
-            }}
-          >
-            <Picker.Item label="" style={{ fontSize: 14, color: '#aaa' }} />
-            <Picker.Item label="Dízimos" value="dizimo" style={{ fontSize: 14 }} />
-            <Picker.Item label="Ofertas" value="oferta" style={{ fontSize: 14 }} />
-            <Picker.Item label="Ofertas Alçadas" value="ofertaalcada" style={{ fontSize: 14 }} />
-            <Picker.Item label="Arrecadados" value="arrecadado" style={{ fontSize: 14 }} />
-            <Picker.Item label="Outros" value="outros" style={{ fontSize: 14 }} />
-          </Picker>
-        ) : (
-          <Picker
-            style={{ paddingTop: 18 }}
-            selectedValue={selecionaTipo}
-            onValueChange={(itemValue) => {
-              setSelecionaTipo(itemValue);
-            }}
-          >
-            <Picker.Item label="" style={{ fontSize: 14, color: '#aaa' }} />
-            <Picker.Item label="Compras" value="compra" style={{ fontSize: 14 }} />
-            <Picker.Item label="Prebendas" value="prebenda" style={{ fontSize: 14 }} />
-            <Picker.Item label="Contas" value="conta" style={{ fontSize: 14 }} />
-            <Picker.Item label="Ofertas" value="oferta" style={{ fontSize: 14 }} />
-            <Picker.Item label="Outros" value="outros" style={{ fontSize: 14 }} />
-          </Picker>
-        )}
       </View>
 
 
       <Input title={'Valor Pago'} value={valor} setValue={setValor} type='numeric' />
       <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
-      {movimentacao === 'saida' ? (
-        <View style={{ height: 60, marginVertical: 4, borderRadius: 6, backgroundColor: "#fff" }}>
-          <Text style={{ position: 'absolute', zIndex: 9, left: 14, fontSize: 12, fontWeight: '300', top: 10 }}>Ministério:</Text>
+      {transactionType === 'despesa' ? (
+        <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
           <Picker
-            style={{ paddingTop: 18 }}
+            style={{ left: 4 }}
             selectedValue={selecionaMinisterio}
             onValueChange={(itemValue) => setSelecionaMinisterio(itemValue)}
           >
-            <Picker.Item label='' style={{ fontSize: 14 }} />
+            <Picker.Item style={{ fontSize: 15, color: '#999' }} label={'Ministério'} />
             {ministerios.map((item, index) => (
               <Picker.Item key={index} label={item} value={item} style={{ fontSize: 14 }} />
             ))}
@@ -252,9 +224,12 @@ const [show, setShow] = useState(false)
 
       <View style={{ gap: 24 }}>
 
-        <Botao corBotao='#9E9365' icone={!imageUri ? 'camerao' : 'check'} acao={() => takePhotoAsync()} texto={!imageUri ? 'Imagem do Documento' : 'Imagem Carregada'} />
-        <Botao acao={() => Registrar()} texto={'Confirmar Registro'} reload={reload} />
+        <Input value={!imageUri ? 'Imagem do Documento' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'camerao' : 'check'} onpress={() => takePhotoAsync()}/>
+
+        <Botao acao={() => Registrar()} texto={'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
       </View>
     </ScrollView>
   );
 }
+
+// 

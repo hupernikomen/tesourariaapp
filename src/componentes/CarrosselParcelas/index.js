@@ -57,7 +57,7 @@ const Parcelas = ({ dadosParcelas }) => {
             <TouchableOpacity
               activeOpacity={0.5}
               onPress={() => navigation.navigate('DetalheFuturo', item)}
-              style={[{ width: width - 60, justifyContent: 'center', backgroundColor: '#fff', height: 75, paddingHorizontal: 21, marginBottom: 2.5, borderRadius: 21, borderWidth: isVencido ? 2 : 1, borderColor:isVencido ? '#FE9900' : '#659f99ff',  }]}
+              style={[{ width: width - 60, justifyContent: 'center', backgroundColor: '#fff', height: 75, paddingHorizontal: 21, marginBottom: 2.5, borderRadius: 21, borderWidth: isVencido ? 1.5 : 0, borderColor:isVencido ? '#FE9900' : '#659f99ff',  }]}
             >
               <View style={{gap:3}}>
                 <View style={{ flexDirection: 'row', backgroundColor: isVencido ? '#FE9900' : '#777', alignSelf: 'flex-start', borderRadius: 10 }}>

@@ -7,13 +7,16 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { AppContext } from "../../context/appContext";
 
 import { db } from '../../firebaseConnection'
-import { getDocs, collection, query, orderBy, limit } from "firebase/firestore"
+import { getDocs, collection, query, orderBy, limit, doc, deleteDoc } from "firebase/firestore"
+import { getStorage, ref, deleteObject } from "firebase/storage";
 import Texto from '../../componentes/Texto';
 import Bxsaldo from '../../componentes/bxsaldo';
 
 export default function Home() {
 
-  const { saldoAtual, BuscarSaldo, formatoMoeda } = useContext(AppContext)
+  const { saldoAtual, BuscarSaldo, formatoMoeda, ResumoFinanceiro } = useContext(AppContext)
+
+  const [idSelecionado, setIdSelecionado] = useState(null)
 
   const navigation = useNavigation()
   const focus = useIsFocused()
@@ -25,6 +28,7 @@ export default function Home() {
 
   useEffect(() => {
     Promise.all([BuscarRegistrosFinanceiros()])
+    setIdSelecionado(null)
 
   }, [focus])
 
@@ -96,18 +100,64 @@ export default function Home() {
     : [];
 
 
+  async function ExcluiRegistro(item) {
+    console.log(item);
+
+    const docRegistrosFinanceiros = doc(db, "registros", item.id);
+    const imageUrl = item.imageUrl;
+    const storage = getStorage();
+
+    try {
+      // Tentativa de excluir a imagem (se existir URL)
+      if (imageUrl) {
+        try {
+          const imageRef = ref(storage, imageUrl);
+          await deleteObject(imageRef);
+          console.log("Imagem excluída com sucesso");
+        } catch (imageError) {
+          // Ignora especificamente erros de "imagem não encontrada"
+          if (imageError.code === 'storage/object-not-found') {
+            console.log("Imagem já não existe no Storage, continuando...");
+          } else {
+            throw imageError; // Re-lança outros erros
+          }
+        }
+      }
+
+      // Exclusão do documento (ocorre independentemente da imagem)
+      await deleteDoc(docRegistrosFinanceiros);
+      console.log("Registro do Firestore excluído");
+
+      // Atualizações pós-exclusão
+      await ResumoFinanceiro();
+      await BuscarRegistrosFinanceiros()
+
+    } catch (e) {
+      console.error("Erro crítico ao excluir:", e);
+      alert("Ocorreu um erro durante a exclusão");
+    }
+  }
+
+
+
   function RenderItem(item) {
 
+    let expand = idSelecionado === item.id
+
+
     return (
-      <TouchableOpacity
-        activeOpacity={0.5}
-        onPress={() => navigation.navigate('DetalheRegistro', item)}
-        style={[{ justifyContent: 'center', backgroundColor: '#fff', height: 75, paddingHorizontal: 21, marginBottom: 5, borderRadius: 21, marginHorizontal: 14 }]}
-      >
-        <View style={{ gap: 3 }}>
+
+      <View>
+
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setIdSelecionado(item.id)}
+           onLongPress={() => ExcluiRegistro(item)}
+          style={[{ justifyContent: 'center', backgroundColor: '#fff', padding: 21, borderRadius: 21, marginHorizontal: 14}]}
+        >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-            <View style={{ flexDirection: 'row', backgroundColor: item.movimentacao === 'saida' ? '#F56465' : '#659f99ff', alignSelf: 'flex-start', borderRadius: 10, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', backgroundColor: item.movimentacao === 'despesa' ? '#F56465' : '#659f99ff', alignSelf: 'flex-start', borderRadius: 10, alignItems: 'center' }}>
 
               <Texto texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`} size={10} estilo={{ marginLeft: -1, color: '#fff', backgroundColor: '#fff', borderRadius: 10, color: '#000', paddingHorizontal: 6, paddingVertical: 2 }} />
               <Texto texto={`${item?.tipo.replace('_', ' ')?.toUpperCase()}`} size={9} estilo={{ color: '#fff', paddingHorizontal: 6 }} />
@@ -115,15 +165,21 @@ export default function Home() {
             {!!item.imageUrl ? <AntDesign name='paperclip' /> : ''}
           </View>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop:7 }}>
             <View style={{ flex: 1, maxWidth: '70%' }}>
-              <Texto linhas={2} texto={item.detalhamento} size={13} estilo={{ flexWrap: 'wrap', marginLeft: 6 }} />
+              <Texto linhas={expand ? 0 : 1} texto={item.detalhamento} size={13} estilo={{ flexWrap: 'wrap' }} />
             </View>
             <Texto texto={formatoMoeda.format(item.valor)} wheight={400} size={12} estilo={{ color: '#222' }} />
           </View>
-        </View>
-      </TouchableOpacity>
 
+          {expand ? <View>
+
+            {item.ministerio ? <Texto texto={item.ministerio} size={12} wheight={300} /> : null}
+
+
+          </View> : null}
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -133,8 +189,10 @@ export default function Home() {
 
       <FlatList
         showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={<View style={{ marginVertical: 4 }} />}
+        ListFooterComponent={<View style={{ marginVertical: 4 }} />}
         ListHeaderComponent={
-          <View style={{ gap: 14 }}>
+          <View style={{ gap: 7 }}>
             <Bxsaldo dados={{ futurosTotal, saldoAtual, load }} />
             <CarrosselParcelas dadosParcelas={dadosParcelas} />
             <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 40, marginVertical: 14 }} size={12} wheight={500} />

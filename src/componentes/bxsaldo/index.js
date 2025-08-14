@@ -31,24 +31,24 @@ export default function Bxsaldo({dados}) {
 
   return (
     <View>
-      <View style={{ backgroundColor: '#fff', marginBottom: 14, alignItems: 'center', height: 75, flexDirection: 'row', justifyContent: 'space-between', borderBottomStartRadius: 24, borderBottomEndRadius: 24, marginHorizontal: 14 }}>
+      <View style={{ backgroundColor: '#fff', marginBottom: 14, alignItems: 'center', height: 65, flexDirection: 'row', justifyContent: 'space-between', borderBottomStartRadius: 24, borderBottomEndRadius: 24, marginHorizontal: 14 }}>
         {dados.load ?
           <View style={{ alignItems: "center", justifyContent: 'center', flex: 1 }}>
-            <ActivityIndicator color={'#333'} />
+            <ActivityIndicator color={'#222'} />
           </View>
           :
           <>
             <View style={{ flex: 1, alignItems: "center" }}>
 
-              <Text style={{ fontSize: 10, color: '#333' }}>{obterNomeMes(new Date().getMonth() - 1).toUpperCase()}</Text>
-              <Text style={{ color: '#333', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}</Text>
+              <Text style={{ fontSize: 10, color: '#222' }}>{obterNomeMes(new Date().getMonth() - 1).toUpperCase()}</Text>
+              <Text style={{ color: '#222', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}</Text>
             </View>
 
             <View style={{ alignItems: 'center', flex: 1 }}>
 
-              <Text style={{ fontSize: 10, color: '#333' }}>{obterNomeMes(new Date().getMonth()).toUpperCase()}</Text>
+              <Text style={{ fontSize: 10, color: '#222' }}>{obterNomeMes(new Date().getMonth()).toUpperCase()}</Text>
 
-              <Text style={{ color: '#333', fontSize: 16, fontWeight: 600 }}>
+              <Text style={{ color: '#222', fontSize: 16, fontWeight: 600 }}>
                 {formatoMoeda.format(dados.saldoAtual)}
               </Text>
             </View>
@@ -56,8 +56,8 @@ export default function Bxsaldo({dados}) {
 
             <View style={{ flex: 1, alignItems: "center" }}>
 
-              <Text style={{ fontSize: 10, color: '#333' }}>FUTURO</Text>
-              <Text style={{ color: '#333', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(dados.futurosTotal - dados.saldoAtual)}</Text>
+              <Text style={{ fontSize: 10, color: '#222' }}>FUTURO</Text>
+              <Text style={{ color: '#222', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(dados.futurosTotal - dados.saldoAtual)}</Text>
             </View>
           </>
         }

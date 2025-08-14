@@ -3,10 +3,9 @@ import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from 
 import { db } from '../../../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { Picker } from '@react-native-picker/picker';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Input from '../../../../componentes/Input';
 import Botao from '../../../../componentes/Botao';
-import Texto from '../../../../componentes/Texto';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -20,17 +19,30 @@ export default function Parcelamento() {
 
   const [tipo, setTipo] = useState('');
   const [recorrencia, setRecorrencia] = useState(1);
-  const [valor, setValor] = useState(0);
+  const [valor, setValor] = useState('');
   const navigation = useNavigation();
   const [selecionaMinisterio, setSelecionaMinisterio] = useState('');
   const [ministerios, setMinisterios] = useState([])
   const [show, setShow] = useState(false)
 
+  const focus = useIsFocused()
+
 
   useEffect(() => {
-    setDataDoc(new Date());
     BuscarMinisterios()
   }, [])
+
+  useEffect(() => {
+
+    setDataDoc(new Date())
+    setTipo('')
+    setRecorrencia(1)
+    setValor('')
+    setDetalhamento('')
+    setSelecionaMinisterio('')
+
+
+  }, [focus])
 
 
   async function BuscarMinisterios() {
@@ -45,62 +57,71 @@ export default function Parcelamento() {
       console.log("Erro ao buscar Saldo em Home", error);
     }
   }
-
-
-  async function Registrar() {
-    if (!dataDoc || !valor || reload) {
-      console.log("Campos vazios.");
-      return; // Exit if dataDoc is empty
-    }
-
-    setReload(true)
-
-    // Log the value of dataDoc before conversion
-
-    try {
-      const initialDate = converteParaTimestamp(dataDoc); // Get the initial date for the first payment
-
-      // Check if the conversion returned a valid date
-      if (initialDate === null) {
-        return; // Exit if the date is invalid
-      }
-
-      for (let i = 0; i < recorrencia; i++) {
-        // Calculate the next payment date based on the frequency
-        let nextPaymentDate = new Date(initialDate);
-
-        if (frequencia === 'diario') {
-          nextPaymentDate.setDate(nextPaymentDate.getDate() + i); // Daily
-        } else if (frequencia === 'semanal') {
-          nextPaymentDate.setDate(nextPaymentDate.getDate() + i * 7); // Weekly
-        } else if (frequencia === 'mensal') {
-          nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i); // Monthly
-        }
-
-        // Convert nextPaymentDate to timestamp before storing
-        const nextPaymentTimestamp = converteParaTimestamp(nextPaymentDate.toLocaleDateString('pt-BR'));
-
-        // Add the document for each recurrence
-        await addDoc(collection(db, "futuro"), {
-          dataDoc: nextPaymentTimestamp, // Store the calculated payment date
-          reg: Date.now(),
-          detalhamento: detalhamento,
-          valor: parseFloat(valor) / recorrencia,
-          tipo: tipo,
-          movimentacao: 'saida',
-          recorrencia,
-          ministerio: selecionaMinisterio,
-          section: "futuro"
-        });
-      }
-
-    } catch (e) {
-      console.log("Erro ao adicionar documento: ", e);
-    } finally {
-      navigation.goBack();
-      setReload(false)
-    }
+async function Registrar() {
+  if (!dataDoc || !valor || reload) {
+    console.log("Campos vazios.");
+    return; // Exit if dataDoc is empty
   }
+
+  setReload(true);
+
+  try {
+    // Convert dataDoc to Date if it's a string (assuming pt-BR format DD/MM/YYYY)
+    let initialDate;
+    if (typeof dataDoc === 'string') {
+      const [day, month, year] = dataDoc.split('/').map(Number);
+      initialDate = new Date(year, month - 1, day);
+    } else if (dataDoc instanceof Date) {
+      initialDate = dataDoc;
+    } else {
+      console.log("dataDoc não é uma data válida.");
+      return;
+    }
+
+    // Check if initialDate is valid
+    if (isNaN(initialDate.getTime())) {
+      console.log("Data inicial inválida.");
+      return; // Exit if the date is invalid
+    }
+
+    // Get the initial timestamp
+    const initialTimestamp = initialDate.getTime();
+
+    for (let i = 0; i < recorrencia; i++) {
+      // Calculate the next payment date based on the frequency
+      let nextPaymentDate = new Date(initialTimestamp);
+
+      if (frequencia === 'diario') {
+        nextPaymentDate.setDate(nextPaymentDate.getDate() + i); // Daily
+      } else if (frequencia === 'semanal') {
+        nextPaymentDate.setDate(nextPaymentDate.getDate() + i * 7); // Weekly
+      } else if (frequencia === 'mensal') {
+        nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i); // Monthly
+      }
+
+      // Use getTime() to get the timestamp for the next payment
+      const nextPaymentTimestamp = nextPaymentDate.getTime();
+
+      // Add the document for each recurrence
+      await addDoc(collection(db, "futuro"), {
+        dataDoc: nextPaymentTimestamp, // Store the calculated payment timestamp
+        reg: Date.now(),
+        detalhamento: detalhamento,
+        valor: parseFloat(valor) / recorrencia,
+        tipo: tipo,
+        movimentacao: 'saida',
+        recorrencia,
+        ministerio: selecionaMinisterio,
+        section: "futuro",
+      });
+    }
+  } catch (e) {
+    console.log("Erro ao adicionar documento: ", e);
+  } finally {
+    navigation.goBack();
+    setReload(false);
+  }
+}
 
   // Função para converter uma data no formato "DD/MM/AAAA" para um timestamp
   function converteParaTimestamp(dataStr) {

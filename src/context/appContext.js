@@ -72,7 +72,7 @@ export function AppProvider({ children }) {
       const data = doc.data(); // Obtém os dados do documento
       const dataTimestamp = data.dataDoc; // Obtém a data do registro
       const valor = data.valor; // Obtém o valor do registro
-      const movimentacao = data.movimentacao; // Obtém o tipo de movimentação ('entrada' ou 'saida')
+      const movimentacao = data.movimentacao; // Obtém o tipo de movimentação ('receita' ou 'despesa')
       const tipo = data.tipo; // Obtém o tipo da movimentação
       const ministerio = data.ministerio; // Obtém o ministério associado ao registro
 
@@ -87,19 +87,19 @@ export function AppProvider({ children }) {
         // Inicializa o mês se não existir
         resultadosMap[ano][mes] = {
           nomeMes: obterNomeMes(mes), // Obtém o nome do mês
-          entrada: 0, // Inicializa a entrada
-          saida: 0, // Inicializa a saída
+          receita: 0, // Inicializa a receita
+          despesa: 0, // Inicializa a saída
           saldo: 0, // Inicializa o saldo
           ministerio: 0, // Inicializa o total de ministérios
           tipos: {} // Inicializa o objeto tipos aqui
         };
       }
 
-      // Atualiza os valores de entrada e saída com base no tipo de movimentação
-      if (movimentacao === 'entrada') {
-        resultadosMap[ano][mes].entrada += valor; // Adiciona ao total de entradas
-      } else if (movimentacao === "saida") {
-        resultadosMap[ano][mes].saida += valor; // Adiciona ao total de saídas
+      // Atualiza os valores de receita e saída com base no tipo de movimentação
+      if (movimentacao === 'receita') {
+        resultadosMap[ano][mes].receita += valor; // Adiciona ao total de receitas
+      } else if (movimentacao === "despesa") {
+        resultadosMap[ano][mes].despesa += valor; // Adiciona ao total de saídas
       }
 
       // Agrupa por tipo diretamente no objeto do mês
@@ -123,16 +123,16 @@ export function AppProvider({ children }) {
     for (const ano in resultadosMap) {
       for (const mes in resultadosMap[ano]) {
         const mesData = resultadosMap[ano][mes]; // Obtém os dados do mês
-        const saldo = mesData.entrada - mesData.saida + saldoAnterior; // Calcula o saldo
+        const saldo = mesData.receita - mesData.despesa + saldoAnterior; // Calcula o saldo
 
-        // Adiciona ao array de resultados se houver entradas ou saídas
-        if (mesData.entrada > 0 || mesData.saida > 0) {
+        // Adiciona ao array de resultados se houver receitas ou saídas
+        if (mesData.receita > 0 || mesData.despesa > 0) {
           resumo.push({
             ano: parseInt(ano), // Adiciona o ano
             mes: parseInt(mes), // Adiciona o mês
             nomeMes: mesData.nomeMes, // Adiciona o nome do mês
-            entrada: mesData.entrada, // Adiciona o total de entradas
-            saida: mesData.saida, // Adiciona o total de saídas
+            receita: mesData.receita, // Adiciona o total de receitas
+            despesa: mesData.despesa, // Adiciona o total de saídas
             saldo: saldo, // Adiciona o saldo calculado
             // Tipos já estão incluídos no objeto mesData
             ...mesData.tipos // Espalha os tipos diretamente no objeto principal

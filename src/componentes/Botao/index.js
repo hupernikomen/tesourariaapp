@@ -1,18 +1,17 @@
 import { Pressable, View, Text, ActivityIndicator } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign'
 
-export default function Botao({ icone, acao, texto, corTexto = '#fff', corBotao = '#659f99ff', altura = 50, reload }) {
+export default function Botao({ icone, acao, texto, corTexto = '#fff', corBotao = '#659f99ff', altura = 60, reload }) {
 
   return (
     <Pressable style={{
       backgroundColor: corBotao,
       height: altura,
-      borderRadius: 6,
+      borderRadius: 21,
       alignItems: 'center',
       justifyContent: 'center',
       elevation: 5,
-      marginTop: 14,
-      marginHorizontal: 5
+      marginTop: 7,
 
     }} onPress={acao}>
       {reload ?

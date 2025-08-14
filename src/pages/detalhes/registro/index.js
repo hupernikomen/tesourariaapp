@@ -7,6 +7,8 @@ import { getStorage, ref, deleteObject } from "firebase/storage";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import FlexibleInputPicker from '../../../componentes/NewList';
+
 
 export default function DetalheRegistro() {
   const width = Dimensions.get('window').width;
@@ -70,6 +72,10 @@ export default function DetalheRegistro() {
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, padding: 14 }}>
+
+<FlexibleInputPicker/>
+
+
       <Text style={{ fontWeight: 300, fontSize: 13, fontStyle: 'italic', textAlign: 'center', marginBottom: 24 }}>
         Este registro não pode ser editado, caso tenha informações incorretas, exclua e crie um novo registro.
       </Text>
