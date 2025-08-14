@@ -7,7 +7,6 @@ export default function Bxsaldo({dados}) {
   const { obterNomeMes, formatoMoeda, resumoFinanceiro } = useContext(AppContext)
 
   function obterSaldoMesAnterior(dados) {
-
     const dataAtual = new Date();
     const anoAtual = dataAtual.getFullYear();
     const mesAtual = dataAtual.getMonth() + 1; // getMonth() retorna 0-11, então adicionamos 1
@@ -41,14 +40,14 @@ export default function Bxsaldo({dados}) {
             <View style={{ flex: 1, alignItems: "center" }}>
 
               <Text style={{ fontSize: 10, color: '#222' }}>{obterNomeMes(new Date().getMonth() - 1).toUpperCase()}</Text>
-              <Text style={{ color: '#222', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}</Text>
+              <Text style={{ color: '#222', fontSize: 16, fontWeight: 500 }}>{formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}</Text>
             </View>
 
             <View style={{ alignItems: 'center', flex: 1 }}>
 
               <Text style={{ fontSize: 10, color: '#222' }}>{obterNomeMes(new Date().getMonth()).toUpperCase()}</Text>
 
-              <Text style={{ color: '#222', fontSize: 16, fontWeight: 600 }}>
+              <Text style={{ color: '#222', fontSize: 16, fontWeight: 500 }}>
                 {formatoMoeda.format(dados.saldoAtual)}
               </Text>
             </View>
@@ -57,7 +56,7 @@ export default function Bxsaldo({dados}) {
             <View style={{ flex: 1, alignItems: "center" }}>
 
               <Text style={{ fontSize: 10, color: '#222' }}>FUTURO</Text>
-              <Text style={{ color: '#222', fontSize: 16, fontWeight: 600 }}>{formatoMoeda.format(dados.futurosTotal - dados.saldoAtual)}</Text>
+              <Text style={{ color: '#222', fontSize: 16, fontWeight: 500 }}>{formatoMoeda.format(-dados.futurosTotal + dados.saldoAtual)}</Text>
             </View>
           </>
         }

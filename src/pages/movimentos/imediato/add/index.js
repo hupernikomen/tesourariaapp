@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
@@ -11,7 +11,6 @@ import Input from '../../../../componentes/Input';
 import Botao from '../../../../componentes/Botao';
 import { Camera } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Texto from '../../../../componentes/Texto';
 
 
 export default function AddRegistros() {
@@ -20,8 +19,6 @@ export default function AddRegistros() {
   const focus = useIsFocused();
   const navigation = useNavigation();
 
-  const [movimentacao, setMovimentacao] = useState('');
-  const [selecionaTipo, setSelecionaTipo] = useState("");
   const [dataDoc, setDataDoc] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
   const [valor, setValor] = useState(0);
@@ -92,7 +89,7 @@ export default function AddRegistros() {
 
 
   async function Registrar() {
-    if (selectedOption === "vazio" || !valor || reload) {
+    if (selectedOption === "vazio" || !valor || !detalhamento || reload) {
       return;
     }
 
@@ -113,7 +110,6 @@ export default function AddRegistros() {
         ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
         detalhamento: detalhamento,
         valor: parseFloat(valor),
-        section: 'a vista',
         imageUrl: imageUrl // Armazena o URL da imagem
       });
 
@@ -137,8 +133,6 @@ export default function AddRegistros() {
     const downloadURL = await getDownloadURL(storageRef);
     return downloadURL; // Retorna o URL da imagem
   }
-
-
 
 
   const takePhotoAsync = async () => {
@@ -183,12 +177,9 @@ export default function AddRegistros() {
         />
       )}
 
-      <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)}  iconName={'calendar'}/>
-
-
+      <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar'} />
 
       <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
-        {/* <Text style={{ position: 'absolute', zIndex: 9, left: 24, fontSize: 12, fontWeight: 300, top: 10 }}>{selectedOption === '' ?selectedOption:''}</Text> */}
 
         <Picker
           style={{ left: 4 }}
@@ -205,7 +196,6 @@ export default function AddRegistros() {
 
 
       <Input title={'Valor Pago'} value={valor} setValue={setValor} type='numeric' />
-      <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
       {transactionType === 'despesa' ? (
         <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
@@ -222,12 +212,10 @@ export default function AddRegistros() {
         </View>
       ) : null}
 
-      <View style={{ gap: 24 }}>
+      <Input value={!imageUri ? 'Imagem da Nota' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'camerao' : 'check'} onpress={() => takePhotoAsync()} />
+      <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
-        <Input value={!imageUri ? 'Imagem do Documento' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'camerao' : 'check'} onpress={() => takePhotoAsync()}/>
-
-        <Botao acao={() => Registrar()} texto={'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
-      </View>
+      <Botao acao={() => Registrar()} texto={'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
     </ScrollView>
   );
 }

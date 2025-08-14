@@ -16,20 +16,23 @@ export default function Home() {
 
   const { saldoAtual, BuscarSaldo, formatoMoeda, ResumoFinanceiro } = useContext(AppContext)
 
+  
+  
   const [idSelecionado, setIdSelecionado] = useState(null)
-
+  
   const navigation = useNavigation()
   const focus = useIsFocused()
-
+  
   const [load, setLoad] = useState(false)
   const [dadosFinancas, setRegistros] = useState([])
   const [dadosParcelas, setDadosParcelas] = useState([])
   const [futurosTotal, setFuturosTotal] = useState(0)
-
+  
   useEffect(() => {
     Promise.all([BuscarRegistrosFinanceiros()])
     setIdSelecionado(null)
-
+    
+    console.log(saldoAtual, futurosTotal);
   }, [focus])
 
 
@@ -101,7 +104,6 @@ export default function Home() {
 
 
   async function ExcluiRegistro(item) {
-    console.log(item);
 
     const docRegistrosFinanceiros = doc(db, "registros", item.id);
     const imageUrl = item.imageUrl;
@@ -195,7 +197,7 @@ export default function Home() {
           <View style={{ gap: 7 }}>
             <Bxsaldo dados={{ futurosTotal, saldoAtual, load }} />
             <CarrosselParcelas dadosParcelas={dadosParcelas} />
-            <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 40, marginVertical: 14 }} size={12} wheight={500} />
+            <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 35, marginVertical: 14 }} size={11} />
           </View>
         }
         data={sortedRegistros.slice(0, 300)} // Filtra para exibir apenas os 5 primeiros itens

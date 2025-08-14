@@ -9,8 +9,6 @@ import AddImediato from "./src/pages/movimentos/imediato/add";
 import AddFuturo from "./src/pages/movimentos/futuro/add";
 import Relatorio from "./src/pages/relatorio";
 import { AppProvider } from "./src/context/appContext";
-import DetalheFuturo from './src/pages/detalhes/futuro';
-import DetalheRegistro from './src/pages/detalhes/registro';
 import ImgDoc from './src/pages/detalhes/ImgDoc';
 import LoginScreen from './src/pages/login';
 
@@ -70,8 +68,6 @@ export default function App() {
         }}>
           {/* <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShadowVisible: false, title: '', headerTransparent:true, headerStyle:{backgroundColor:'transparent'}, headerTintColor:'#659f99ff' }} /> */}
           <Stack.Screen name="Main" component={TabNavigator} options={{ title: 'Financeiro PSH', headerShadowVisible: false }} />
-          <Stack.Screen name="DetalheFuturo" component={DetalheFuturo} options={{ headerShadowVisible: false, title: '' }} />
-          <Stack.Screen name="DetalheRegistro" component={DetalheRegistro} options={{ headerShadowVisible: false, title: '' }} />
           <Stack.Screen name="ImgDoc" component={ImgDoc} options={{ headerShadowVisible: false, title: '', headerTransparent: true, headerStyle: { backgroundColor: 'transparent' }, headerTintColor: '#659f99ff' }} />
         </Stack.Navigator>
       </AppProvider>

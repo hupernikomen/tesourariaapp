@@ -177,6 +177,7 @@ async function Registrar() {
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, padding: 14 }}>
 
+
       {show && (
         <DateTimePicker
           value={dataDoc}
@@ -186,7 +187,8 @@ async function Registrar() {
         />
       )}
 
-      <Input editable={false} title={'Próximo Vencimento'} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} />
+      <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)}  iconName={'calendar'}/>
+
 
 
       <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
@@ -198,7 +200,6 @@ async function Registrar() {
           <Picker.Item label={''} style={{ fontSize: 14, color: '#bbb' }} />
           <Picker.Item label={'Compras'} value={'compra'} style={{ fontSize: 14 }} />
           <Picker.Item label={'Empréstimo'} value={'emprestimo'} style={{ fontSize: 14 }} />
-          <Picker.Item label={'Outros'} value={'outros'} style={{ fontSize: 14 }} />
         </Picker>
       </View>
 

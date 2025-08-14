@@ -75,7 +75,7 @@ export default function Relatorio() {
             <Text style={styles.value}>{formatoMoeda.format(mesData.saldo)}</Text>
           </View>
         </View>
-        <View style={{padding:14}}>
+        <View style={{paddingHorizontal:14}}>
           {receitas.map((key) => (
             <View key={key} style={styles.row}>
               <Text style={styles.label}>{key.toUpperCase()}</Text>
@@ -83,7 +83,7 @@ export default function Relatorio() {
             </View>
           ))}
 
-          {despesas.length > 0 && <View style={{ borderBottomColor: '#aaa', borderBottomWidth: .5 }} />}
+          {despesas.length > 0 && <View style={{ borderBottomColor: '#ccc', borderBottomWidth: .3, marginVertical:7 }} />}
           {despesas.map((key) => (
             <View key={key} style={styles.row}>
               <Text style={styles.label}>{key.toUpperCase()}</Text>
@@ -91,7 +91,7 @@ export default function Relatorio() {
             </View>
           ))}
 
-          {ministerios.length > 0 && <View style={{ borderBottomColor: '#aaa', borderBottomWidth: .5 }} />}
+          {ministerios.length > 0 && <View style={{ borderBottomColor: '#ccc', borderBottomWidth: .3 , marginVertical:7}} />}
           {ministerios.map((min) => (
             <View key={min.ministerio} style={styles.row}>
               <Text style={styles.label}>{min.ministerio}</Text>
@@ -106,7 +106,8 @@ export default function Relatorio() {
   if (dadosFiltrados.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Nenhum dado disponível para os últimos 6 meses.</Text>
+        <Text style={styles.emptyText}>Nenhum dado disponível</Text>
+        <Text style={styles.emptyText}>para os últimos 12 meses.</Text>
       </View>
     );
   }
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 14,
-    marginVertical: 14,
+    marginVertical: 7,
   },
   title: {
     fontWeight: 'bold',
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 3.5,
   },
   label: {
     fontSize: 12,
@@ -179,6 +180,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#888',
+    fontWeight:300,
+    color: '#000',
+    paddingHorizontal:42,
+    textAlign:'center'
   },
 });

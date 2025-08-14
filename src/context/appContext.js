@@ -37,10 +37,6 @@ export function AppProvider({ children }) {
   }
 
 
-
-
-
-
   // calcular e agrupar as receitas e despesas registradas em um banco de dados Firestore, 
   // organizando os dados por ano e mês. A função também atualiza o saldo atual com base nos resultados obtidos
 

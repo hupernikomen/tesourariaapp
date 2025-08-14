@@ -35,7 +35,7 @@ const Parcelas = ({ dadosParcelas }) => {
       {dadosParcelas.length > 0 ? (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: "center" }}>
-            <Text style={{ fontWeight: 500, fontSize: 12, color: '#000', marginLeft: 40 }}>DESPESAS FUTURAS ({dadosParcelas.length})</Text>
+            <Text style={{ fontSize: 11, color: '#000', marginLeft: 35 }}>DESPESAS FUTURAS ({dadosParcelas.length})</Text>
           </View>
         </View>
       ) : null}
