@@ -7,6 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "assets": ["./assets/fonts"],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -30,6 +31,9 @@
       "eas": {
         "projectId": "83867f4b-7c71-4581-9d47-23b112ca1fc2"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

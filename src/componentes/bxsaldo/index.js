@@ -1,10 +1,14 @@
 import { useContext } from 'react'
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { AppContext } from "../../context/appContext";
+import { useNavigation } from '@react-navigation/native';
 
-export default function Bxsaldo({dados}) {
 
-  const { obterNomeMes, formatoMoeda, resumoFinanceiro } = useContext(AppContext)
+export default function Bxsaldo({ dados }) {
+
+  const { obterNomeMes, formatoMoeda, resumoFinanceiro,loadSaldo } = useContext(AppContext)
+
+  const navigation = useNavigation()
 
   function obterSaldoMesAnterior(dados) {
     const dataAtual = new Date();
@@ -30,34 +34,28 @@ export default function Bxsaldo({dados}) {
 
   return (
     <View>
-      <View style={{ backgroundColor: '#fff', marginBottom: 14, alignItems: 'center', height: 65, flexDirection: 'row', justifyContent: 'space-between', borderBottomStartRadius: 24, borderBottomEndRadius: 24, marginHorizontal: 14 }}>
-        {dados.load ?
+      <View style={{ backgroundColor: '#fff', marginBottom: 14, alignItems: 'center', height: 75, flexDirection: 'row', justifyContent: 'space-between', borderBottomStartRadius: 24, borderBottomEndRadius: 24, marginHorizontal: 14 }}>
+        {loadSaldo ?
           <View style={{ alignItems: "center", justifyContent: 'center', flex: 1 }}>
             <ActivityIndicator color={'#222'} />
           </View>
           :
           <>
             <View style={{ flex: 1, alignItems: "center" }}>
-
-              <Text style={{ fontSize: 10, color: '#222' }}>{obterNomeMes(new Date().getMonth() - 1).toUpperCase()}</Text>
-              <Text style={{ color: '#222', fontSize: 16, fontWeight: 500 }}>{formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}</Text>
+              <Text style={{ fontSize: 11, color: '#000', fontFamily: 'Roboto-Light' }}>{obterNomeMes(new Date().getMonth() - 1).toUpperCase()}</Text>
+              <Text style={{ color: '#333', fontSize: 15, fontFamily: 'Roboto-Medium' }}>{formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}</Text>
             </View>
 
             <View style={{ alignItems: 'center', flex: 1 }}>
-
-              <Text style={{ fontSize: 10, color: '#222' }}>{obterNomeMes(new Date().getMonth()).toUpperCase()}</Text>
-
-              <Text style={{ color: '#222', fontSize: 16, fontWeight: 500 }}>
-                {formatoMoeda.format(dados.saldoAtual)}
-              </Text>
+              <Text style={{ fontSize: 10, color: '#000', fontFamily: 'Roboto-Light' }}>{obterNomeMes(new Date().getMonth()).toUpperCase()}</Text>
+              <Text style={{ color: '#333', fontSize: 15, fontFamily: 'Roboto-Medium' }}>{formatoMoeda.format(dados.saldoAtual)}</Text>
             </View>
 
 
-            <View style={{ flex: 1, alignItems: "center" }}>
-
-              <Text style={{ fontSize: 10, color: '#222' }}>FUTURO</Text>
-              <Text style={{ color: '#222', fontSize: 16, fontWeight: 500 }}>{formatoMoeda.format(-dados.futurosTotal + dados.saldoAtual)}</Text>
-            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Futuro')} style={{ flex: 1, alignItems: "center" }}>
+              <Text style={{ fontSize: 10, color: '#000', fontFamily: 'Roboto-Light' }}>FUTURO</Text>
+              <Text style={{ color: '#333', fontSize: 15, fontFamily: 'Roboto-Medium' }}>{formatoMoeda.format(-dados.futurosTotal + dados.saldoAtual)}</Text>
+            </TouchableOpacity>
           </>
         }
       </View>

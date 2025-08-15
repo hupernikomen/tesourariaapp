@@ -33,7 +33,7 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
     input: {
       color: editable ? '#000' : '#999',
       marginTop: -10,
-      flex: 1
+      flex: 1,
     },
     containerInput: {
       flexDirection: 'row',
@@ -45,7 +45,6 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
     <View style={stl.box}>
       <View style={stl.boxtop}>
         <Text style={stl.title}>{value ? title : ''}</Text>
-        {info ? <Text style={stl.info}>{info}</Text> : null}
       </View>
 
       <View style={stl.containerInput}>

@@ -9,6 +9,66 @@ export function AppProvider({ children }) {
 
   const [resumoFinanceiro, setResumoFinanceiro] = useState([]);
   const [saldoAtual, setSaldoAtual] = useState(0);
+  const [dadosFinancas, setDadosFinanceiros] = useState([])
+  const [futurosTotal, setFuturosTotal] = useState(0)
+  const [dadosParcelas, setDadosParcelas] = useState([])
+  const [loadSaldo, setLoadSaldo] = useState([])
+
+
+  useEffect(() => {
+    BuscarRegistrosFinanceiros()
+    console.log('ok');
+  }, [])
+
+
+  async function BuscarFuturos() {
+    const parcelasCollection = collection(db, "futuro");
+    const parcelasQuery = query(parcelasCollection, orderBy("reg", "desc"));
+    try {
+      const querySnapshot = await getDocs(parcelasQuery);
+      const allDocuments = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      // Calcular a soma de todos os campos 'valor'
+      const futurosTotal = allDocuments.reduce((total, doc) => {
+        return total + (doc.valor || 0); // Adiciona o valor, garantindo que seja 0 se não existir
+      }, 0);
+      // Armazenar os dados e o total no estado
+      setDadosParcelas(allDocuments);
+      setFuturosTotal(futurosTotal); // Armazena o total no estado
+    } catch (e) {
+      console.log("Erro ao buscar documentos: ", e);
+    }
+  }
+
+
+  async function BuscarRegistrosFinanceiros() {
+
+    const registrosCollection = collection(db, "registros");
+    const registrosQuery = query(registrosCollection, orderBy("reg", "desc"), limit(500))
+
+    setLoadSaldo(true)
+    try {
+      const querySnapshot = await getDocs(registrosQuery);
+      const registros = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+
+      setDadosFinanceiros(registros);
+      // await BuscarFuturos()
+      await BuscarSaldo()
+      await BuscarFuturos()
+
+    } catch (e) {
+      console.log("Erro ao buscar documentos: ", e);
+    } finally {
+      setLoadSaldo(false)
+    }
+  }
+
 
 
 
@@ -39,13 +99,12 @@ export function AppProvider({ children }) {
 
   // calcular e agrupar as receitas e despesas registradas em um banco de dados Firestore, 
   // organizando os dados por ano e mês. A função também atualiza o saldo atual com base nos resultados obtidos
-
   async function ResumoFinanceiro() {
     // Referência à coleção "registros" no Firestore
     const ref = collection(db, "registros");
 
-    // Cria uma consulta para obter os registros, ordenados pela data (dataDoc) em ordem decrescente, limitando a 12 resultados
-    const refs = query(ref, orderBy("dataDoc", "desc"), limit(12));
+    // Cria uma consulta para obter os registros, ordenados pela data (dataDoc) em ordem decrescente
+    const refs = query(ref, orderBy("dataDoc", "desc"));
 
     // Objeto para armazenar os resultados agrupados por ano e mês
     const resultadosMap = {};
@@ -67,12 +126,12 @@ export function AppProvider({ children }) {
     querySnapshot.forEach((doc) => {
       const data = doc.data(); // Obtém os dados do documento
       const dataTimestamp = data.dataDoc; // Obtém a data do registro
-      const valor = data.valor; // Obtém o valor do registro
+      const valor = data.valor || 0; // Obtém o valor do registro, default 0
       const movimentacao = data.movimentacao; // Obtém o tipo de movimentação ('receita' ou 'despesa')
-      const tipo = data.tipo; // Obtém o tipo da movimentação
-      const ministerio = data.ministerio; // Obtém o ministério associado ao registro
+      const tipo = data.tipo || 'Sem Tipo'; // Obtém o tipo da movimentação
+      const ministerio = data.ministerio ? data.ministerio.trim() : 'Sem Ministério'; // Obtém o ministério associado ao registro, normalizado
 
-      // Converte o timestamp da data para um objeto Date
+      // Converte o timestamp para Date
       const date = new Date(dataTimestamp);
       const ano = date.getFullYear(); // Obtém o ano da data
       const mes = date.getMonth() + 1; // Obtém o mês da data (0-11, então adiciona 1)
@@ -86,7 +145,6 @@ export function AppProvider({ children }) {
           receita: 0, // Inicializa a receita
           despesa: 0, // Inicializa a saída
           saldo: 0, // Inicializa o saldo
-          ministerio: 0, // Inicializa o total de ministérios
           tipos: {} // Inicializa o objeto tipos aqui
         };
       }
@@ -98,17 +156,21 @@ export function AppProvider({ children }) {
         resultadosMap[ano][mes].despesa += valor; // Adiciona ao total de saídas
       }
 
-      // Agrupa por tipo diretamente no objeto do mês
-      if (!resultadosMap[ano][mes].tipos[tipo]) {
-        // Inicializa o tipo se não existir
-        resultadosMap[ano][mes].tipos[tipo] = {
-          total: 0, // Inicializa o total para o tipo
+      // Cria uma chave única combinando tipo e ministerio para evitar sobrescrita
+      const chaveUnica = `${tipo}_${ministerio}`;
+
+      // Agrupa por chave única
+      if (!resultadosMap[ano][mes].tipos[chaveUnica]) {
+        // Inicializa a chave única se não existir
+        resultadosMap[ano][mes].tipos[chaveUnica] = {
+          total: 0, // Inicializa o total para a combinação
           movimentacao: movimentacao, // Armazena o tipo de movimentação
           ministerio: ministerio, // Armazena o ministério
+          tipo: tipo, // Armazena o tipo original
           mes: mes // Armazena o mês
         };
       }
-      resultadosMap[ano][mes].tipos[tipo].total += valor; // Adiciona o valor ao total do tipo
+      resultadosMap[ano][mes].tipos[chaveUnica].total += valor; // Adiciona o valor ao total da combinação
     });
 
     // Converte o objeto de resultados em um array para facilitar o uso
@@ -130,8 +192,7 @@ export function AppProvider({ children }) {
             receita: mesData.receita, // Adiciona o total de receitas
             despesa: mesData.despesa, // Adiciona o total de saídas
             saldo: saldo, // Adiciona o saldo calculado
-            // Tipos já estão incluídos no objeto mesData
-            ...mesData.tipos // Espalha os tipos diretamente no objeto principal
+            ...mesData.tipos // Espalha as combinações únicas diretamente no objeto principal
           });
         }
 
@@ -145,11 +206,8 @@ export function AppProvider({ children }) {
       : 0;
     await AtualizaSaldoAtual(saldoFinal); // Atualiza o saldo atual no sistema
 
-
     setResumoFinanceiro(resumo); // Atualiza o estado com os resultados calculados
   }
-
-
 
 
   async function AtualizaSaldoAtual(res) {
@@ -174,8 +232,11 @@ export function AppProvider({ children }) {
   });
 
 
+
   return (
     <AppContext.Provider value={{
+      BuscarRegistrosFinanceiros,
+      dadosFinancas,
       formatoMoeda,
       AtualizaSaldoAtual,
       ResumoFinanceiro,
@@ -183,6 +244,9 @@ export function AppProvider({ children }) {
       BuscarSaldo,
       saldoAtual,
       obterNomeMes,
+      futurosTotal,
+      dadosParcelas,
+      loadSaldo
     }}>
       {children}
 

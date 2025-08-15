@@ -41,6 +41,8 @@ const LoginScreen = () => {
         Alert.alert('Sucesso', 'Conta criada com sucesso!');
       }
     } catch (error) {
+      
+      console.log(error);
       handleAuthError(error);
     } finally {
       setIsLoading(false);
@@ -48,6 +50,7 @@ const LoginScreen = () => {
   };
 
   const handleAuthError = (error) => {
+    
     let errorMessage = 'Ocorreu um erro';
     
     switch(error.code) {

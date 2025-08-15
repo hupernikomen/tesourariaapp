@@ -1,14 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { db } from '../../../../firebaseConnection';
+import { db } from '../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Importação corrigida
 import { Picker } from '@react-native-picker/picker';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { AppContext } from '../../../../context/appContext';
-import Input from '../../../../componentes/Input';
-import Botao from '../../../../componentes/Botao';
+import { AppContext } from '../../context/appContext';
+import Input from '../../componentes/Input';
+import Botao from '../../componentes/Botao';
 import { Camera } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -25,7 +25,7 @@ export default function AddRegistros() {
   const [selecionaMinisterio, setSelecionaMinisterio] = useState('');
   const [selectedImage, setSelectedImage] = useState(undefined);
   const [imageUri, setImageUri] = useState('');
-
+  const [recorrencia, setRecorrencia] = useState('');
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
 
   const [ministerios, setMinisterios] = useState([])
@@ -34,7 +34,6 @@ export default function AddRegistros() {
 
   const [selectedOption, setSelectedOption] = useState('');
   const [transactionType, setTransactionType] = useState(null);
-
 
   useEffect(() => {
     (async () => {
@@ -48,6 +47,7 @@ export default function AddRegistros() {
     setSelectedOption('');
     setDataDoc(new Date());
     setValor('');
+    setRecorrencia('')
     setDetalhamento('');
     setSelecionaMinisterio('');
     setImageUri(null)
@@ -57,10 +57,10 @@ export default function AddRegistros() {
 
   const pickerOptions = [
     { label: 'Dízimos', type: 'receita' },
-    { label: 'Compras', type: 'despesa' },
     { label: 'Ofertas', type: 'receita' },
     { label: 'Ofertas Alçadas', type: 'receita' },
     { label: 'Prebendas', type: 'despesa' },
+    { label: 'Compras', type: 'despesa' },
     { label: 'Empréstimos', type: 'despesa' },
     { label: 'Contas Recorrentes', type: 'despesa' },
   ];
@@ -96,31 +96,67 @@ export default function AddRegistros() {
 
     setReload(true);
 
-    try {
-      let imageUrl = '';
-      if (selectedImage) {
-        imageUrl = await uploadImage(selectedImage);
+    if (!recorrencia) {
+
+      try {
+        let imageUrl = '';
+        if (selectedImage) {
+          imageUrl = await uploadImage(selectedImage);
+        }
+
+        await addDoc(collection(db, "registros"), {
+          reg: Date.now(),
+          dataDoc: dataDoc.getTime(),
+          tipo: selectedOption,
+          valor: parseFloat(valor),
+          movimentacao: transactionType,
+          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+          imageUrl: imageUrl, // Armazena o URL da imagem
+          detalhamento: detalhamento,
+        });
+
+        await ResumoFinanceiro();
+      } catch (e) {
+        console.log('Erro ao adicionar documento: ', e);
+      } finally {
+        setReload(false)
+        navigation.goBack()
       }
+    } else {
+      try {
+        const initialTimestamp = dataDoc.getTime();
 
-      await addDoc(collection(db, "registros"), {
-        reg: Date.now(),
-        dataDoc: dataDoc.getTime(),
-        movimentacao: transactionType,
-        tipo: selectedOption,
-        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-        detalhamento: detalhamento,
-        valor: parseFloat(valor),
-        imageUrl: imageUrl // Armazena o URL da imagem
-      });
+        for (let i = 0; i < recorrencia; i++) {
+          // Calcular a próxima data de pagamento (sempre mensal)
+          let nextPaymentDate = new Date(initialTimestamp);
+          nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
 
-      await ResumoFinanceiro();
-      navigation.goBack();
-    } catch (e) {
-      console.error("Erro ao adicionar documento: ", e);
-    } finally {
-      setReload(false);
+          // Obter o timestamp da próxima data de pagamento
+          const nextPaymentTimestamp = nextPaymentDate.getTime();
+
+          // Adicionar documento para cada recorrência
+          await addDoc(collection(db, 'futuro'), {
+            reg: Date.now(),
+            dataDoc: nextPaymentTimestamp,
+            tipo: selectedOption,
+            valor: parseFloat(valor) / recorrencia,
+            recorrencia,
+            parcela: i + 1,
+            movimentacao: transactionType,
+            ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+            detalhamento: detalhamento,
+          });
+        }
+      } catch (e) {
+        console.log('Erro ao adicionar documento: ', e);
+      } finally {
+        setReload(false)
+        navigation.goBack()
+      }
     }
   }
+
+
 
   async function uploadImage(uri) {
     const storage = getStorage();
@@ -156,6 +192,9 @@ export default function AddRegistros() {
       alert('Ocorreu um erro ao tentar abrir a câmera');
     }
   };
+
+
+
 
 
 
@@ -196,6 +235,7 @@ export default function AddRegistros() {
 
 
       <Input title={'Valor Pago'} value={valor} setValue={setValor} type='numeric' />
+      <Input title={'Nº de Prestações'} value={recorrencia} setValue={setRecorrencia} type='numeric' maxlength={2} />
 
       {transactionType === 'despesa' ? (
         <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
@@ -204,7 +244,7 @@ export default function AddRegistros() {
             selectedValue={selecionaMinisterio}
             onValueChange={(itemValue) => setSelecionaMinisterio(itemValue)}
           >
-            <Picker.Item style={{ fontSize: 15, color: '#999' }} label={'Ministério'} />
+            <Picker.Item style={{ fontSize: 15, color: '#999', }} label={'Ministério'} />
             {ministerios.map((item, index) => (
               <Picker.Item key={index} label={item} value={item} style={{ fontSize: 14 }} />
             ))}
@@ -215,7 +255,7 @@ export default function AddRegistros() {
       <Input value={!imageUri ? 'Imagem da Nota' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'camerao' : 'check'} onpress={() => takePhotoAsync()} />
       <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
-      <Botao acao={() => Registrar()} texto={'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
+      <Botao acao={() => Registrar()} texto={recorrencia?'Registro Futuro':'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
     </ScrollView>
   );
 }

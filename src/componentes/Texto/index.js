@@ -5,7 +5,7 @@ export default function Texto({ texto, wheight, size, linhas = 1, estilo }) {
 
       <Text numberOfLines={linhas} style={[{
         fontWeight: wheight,
-        fontSize: size
+        fontSize: size,
 
       }, estilo]}>{texto}</Text>
   );
