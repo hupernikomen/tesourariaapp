@@ -1,5 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { useState, useContext, useEffect } from 'react';
+import { View, ScrollView, Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
@@ -11,6 +11,7 @@ import Input from '../../componentes/Input';
 import Botao from '../../componentes/Botao';
 import { Camera } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Texto from '../../componentes/Texto';
 
 
 export default function AddRegistros() {
@@ -34,6 +35,7 @@ export default function AddRegistros() {
 
   const [selectedOption, setSelectedOption] = useState('');
   const [transactionType, setTransactionType] = useState(null);
+  const [transactionParcela, setTransactionParcela] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -56,13 +58,13 @@ export default function AddRegistros() {
 
 
   const pickerOptions = [
-    { label: 'Dízimos', type: 'receita' },
-    { label: 'Ofertas', type: 'receita' },
-    { label: 'Ofertas Alçadas', type: 'receita' },
-    { label: 'Prebendas', type: 'despesa' },
-    { label: 'Compras', type: 'despesa' },
-    { label: 'Empréstimos', type: 'despesa' },
-    { label: 'Contas Recorrentes', type: 'despesa' },
+    { label: 'Dízimos', type: 'receita', parcela: false },
+    { label: 'Ofertas', type: 'receita', parcela: false },
+    { label: 'Ofertas Alçadas', type: 'receita', parcela: false },
+    { label: 'Prebendas', type: 'despesa', parcela: false },
+    { label: 'Compras', type: 'despesa', parcela: true },
+    { label: 'Empréstimos', type: 'despesa', parcela: true },
+    { label: 'Contas Recorrentes', type: 'despesa', parcela: false },
   ];
 
 
@@ -70,6 +72,7 @@ export default function AddRegistros() {
     setSelectedOption(value);
     const selectedItem = pickerOptions.find((option) => option.label === value);
     setTransactionType(selectedItem ? selectedItem.type : '');
+    setTransactionParcela(selectedItem ? selectedItem.parcela : '');
   };
 
 
@@ -89,70 +92,53 @@ export default function AddRegistros() {
 
 
   async function Registrar() {
-    if (selectedOption === "vazio" || !valor || !detalhamento || reload) {
+    // Validação inicial
+    if (selectedOption === 'vazio' || !valor || !detalhamento || reload) {
+      console.log('Campos inválidos ou em recarga');
       return;
     }
 
-
     setReload(true);
 
-    if (!recorrencia) {
-
-      try {
-        let imageUrl = '';
-        if (selectedImage) {
-          imageUrl = await uploadImage(selectedImage);
-        }
-
-        await addDoc(collection(db, "registros"), {
+    try {
+      if (!recorrencia) {
+        // Registro único (sem recorrência)
+        const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
+        await addDoc(collection(db, 'registros'), {
           reg: Date.now(),
           dataDoc: dataDoc.getTime(),
           tipo: selectedOption,
           valor: parseFloat(valor),
           movimentacao: transactionType,
           ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-          imageUrl: imageUrl, // Armazena o URL da imagem
-          detalhamento: detalhamento,
+          imageUrl,
+          detalhamento,
         });
-
         await ResumoFinanceiro();
-      } catch (e) {
-        console.log('Erro ao adicionar documento: ', e);
-      } finally {
-        setReload(false)
-        navigation.goBack()
-      }
-    } else {
-      try {
+      } else {
+        // Registros recorrentes (mensal)
         const initialTimestamp = dataDoc.getTime();
-
         for (let i = 0; i < recorrencia; i++) {
-          // Calcular a próxima data de pagamento (sempre mensal)
-          let nextPaymentDate = new Date(initialTimestamp);
+          const nextPaymentDate = new Date(initialTimestamp);
           nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
-
-          // Obter o timestamp da próxima data de pagamento
-          const nextPaymentTimestamp = nextPaymentDate.getTime();
-
-          // Adicionar documento para cada recorrência
           await addDoc(collection(db, 'futuro'), {
             reg: Date.now(),
-            dataDoc: nextPaymentTimestamp,
+            dataDoc: nextPaymentDate.getTime(),
             tipo: selectedOption,
             valor: parseFloat(valor) / recorrencia,
             recorrencia,
             parcela: i + 1,
             movimentacao: transactionType,
             ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-            detalhamento: detalhamento,
+            detalhamento,
           });
         }
-      } catch (e) {
-        console.log('Erro ao adicionar documento: ', e);
-      } finally {
-        setReload(false)
-        navigation.goBack()
       }
+    } catch (e) {
+      console.log('Erro ao adicionar documento:', e);
+    } finally {
+      setReload(false);
+      navigation.goBack();
     }
   }
 
@@ -211,12 +197,14 @@ export default function AddRegistros() {
         <DateTimePicker
           value={dataDoc}
           mode="date"
-          display="spinner"
+          display="calendar"
           onChange={onChange}
         />
       )}
 
+      {dataDoc?<Texto linhas={0} estilo={{ padding: 21, textAlign: 'center', color:'#000' }} size={13} wheight={300} texto={`Comece informando a data do pagamento ou da primeira prestação do registro`} />:null}
       <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar'} />
+
 
       <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
 
@@ -235,27 +223,29 @@ export default function AddRegistros() {
 
 
       <Input title={'Valor Pago'} value={valor} setValue={setValor} type='numeric' />
-      <Input title={'Nº de Prestações'} value={recorrencia} setValue={setRecorrencia} type='numeric' maxlength={2} />
 
       {transactionType === 'despesa' ? (
-        <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
-          <Picker
-            style={{ left: 4 }}
-            selectedValue={selecionaMinisterio}
-            onValueChange={(itemValue) => setSelecionaMinisterio(itemValue)}
-          >
-            <Picker.Item style={{ fontSize: 15, color: '#999', }} label={'Ministério'} />
-            {ministerios.map((item, index) => (
-              <Picker.Item key={index} label={item} value={item} style={{ fontSize: 14 }} />
-            ))}
-          </Picker>
-        </View>
+        <>
+          {transactionParcela ? <Input title={'Nº de Prestações'} value={recorrencia} setValue={setRecorrencia} type='numeric' maxlength={2} /> : null}
+          <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
+            <Picker
+              style={{ left: 4 }}
+              selectedValue={selecionaMinisterio}
+              onValueChange={(itemValue) => setSelecionaMinisterio(itemValue)}
+            >
+              <Picker.Item style={{ fontSize: 15, color: '#999', }} label={'Ministério'} />
+              {ministerios.map((item, index) => (
+                <Picker.Item key={index} label={item} value={item} style={{ fontSize: 14 }} />
+              ))}
+            </Picker>
+          </View>
+        </>
       ) : null}
 
       <Input value={!imageUri ? 'Imagem da Nota' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'camerao' : 'check'} onpress={() => takePhotoAsync()} />
       <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
-      <Botao acao={() => Registrar()} texto={recorrencia?'Registro Futuro':'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
+      <Botao acao={() => Registrar()} texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
     </ScrollView>
   );
 }

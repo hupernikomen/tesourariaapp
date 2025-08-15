@@ -8,6 +8,7 @@ const Parcelas = ({ dadosParcelas }) => {
     ? dadosParcelas
       .filter((item) => {
         const dataDoc = new Date(item.dataDoc);
+        
         return dataDoc < hoje;
       })
       .sort((a, b) => {

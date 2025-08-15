@@ -12,12 +12,9 @@ export default function Futuro() {
 
   const focus = useIsFocused()
 
-
   useEffect(() => {
     Promise.all([BuscarRegistrosFinanceiros()])
-
   }, [focus])
-
 
 
   const sortedRegistros = dadosParcelas
@@ -37,8 +34,7 @@ export default function Futuro() {
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={<View style={{ marginVertical: 4 }} />}
         ListFooterComponent={<View style={{ marginVertical: 4 }} />}
-
-        data={sortedRegistros} // Filtra para exibir apenas os 5 primeiros itens
+        data={sortedRegistros} 
         renderItem={({ item, index }) => <Item item={item} />}
       />
 

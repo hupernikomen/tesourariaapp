@@ -11,7 +11,6 @@ import AddImediato from './src/pages/registro';
 import AddFuturo from './src/pages/futuro';
 import Relatorio from './src/pages/relatorio';
 import { AppProvider } from './src/context/appContext';
-import ImgDoc from './src/pages/detalhes/ImgDoc';
 import LoginScreen from './src/pages/login';
 
 const Stack = createNativeStackNavigator();
@@ -67,10 +66,6 @@ export default function App() {
         'Raleway-Bold': require('./assets/fonts/Raleway-Bold.ttf'),
         'Raleway-Thin': require('./assets/fonts/Raleway-Thin.ttf'),
         'Raleway-Light': require('./assets/fonts/Raleway-Light.ttf'),
-        'Montserrat-Regular': require('./assets/fonts/Montserrat-Regular.ttf'),
-        'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
-        'Montserrat-Thin': require('./assets/fonts/Montserrat-Thin.ttf'),
-        'Montserrat-Light': require('./assets/fonts/Montserrat-Light.ttf'),
         'Roboto-Regular': require('./assets/fonts/Roboto-Regular.ttf'),
         'Roboto-Medium': require('./assets/fonts/Roboto-Medium.ttf'),
         'Roboto-Bold': require('./assets/fonts/Roboto-Bold.ttf'),
@@ -125,17 +120,7 @@ export default function App() {
             component={TabNavigator}
             options={{ title: 'Financeiro PSH', headerShadowVisible: false }}
           />
-          <Stack.Screen
-            name="ImgDoc"
-            component={ImgDoc}
-            options={{
-              headerShadowVisible: false,
-              title: '',
-              headerTransparent: true,
-              headerStyle: { backgroundColor: 'transparent' },
-              headerTintColor: '#659f99ff',
-            }}
-          />
+         
         </Stack.Navigator>
       </AppProvider>
     </NavigationContainer>

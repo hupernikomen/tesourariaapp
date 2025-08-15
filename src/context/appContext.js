@@ -17,7 +17,6 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     BuscarRegistrosFinanceiros()
-    console.log('ok');
   }, [])
 
 
