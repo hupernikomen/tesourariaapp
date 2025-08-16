@@ -1,22 +1,76 @@
-import { FlatList, Text, View } from 'react-native';
-import Item from '../Item';
+import { FlatList, Text, View, TouchableOpacity, Dimensions } from 'react-native';
+import Texto from '../Texto';
+import { useContext } from 'react';
+import { AppContext } from '../../context/appContext';
+import { useNavigation } from '@react-navigation/native';
 
 const Parcelas = ({ dadosParcelas }) => {
-  const hoje = new Date();
 
+  const { formatoMoeda } = useContext(AppContext)
+  const navigation = useNavigation()
+
+  const hoje = new Date();
+  const { width } = Dimensions.get('window')
+  const options = {
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'America/Sao_Paulo',
+  };
+
+
+  // Processa os dados para criar uma lista de parcelas vencidas
   const dadosFiltrados = dadosParcelas
     ? dadosParcelas
-      .filter((item) => {
-        const dataDoc = new Date(item.dataDoc);
-        
-        return dataDoc < hoje;
-      })
-      .sort((a, b) => {
-        const dateA = new Date(a.dataDoc);
-        const dateB = new Date(b.dataDoc);
-        return dateA - dateB;
-      })
+      .flatMap((doc) =>
+        doc.parcelas
+          .filter((parcela) => {
+            const dataDoc = new Date(parcela.dataDoc);
+            return dataDoc < hoje; // Filtra apenas parcelas vencidas
+          })
+          .map((parcela) => ({
+            id: doc.id,
+            dataDoc: parcela.dataDoc,
+            valor: parcela.valor,
+            parcela: parcela.parcela,
+            recorrencia: doc.recorrencia,
+            tipo: doc.tipo,
+            movimentacao: doc.movimentacao,
+            ministerio: doc.ministerio,
+            imageUrl: doc.imageUrl,
+            detalhamento: doc.detalhamento,
+            totalRegistro: doc.totalRegistro,
+          }))
+      )
+      .sort((a, b) => new Date(a.dataDoc) - new Date(b.dataDoc)) // Ordena por dataDoc (ascendente)
     : [];
+
+
+  const RenderItem = ({ item }) => {
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => navigation.navigate('Futuro')}
+        style={[{ width: width - 70, justifyContent: 'space-between', backgroundColor: '#fff', padding: 21, borderRadius: 21, marginHorizontal: 14 }]}
+      >
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+          <View style={{ flexDirection: 'row', backgroundColor: '#E39B0E', borderRadius: 10, alignItems: 'center' }}>
+
+            <Texto texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`} size={11} estilo={{ fontFamily: 'Roboto-Regular', marginLeft: -4, color: '#fff', backgroundColor: '#fff', borderRadius: 10, color: '#000', paddingHorizontal: 6, paddingVertical: 1 }} />
+            <Texto texto={`${'VENCIDO'} ${item.parcela ? `${item?.parcela}/${item.recorrencia}` : ''}`} size={9} estilo={{ color: '#fff', paddingHorizontal: 6, fontFamily: 'Roboto-Regular' }} />
+          </View>
+          <Texto texto={formatoMoeda.format(item.valor)} size={12} estilo={{ color: '#000', fontFamily: 'Roboto-Regular' }} />
+        </View>
+
+
+        <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between' }}>
+          <Texto linhas={2} texto={item.detalhamento} size={14} estilo={{ fontFamily: 'Roboto-Regular' }} />
+          {!!item.imageUrl ? <AntDesign name='paperclip' /> : ''}
+        </View>
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <View style={{ marginBottom: 12 }}>
@@ -24,7 +78,7 @@ const Parcelas = ({ dadosParcelas }) => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ fontSize: 12, color: '#000', marginLeft: 35 }}>
-              DESPESAS VENCIDAS
+              VENCIMENTOS
             </Text>
           </View>
         </View>
@@ -33,9 +87,10 @@ const Parcelas = ({ dadosParcelas }) => {
       <FlatList
         showsHorizontalScrollIndicator={false}
         horizontal
+        snapToInterval={width - 70}
         data={dadosFiltrados}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <Item vencido item={item} />}
+        keyExtractor={(item, index) => `${item.id}-${item.parcela}-${index}`}
+        renderItem={({ item }) => <RenderItem item={item} />}
       />
     </View>
   );

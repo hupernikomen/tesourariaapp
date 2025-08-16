@@ -22,12 +22,12 @@ export default function Home() {
 
   const sortedRegistros = dadosFinancas
     ? dadosFinancas.sort((a, b) => {
-      const dateA = new Date(a.dataReg);
-      const dateB = new Date(b.dataReg);
+      const dateA = new Date(a.dataDoc);
+      const dateB = new Date(b.dataDoc);
       return dateB - dateA;
     })
     : [];
-
+    
 
   return (
     <View style={{ flex: 1 }}>

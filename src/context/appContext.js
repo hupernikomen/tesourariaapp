@@ -13,6 +13,7 @@ export function AppProvider({ children }) {
   const [futurosTotal, setFuturosTotal] = useState(0)
   const [dadosParcelas, setDadosParcelas] = useState([])
   const [loadSaldo, setLoadSaldo] = useState([])
+  const [swipedItemId, setSwipedItemId] = useState(null);
 
 
   useEffect(() => {
@@ -20,26 +21,36 @@ export function AppProvider({ children }) {
   }, [])
 
 
-  async function BuscarFuturos() {
-    const parcelasCollection = collection(db, "futuro");
-    const parcelasQuery = query(parcelasCollection, orderBy("reg", "desc"));
-    try {
-      const querySnapshot = await getDocs(parcelasQuery);
-      const allDocuments = querySnapshot.docs.map((doc) => ({
+ async function BuscarFuturos() {
+  const parcelasCollection = collection(db, 'futuro');
+  const parcelasQuery = query(parcelasCollection, orderBy('reg', 'desc'));
+  try {
+    const querySnapshot = await getDocs(parcelasQuery);
+    const allDocuments = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      // Calcula o total do registro somando os valores das parcelas
+      const totalRegistro = data.parcelas
+        ? data.parcelas.reduce((sum, parcela) => sum + (parcela.valor || 0), 0)
+        : 0;
+      return {
         id: doc.id,
-        ...doc.data()
-      }));
-      // Calcular a soma de todos os campos 'valor'
-      const futurosTotal = allDocuments.reduce((total, doc) => {
-        return total + (doc.valor || 0); // Adiciona o valor, garantindo que seja 0 se não existir
-      }, 0);
-      // Armazenar os dados e o total no estado
-      setDadosParcelas(allDocuments);
-      setFuturosTotal(futurosTotal); // Armazena o total no estado
-    } catch (e) {
-      console.log("Erro ao buscar documentos: ", e);
-    }
+        ...data,
+        totalRegistro, // Adiciona o total do registro ao objeto
+      };
+    });
+
+    // Calcula o total geral somando os totais de cada registro
+    const futurosTotal = allDocuments.reduce((total, doc) => {
+      return total + (doc.totalRegistro || 0);
+    }, 0);
+
+    // Armazena os dados e o total no estado
+    setDadosParcelas(allDocuments);
+    setFuturosTotal(futurosTotal);
+  } catch (e) {
+    console.log('Erro ao buscar documentos: ', e);
   }
+}
 
 
   async function BuscarRegistrosFinanceiros() {
@@ -245,7 +256,8 @@ export function AppProvider({ children }) {
       obterNomeMes,
       futurosTotal,
       dadosParcelas,
-      loadSaldo
+      loadSaldo,
+      swipedItemId, setSwipedItemId
     }}>
       {children}
 

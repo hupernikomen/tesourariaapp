@@ -4,11 +4,10 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
 
 import Home from './src/pages/home';
-import AddImediato from './src/pages/registro';
-import AddFuturo from './src/pages/futuro';
+import Registro from './src/pages/registro';
+import Futuro from './src/pages/futuro';
 import Relatorio from './src/pages/relatorio';
 import { AppProvider } from './src/context/appContext';
 import LoginScreen from './src/pages/login';
@@ -16,24 +15,38 @@ import LoginScreen from './src/pages/login';
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
+  const Theme = {
+    ...DefaultTheme,
+    colors: {
+      theme: '#fff',
+      contra_theme:'#000',
+      background: '#f3f3f3',
+      positivo: '#659f99ff',
+      negativo: '#C43302',
+      posfraco: '#93c47d70',
+      negfraco: '#9E9365',
+      
+    },
+  };
+
 function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarScrollEnabled: true,
         tabBarItemStyle: { width: 110 },
-        tabBarActiveTintColor: '#222',
-        tabBarInactiveTintColor: '#ddd',
-        tabBarIndicatorStyle: { backgroundColor: '#777', height: 1.5 },
-        tabBarStyle: { backgroundColor: '#fff' },
+        tabBarActiveTintColor: Theme.colors.contra_theme,
+        tabBarInactiveTintColor: Theme.colors.contra_theme + '5' ,
+        tabBarIndicatorStyle: { backgroundColor: Theme.colors.contra_theme + '5', height: 1.5 },
+        tabBarStyle: { backgroundColor: Theme.colors.theme },
         tabBarLabelStyle: {
           fontSize: 12,
         },
       }}
     >
       <Tab.Screen name="Home" component={Home} options={{ title: 'FEITO' }} />
-      <Tab.Screen name="Futuro" component={AddFuturo} options={{ title: 'FUTURO' }} />
-      <Tab.Screen name="AddRegistros" component={AddImediato} options={{ title: 'REGISTRAR' }} />
+      <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO' }} />
+      <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
       <Tab.Screen
         name="Relatorio"
         component={Relatorio}
@@ -46,17 +59,7 @@ function TabNavigator() {
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  const Theme = {
-    ...DefaultTheme,
-    colors: {
-      theme: '#f3f3f3',
-      background: '#f3f3f3',
-      positivo: '#659f99ff',
-      negativo: '#C43302',
-      posfraco: '#93c47d70',
-      negfraco: '#9E9365',
-    },
-  };
+
 
   // Carrega a fonte personalizada
   useEffect(() => {
@@ -77,31 +80,24 @@ export default function App() {
     loadFonts();
   }, []);
 
-  // Exibe um componente de carregamento enquanto as fontes não estão prontas
-  if (!fontsLoaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#659f99" />
-        <Text>Carregando fontes...</Text>
-      </View>
-    );
-  }
+
 
   return (
     <NavigationContainer theme={Theme}>
-      <StatusBar backgroundColor={'#fff'} barStyle={'dark-content'} />
+      <StatusBar backgroundColor={Theme.colors.theme} barStyle={'dark-content'} />
       <AppProvider>
         <Stack.Navigator
           initialRouteName="Main"
           screenOptions={{
             headerStyle: {
-              backgroundColor: '#fff',
+              backgroundColor: Theme.colors.theme,
             },
+            headerTitleAlign:'center',
             headerTitleStyle: {
-              fontSize: 19,
+              fontSize: 18,
               fontFamily: 'Raleway-Bold', // Usa a fonte carregada no cabeçalho
             },
-            headerTintColor: '#222',
+            headerTintColor: Theme.colors.contra_theme,
           }}
         >
           <Stack.Screen
@@ -118,7 +114,7 @@ export default function App() {
           <Stack.Screen
             name="Main"
             component={TabNavigator}
-            options={{ title: 'Financeiro PSH', headerShadowVisible: false }}
+            options={{ title: 'Tesouraria PSH', headerShadowVisible: false }}
           />
          
         </Stack.Navigator>

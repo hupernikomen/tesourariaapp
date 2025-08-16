@@ -61,10 +61,11 @@ export default function AddRegistros() {
     { label: 'Dízimos', type: 'receita', parcela: false },
     { label: 'Ofertas', type: 'receita', parcela: false },
     { label: 'Ofertas Alçadas', type: 'receita', parcela: false },
-    { label: 'Prebendas', type: 'despesa', parcela: false },
-    { label: 'Compras', type: 'despesa', parcela: true },
-    { label: 'Empréstimos', type: 'despesa', parcela: true },
     { label: 'Contas Recorrentes', type: 'despesa', parcela: false },
+    { label: 'Compras à Vista', type: 'despesa', parcela: false },
+    { label: 'Compras Parceladas', type: 'despesa', parcela: true },
+    { label: 'Empréstimos', type: 'despesa', parcela: true },
+    { label: 'Prebendas', type: 'despesa', parcela: false },
   ];
 
 
@@ -100,46 +101,61 @@ export default function AddRegistros() {
 
     setReload(true);
 
-    try {
-      if (!recorrencia) {
-        // Registro único (sem recorrência)
-        const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
-        await addDoc(collection(db, 'registros'), {
-          reg: Date.now(),
-          dataDoc: dataDoc.getTime(),
-          tipo: selectedOption,
-          valor: parseFloat(valor),
-          movimentacao: transactionType,
-          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-          imageUrl,
-          detalhamento,
+   try {
+    if (!recorrencia) {
+      // Registro único (sem recorrência)
+      const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
+      await addDoc(collection(db, 'registros'), {
+        reg: Date.now(),
+        dataDoc: dataDoc.getTime(),
+        tipo: selectedOption,
+        valor: parseFloat(valor),
+        movimentacao: transactionType,
+        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+        imageUrl,
+        detalhamento,
+        pago: true
+      });
+      await ResumoFinanceiro();
+    } else {
+      // Registro de pagamento parcelado (um único documento com array de parcelas)
+      const parcelas = [];
+      const initialTimestamp = dataDoc.getTime();
+      const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
+
+      // Cria o array de parcelas
+      for (let i = 0; i < recorrencia; i++) {
+        const nextPaymentDate = new Date(initialTimestamp);
+        nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
+        parcelas.push({
+          dataDoc: nextPaymentDate.getTime(),
+          valor: parseFloat(valor) / recorrencia,
+          parcela: i + 1,
+          pago: false
         });
-        await ResumoFinanceiro();
-      } else {
-        // Registros recorrentes (mensal)
-        const initialTimestamp = dataDoc.getTime();
-        for (let i = 0; i < recorrencia; i++) {
-          const nextPaymentDate = new Date(initialTimestamp);
-          nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
-          await addDoc(collection(db, 'futuro'), {
-            reg: Date.now(),
-            dataDoc: nextPaymentDate.getTime(),
-            tipo: selectedOption,
-            valor: parseFloat(valor) / recorrencia,
-            recorrencia,
-            parcela: i + 1,
-            movimentacao: transactionType,
-            ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-            detalhamento,
-          });
-        }
       }
-    } catch (e) {
-      console.log('Erro ao adicionar documento:', e);
-    } finally {
-      setReload(false);
-      navigation.goBack();
+
+      // Adiciona um único documento na coleção 'futuro'
+      await addDoc(collection(db, 'futuro'), {
+        reg: Date.now(),
+        tipo: selectedOption,
+        recorrencia,
+        movimentacao: transactionType,
+        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+        imageUrl,
+        detalhamento,
+        valorTotal: parseFloat(valor),
+        parcelas, // Array contendo todas as parcelas
+      });
+
+      await ResumoFinanceiro();
     }
+  } catch (e) {
+    console.log('Erro ao adicionar documento:', e);
+  } finally {
+    setReload(false);
+    navigation.goBack();
+  }
   }
 
 
@@ -158,6 +174,9 @@ export default function AddRegistros() {
 
 
   const takePhotoAsync = async () => {
+    setReload(true)
+
+
     if (hasCameraPermission === false) {
       alert('Você não concedeu permissão para usar a câmera!');
       return;
@@ -176,6 +195,8 @@ export default function AddRegistros() {
     } catch (error) {
       console.error('Erro ao acessar câmera:', error);
       alert('Ocorreu um erro ao tentar abrir a câmera');
+    } finally{
+      setReload(false)
     }
   };
 
@@ -202,8 +223,8 @@ export default function AddRegistros() {
         />
       )}
 
-      {dataDoc?<Texto linhas={0} estilo={{ padding: 21, textAlign: 'center', color:'#000' }} size={13} wheight={300} texto={`Comece informando a data do pagamento ou da primeira prestação do registro`} />:null}
       <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar'} />
+      {dataDoc ? <Texto linhas={0} estilo={{ padding: 21, textAlign: 'center', color: '#000' }} size={13} wheight={300} texto={`Comece informando a data do pagamento ou da primeira prestação do registro`} /> : null}
 
 
       <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
@@ -222,7 +243,7 @@ export default function AddRegistros() {
       </View>
 
 
-      <Input title={'Valor Pago'} value={valor} setValue={setValor} type='numeric' />
+      <Input title={`${transactionParcela ? 'Total a pagar' : 'Valor'}`} value={valor} setValue={setValor} type='numeric' />
 
       {transactionType === 'despesa' ? (
         <>

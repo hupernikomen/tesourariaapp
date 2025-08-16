@@ -234,7 +234,6 @@ export default function Relatorio() {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>Nenhum dado disponível</Text>
-        <Text style={styles.emptyText}>para os últimos 12 meses.</Text>
       </View>
     );
   }
