@@ -101,7 +101,6 @@ export default function Item({ item, vencido }) {
       if (novasParcelas.length > 0) {
         await updateDoc(docRef, {
           parcelas: novasParcelas,
-          recorrencia: String(novasParcelas.length),
         });
       } else {
         await deleteDoc(docRef);
