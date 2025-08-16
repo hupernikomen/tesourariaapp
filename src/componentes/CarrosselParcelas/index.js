@@ -53,18 +53,18 @@ const Parcelas = ({ dadosParcelas }) => {
         style={[{ width: width - 70, justifyContent: 'space-between', backgroundColor: '#fff', padding: 21, borderRadius: 21, marginHorizontal: 14 }]}
       >
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems:'center' }}>
 
           <View style={{ flexDirection: 'row', backgroundColor: '#E39B0E', borderRadius: 10, alignItems: 'center' }}>
 
             <Texto texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`} size={11} estilo={{ fontFamily: 'Roboto-Regular', marginLeft: -4, color: '#fff', backgroundColor: '#fff', borderRadius: 10, color: '#000', paddingHorizontal: 6, paddingVertical: 1 }} />
             <Texto texto={`${'VENCIDO'} ${item.parcela ? `${item?.parcela}/${item.recorrencia}` : ''}`} size={9} estilo={{ color: '#fff', paddingHorizontal: 6, fontFamily: 'Roboto-Regular' }} />
           </View>
-          <Texto texto={formatoMoeda.format(item.valor)} size={12} estilo={{ color: '#000', fontFamily: 'Roboto-Regular' }} />
+          <Texto texto={`R$ ${formatoMoeda.format(item.valor)}`} size={13} estilo={{ color: '#000', fontFamily: 'Roboto-Regular' }} />
         </View>
 
 
-        <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', alignItems: "center", justifyContent: 'space-between', marginTop: 7 }}>
           <Texto linhas={2} texto={item.detalhamento} size={14} estilo={{ fontFamily: 'Roboto-Regular' }} />
           {!!item.imageUrl ? <AntDesign name='paperclip' /> : ''}
         </View>
@@ -73,7 +73,7 @@ const Parcelas = ({ dadosParcelas }) => {
   }
 
   return (
-    <View style={{ marginBottom: 12 }}>
+    <View>
       {dadosFiltrados.length > 0 ? (
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>

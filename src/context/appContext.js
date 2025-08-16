@@ -12,7 +12,7 @@ export function AppProvider({ children }) {
   const [dadosFinancas, setDadosFinanceiros] = useState([])
   const [futurosTotal, setFuturosTotal] = useState(0)
   const [dadosParcelas, setDadosParcelas] = useState([])
-  const [loadSaldo, setLoadSaldo] = useState([])
+  const [loadSaldo, setLoadSaldo] = useState(true)
   const [swipedItemId, setSwipedItemId] = useState(null);
 
 

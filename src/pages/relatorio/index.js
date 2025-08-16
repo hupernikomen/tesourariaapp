@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Dimensions, StyleSheet } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { AppContext } from "../../context/appContext";
 import * as Print from 'expo-print';
@@ -12,7 +12,7 @@ export default function Relatorio() {
   const [dadosFiltrados, setDadosFiltrados] = useState([]);
   const width = Dimensions.get('window').width;
 
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,9 +22,6 @@ export default function Relatorio() {
   }, []);
 
   useEffect(() => {
-
-
-
     const dataAtual = new Date();
     const umAno = new Date(dataAtual.setMonth(dataAtual.getMonth() - 12));
 
@@ -40,17 +37,11 @@ export default function Relatorio() {
 
   const generatePDF = async (mesData) => {
     try {
-      // Filtra receitas (chaves combinadas com movimentacao 'receita')
-      const receitas = Object.keys(mesData).filter(key =>
-        key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-        mesData[key].movimentacao === 'receita' && mesData[key].total > 0
-      );
-
-      // Agrupa despesas por tipo, somando totais
-      const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+      // Agrupa receitas por tipo, somando totais
+      const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
         if (
           key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-          mesData[key].movimentacao === 'despesa' && mesData[key].total > 0
+          mesData[key].movimentacao === 'receita' && mesData[key].total > 0
         ) {
           const tipo = mesData[key].tipo;
           if (!acc[tipo]) {
@@ -60,78 +51,185 @@ export default function Relatorio() {
         }
         return acc;
       }, {});
-      const despesas = Object.values(despesasAgrupadas);
+      const receitas = Object.values(receitasAgrupadas);
 
-      // Agrupa ministerios para despesas, mantendo chaves combinadas
-      const ministeriosAgrupados = Object.keys(mesData).reduce((acc, key) => {
+      // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
+      const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
         if (
           key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
           mesData[key].movimentacao === 'despesa' && mesData[key].total > 0
         ) {
-          const ministerioNome = `${mesData[key].ministerio.toUpperCase()} (${mesData[key].tipo.toUpperCase()})`;
-          acc[key] = {
-            ministerio: ministerioNome,
-            total: mesData[key].total
-          };
+          const tipo = mesData[key].tipo;
+          if (!acc[tipo]) {
+            acc[tipo] = { total: 0, tipo, items: [] };
+          }
+          acc[tipo].total += mesData[key].total;
+          acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
         }
         return acc;
       }, {});
-      const ministerios = Object.values(ministeriosAgrupados);
+      const despesas = Object.values(despesasAgrupadas);
 
       const htmlContent = `
         <html>
           <head>
             <style>
-              body { font-family: Arial, sans-serif; padding: 40px; }
-              .title { font-size: 20px; font-weight: bold; margin-bottom: 20px; }
-              .card { padding: 15px; background-color: #f3f3f3;margin-bottom: 20px; }
-              .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-              .label { font-size: 12px; color: #333; }
-              .value { font-size: 12px; color: #000; }
-              .divider { border-bottom: 1px solid #ccc; margin: 10px 0; }
+              body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 20px;
+                background-color: #f4f7fa;
+                color: #333;
+              }
+              .container {
+                max-width: 900px;
+                margin: 0 auto;
+                background-color: #fff;
+                border-radius: 8px;
+                padding: 20px;
+              }
+              .header {
+                text-align: center;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #e0e0e0;
+              }
+              .title {
+                font-size: 24px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 0;
+              }
+              .subtitle {
+                font-size: 12px;
+                color: #7f8c8d;
+                margin-top: 3px;
+              }
+              .summary {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                margin: 15px 0;
+              }
+              .summary-card {
+                background-color: #ecf0f1;
+                padding: 10px;
+                border-radius: 6px;
+                text-align: center;
+                transition: transform 0.2s;
+              }
+              .summary-card:hover {
+                transform: translateY(-3px);
+              }
+              .summary-card.green { background-color: #e8f5e9; }
+              .summary-card.red { background-color: #ffebee; }
+              .summary-card.blue { background-color: #e3f2fd; }
+              .summary-label {
+                font-size: 12px;
+                font-weight: bold;
+                color: #34495e;
+                margin-bottom: 5px;
+              }
+              .summary-value {
+                font-size: 16px;
+                color: #2c3e50;
+              }
+              .section-title {
+                font-size: 16px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin: 15px 0 10px;
+                padding-left: 8px;
+              }
+              .details {
+                margin-bottom: 10px;
+              }
+              .detail-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 10px;
+                background-color: #f9f9f9;
+                border-radius: 4px;
+                margin-bottom: 4px;
+                font-size: 12px;
+              }
+              .detail-row.sub-row {
+                margin-left: 15px;
+                background-color: #f1f1f1;
+                font-size: 11px;
+              }
+              .detail-label {
+                color: #34495e;
+                font-weight: 500;
+              }
+              .detail-value {
+                color: #2c3e50;
+              }
+
+              .divider {
+                border-bottom: 1px dashed #e0e0e0;
+                margin: 8px 0;
+              }
+              .footer {
+                text-align: center;
+                font-size: 10px;
+                color: #7f8c8d;
+                margin-top: 15px;
+                padding-top: 10px;
+                border-top: 1px solid #e0e0e0;
+              }
             </style>
           </head>
           <body>
-            <h1 class="title">Relatório Financeiro - ${mesData.nomeMes.toUpperCase()}</h1>
-            <div class="card">
-              <div class="row">
-                <span class="label">RECEITAS</span>
-                <span class="value">${formatoMoeda.format(mesData.receita)}</span>
+            <div class="container">
+              <div class="header">
+                <h1 class="title">Relatório Financeiro - ${mesData.nomeMes.toUpperCase()}</h1>
+                <p class="subtitle">Resumo Financeiro Mensal</p>
               </div>
-              <div class="row">
-                <span class="label">DESPESAS</span>
-                <span class="value">${formatoMoeda.format(mesData.despesa)}</span>
+              <div class="summary">
+                <div class="summary-card green">
+                  <div class="summary-label">RECEITAS</div>
+                  <div class="summary-value">${formatoMoeda.format(mesData.receita)}</div>
+                </div>
+                <div class="summary-card red">
+                  <div class="summary-label">DESPESAS</div>
+                  <div class="summary-value">${formatoMoeda.format(mesData.despesa)}</div>
+                </div>
+                <div class="summary-card blue">
+                  <div class="summary-label">SALDO</div>
+                  <div class="summary-value">${formatoMoeda.format(mesData.saldo)}</div>
+                </div>
               </div>
-              <div class="row">
-                <span class="label">SALDO</span>
-                <span class="value">${formatoMoeda.format(mesData.saldo)}</span>
+              <div class="details">
+                ${receitas.length > 0 ? `
+                  <h3 class="section-title">Receitas</h3>
+                  ${receitas.map(item => `
+                    <div class="detail-row">
+                      <span class="detail-label">${item.tipo.toUpperCase()}</span>
+                      <span class="detail-value positive">+ ${formatoMoeda.format(item.total)}</span>
+                    </div>
+                  `).join('')}
+                ` : ''}
+                ${receitas.length > 0 && despesas.length > 0 ? '<div class="divider"></div>' : ''}
+                ${despesas.length > 0 ? `
+                  <h3 class="section-title">Despesas</h3>
+                  ${despesas.map(item => `
+                    <div class="detail-row">
+                      <span class="detail-label">${item.tipo.toUpperCase()}</span>
+                      <span class="detail-value negative">- ${formatoMoeda.format(item.total)}</span>
+                    </div>
+                    ${item.items.map(min => `
+                      <div class="detail-row sub-row">
+                        <span class="detail-label">${min.ministerio.toUpperCase()}</span>
+                        <span class="detail-value negative">- ${formatoMoeda.format(min.total)}</span>
+                      </div>
+                    `).join('')}
+                  `).join('')}
+                ` : ''}
+              </div>
+              <div class="footer">
+                Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} | Sistema Financeiro da Igreja Batista no PSH
               </div>
             </div>
-
-                      <div class="row">
-                <span class="title">Detalhamento:</span>
-              </div>
-
-            ${receitas.map(key => `
-              <div class="row">
-                <span class="label">${mesData[key].tipo.toUpperCase()}</span>
-                <span class="value">+ ${formatoMoeda.format(mesData[key].total)}</span>
-              </div>
-            `).join('')}
-            ${despesas.length > 0 ? '<div class="divider"></div>' : ''}
-            ${despesas.map(item => `
-              <div class="row">
-                <span class="label">${item.tipo.toUpperCase()}</span>
-                <span class="value">- ${formatoMoeda.format(item.total)}</span>
-              </div>
-            `).join('')}
-            ${ministerios.length > 0 ? '<div class="divider"></div>' : ''}
-            ${ministerios.map(min => `
-              <div class="row">
-                <span class="label">${min.ministerio}</span>
-                <span class="value">- ${formatoMoeda.format(min.total)}</span>
-              </div>
-            `).join('')}
           </body>
         </html>
       `;
@@ -144,18 +242,11 @@ export default function Relatorio() {
   };
 
   const MesScreen = ({ mesData }) => {
-
-    // Filtra receitas
-    const receitas = Object.keys(mesData).filter(key =>
-      key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-      mesData[key].movimentacao === 'receita' && mesData[key].total > 0
-    );
-
-    // Agrupa despesas por tipo, somando totais
-    const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+    // Agrupa receitas por tipo, somando totais
+    const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
       if (
         key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-        mesData[key].movimentacao === 'despesa' && mesData[key].total > 0
+        mesData[key].movimentacao === 'receita' && mesData[key].total > 0
       ) {
         const tipo = mesData[key].tipo;
         if (!acc[tipo]) {
@@ -165,66 +256,74 @@ export default function Relatorio() {
       }
       return acc;
     }, {});
-    const despesas = Object.values(despesasAgrupadas);
+    const receitas = Object.values(receitasAgrupadas);
 
-    // Agrupa ministerios para despesas, mantendo chaves combinadas
-    const ministeriosAgrupados = Object.keys(mesData).reduce((acc, key) => {
+    // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
+    const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
       if (
         key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
         mesData[key].movimentacao === 'despesa' && mesData[key].total > 0
       ) {
-        const ministerioNome = `${mesData[key].ministerio.toUpperCase()} (${mesData[key].tipo.toUpperCase()})`;
-        acc[key] = {
-          ministerio: ministerioNome,
-          total: mesData[key].total
-        };
+        const tipo = mesData[key].tipo;
+        if (!acc[tipo]) {
+          acc[tipo] = { total: 0, tipo, items: [] };
+        }
+        acc[tipo].total += mesData[key].total;
+        acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
       }
       return acc;
     }, {});
-    const ministerios = Object.values(ministeriosAgrupados);
+    const despesas = Object.values(despesasAgrupadas);
 
     return (
       <View style={styles.container}>
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <Text style={styles.label}>RECEITAS</Text>
-            <Text style={styles.value}>{formatoMoeda.format(mesData.receita)}</Text>
+        <View style={styles.header}>
+        </View>
+        <View style={styles.summary}>
+          <View style={[styles.summaryCard, styles.greenCard]}>
+            <Text style={styles.summaryLabel}>RECEITAS</Text>
+            <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.receita)}</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>DESPESAS</Text>
-            <Text style={styles.value}>{formatoMoeda.format(mesData.despesa)}</Text>
+          <View style={[styles.summaryCard, styles.redCard]}>
+            <Text style={styles.summaryLabel}>DESPESAS</Text>
+            <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.despesa)}</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>SALDO</Text>
-            <Text style={styles.value}>{formatoMoeda.format(mesData.saldo)}</Text>
+          <View style={[styles.summaryCard, styles.blueCard]}>
+            <Text style={styles.summaryLabel}>SALDO</Text>
+            <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.saldo)}</Text>
           </View>
         </View>
-        <View style={{ padding: 14 }}>
-          {receitas.map((key) => (
-            <View key={key} style={styles.row}>
-              <Text style={styles.label}>{mesData[key].tipo.toUpperCase()}</Text>
-              <Text style={styles.value}>+ {formatoMoeda.format(mesData[key].total)}</Text>
-            </View>
-          ))}
-
-          {despesas.length > 0 && <View style={{ borderBottomColor: '#ccc', borderBottomWidth: 0.3, marginVertical: 7 }} />}
-          {despesas.map((item) => (
-            <View key={item.tipo} style={styles.row}>
-              <Text style={styles.label}>{item.tipo.toUpperCase()}</Text>
-              <Text style={styles.value}>- {formatoMoeda.format(item.total)}</Text>
-            </View>
-          ))}
-
-          {ministerios.length > 0 && <View style={{ borderBottomColor: '#ccc', borderBottomWidth: 0.3, marginVertical: 7 }} />}
-          {ministerios.map((min) => (
-            <View key={min.ministerio} style={styles.row}>
-              <Text style={styles.label}>{min.ministerio}</Text>
-              <Text style={styles.value}>- {formatoMoeda.format(min.total)}</Text>
-            </View>
-          ))}
+        <View style={styles.details}>
+          {receitas.length > 0 && (
+            <>
+              {receitas.map((item) => (
+                <View key={item.tipo} style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
+                  <Text style={[styles.detailValue, styles.positive]}>+ {formatoMoeda.format(item.total)}</Text>
+                </View>
+              ))}
+            </>
+          )}
+          {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
+          {despesas.length > 0 && (
+            <>
+              {despesas.map((item) => (
+                <View key={item.tipo}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
+                    <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(item.total)}</Text>
+                  </View>
+                  {item.items.map((min, index) => (
+                    <View key={index} style={[styles.detailRow, styles.subRow]}>
+                      <Text style={styles.detailLabel}>{min.ministerio.toUpperCase()}</Text>
+                      <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(min.total)}</Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </>
+          )}
         </View>
-
-
         <Botao acao={() => generatePDF(mesData)} texto={'Gerar e Compartilhar PDF'} />
       </View>
     );
@@ -247,6 +346,8 @@ export default function Relatorio() {
         tabBarInactiveTintColor: '#ddd',
         tabBarLabelStyle: { fontSize: 12 },
         tabBarStyle: {
+          height:60,
+          justifyContent:'center',
           backgroundColor: '#fff',
           elevation: 0,
           marginHorizontal: 14,
@@ -271,34 +372,71 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 14,
-    marginVertical: 7,
+    paddingVertical: 7,
+    backgroundColor: '#f4f7fa',
   },
-  title: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 21,
-    padding: 16,
-    marginBottom: 14,
-    shadowColor: '#000',
-  },
-  row: {
-    flexDirection: 'row',
+  header: {
     alignItems: 'center',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+
+  subtitle: {
+    fontSize: 12,
+    color: '#7f8c8d',
+    marginTop: 3,
+  },
+  summary: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 3.5,
+    marginVertical: 15,
   },
-  label: {
-    fontSize: 12,
-    color: '#333',
-    fontFamily: 'Roboto-Regular',
+  summaryCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginHorizontal: 2,
   },
-  value: {
+  
+  summaryLabel: {
     fontSize: 12,
-    color: '#000',
-    fontFamily: 'Roboto-Light',
+    color: '#34495e',
+  },
+  summaryValue: {
+    fontSize: 12,
+  },
+
+  details: {
+    marginBottom: 10,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  subRow: {
+    marginLeft: 21,
+    backgroundColor: '#f4f7fa',
+  },
+  detailLabel: {
+    fontSize: 11,
+    color: '#34495e',
+  },
+  detailValue: {
+    fontSize: 12,
+    color: '#2c3e50',
+  },
+
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginVertical: 8,
   },
   emptyContainer: {
     flex: 1,
@@ -312,5 +450,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 42,
     textAlign: 'center',
   },
-
 });

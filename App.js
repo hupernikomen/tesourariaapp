@@ -21,10 +21,8 @@ const Tab = createMaterialTopTabNavigator();
       theme: '#fff',
       contra_theme:'#000',
       background: '#f3f3f3',
-      positivo: '#659f99ff',
-      negativo: '#C43302',
-      posfraco: '#93c47d70',
-      negfraco: '#9E9365',
+      receita: '#457f79',
+      despesa: '#c54343',
       
     },
   };
@@ -36,8 +34,8 @@ function TabNavigator() {
         tabBarScrollEnabled: true,
         tabBarItemStyle: { width: 110 },
         tabBarActiveTintColor: Theme.colors.contra_theme,
-        tabBarInactiveTintColor: Theme.colors.contra_theme + '5' ,
-        tabBarIndicatorStyle: { backgroundColor: Theme.colors.contra_theme + '5', height: 1.5 },
+        tabBarInactiveTintColor: Theme.colors.contra_theme + '4' ,
+        tabBarIndicatorStyle: { backgroundColor: Theme.colors.contra_theme + '5', height: 1 },
         tabBarStyle: { backgroundColor: Theme.colors.theme },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -94,8 +92,7 @@ export default function App() {
             },
             headerTitleAlign:'center',
             headerTitleStyle: {
-              fontSize: 18,
-              fontFamily: 'Raleway-Bold', // Usa a fonte carregada no cabeçalho
+              fontSize: 17,
             },
             headerTintColor: Theme.colors.contra_theme,
           }}

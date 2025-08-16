@@ -9,7 +9,6 @@ import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { useIsFocused } from '@react-navigation/native';
 
 export default function Item({ item, vencido }) {
-  const { width } = Dimensions.get('window');
   const { formatoMoeda, BuscarRegistrosFinanceiros, swipedItemId, setSwipedItemId } = useContext(AppContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [imagemSelecionada, setImagemSelecionada] = useState(null);
@@ -185,11 +184,11 @@ export default function Item({ item, vencido }) {
               },
             ]}
           >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems:'center' }}>
               <View
                 style={{
                   flexDirection: 'row',
-                  backgroundColor: item.movimentacao === 'despesa' ? (vencido ? '#E39B0E' : '#F56465') : '#659f99ff',
+                  backgroundColor: item.movimentacao === 'despesa' ? (vencido ? '#E39B0E' : '#F56465') : '#659f99',
                   borderRadius: 10,
                   alignItems: 'center',
                 }}
@@ -215,8 +214,8 @@ export default function Item({ item, vencido }) {
                 />
               </View>
               <Texto
-                texto={formatoMoeda.format(item.valor)}
-                size={12}
+                texto={`R$ ${formatoMoeda.format(item.valor)}`}
+                size={13}
                 estilo={{ color: '#000', fontFamily: 'Roboto-Regular' }}
               />
             </View>

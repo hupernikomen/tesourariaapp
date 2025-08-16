@@ -34,10 +34,9 @@ export default function Home() {
 
       <FlatList
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={<View style={{ marginVertical: 4 }} />}
-        ListFooterComponent={<View style={{ marginVertical: 4 }} />}
+        ItemSeparatorComponent={<View style={{ marginVertical: 2 }} />}
         ListHeaderComponent={
-          <View style={{ gap: 7 }}>
+          <View style={{ gap: 21 }}>
             <Bxsaldo dados={{ futurosTotal, saldoAtual }} />
             <CarrosselParcelas dadosParcelas={dadosParcelas} />
             <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 35, marginVertical: 14 }} size={12} />
