@@ -36,7 +36,8 @@ export default function Relatorio() {
 
   const Tab = createMaterialTopTabNavigator();
 
- const generatePDF = async (mesData) => {
+
+const generatePDF = async (mesData) => {
   try {
     // Agrupa receitas por tipo, somando totais
     const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
@@ -99,6 +100,7 @@ export default function Relatorio() {
         valor: mesData[key].valor,
         movimentacao: mesData[key].movimentacao,
         tipo: mesData[key].tipo,
+        dataDoc: mesData[key].dataDoc,
       }));
 
     const htmlContent = `
@@ -119,15 +121,18 @@ export default function Relatorio() {
               border-radius: 8px;
               padding: 20px;
               gap: 20px;
+              box-sizing: border-box;
             }
             .main-column {
-              flex: 7;
+              width: 66.67%;
               padding-right: 10px;
+              box-sizing: border-box;
             }
             .detail-column {
-              flex: 3;
+              width: 33.33%;
               border-left: 1px solid #e0e0e0;
               padding-left: 10px;
+              box-sizing: border-box;
             }
             .header {
               text-align: center;
@@ -187,14 +192,14 @@ export default function Relatorio() {
               justify-content: space-between;
               padding: 4px 6px;
               font-size: 12px;
-              border-bottom: 0.5px solid #f3f3f3ff;
+              border-bottom: 0.5px solid #e0e0e0;
             }
             .detail-row.sub-row {
               margin-left: 15px;
               padding: 4px 6px;
               margin-bottom: 1px;
               font-size: 11px;
-              border-bottom: 0.5px solid #f3f3f3ff;
+              border-bottom: 0.5px solid #e0e0e0;
             }
             .detail-label {
               color: #34495e;
@@ -209,6 +214,7 @@ export default function Relatorio() {
               color: #c0392b;
             }
             .divider {
+              border-bottom: 1px dashed #e0e0e0;
               margin: 8px 0;
             }
             .footer {
@@ -294,7 +300,7 @@ export default function Relatorio() {
               <h3 class="section-title">Movimentações</h3>
               ${detalhamento.length > 0 ? detalhamento.map(det => `
                 <div class="detail-row">
-                  <span class="detail-label">${det.tipo === 'Dízimos' ? '********' : det.detalhamento}</span>
+                  <span class="detail-label">${new Date(det.dataDoc).getDate().toString().padStart(2, '0')} - ${det.tipo === 'Dízimos' ? '********' : det.detalhamento}</span>
                   <span class="detail-value ${det.movimentacao === 'receita' ? 'positive' : 'negative'}">
                     ${det.movimentacao === 'receita' ? '+' : '-'} ${formatoMoeda.format(det.valor)}
                   </span>

@@ -135,10 +135,12 @@ export function AppProvider({ children }) {
     // Itera sobre cada documento retornado
     querySnapshot.forEach((doc) => {
       const data = doc.data(); // Obtém os dados do documento
+
       const dataTimestamp = data.dataDoc; // Obtém a data do registro
       const valor = data.valor || 0; // Obtém o valor do registro, default 0
       const movimentacao = data.movimentacao; // Obtém o tipo de movimentação ('receita' ou 'despesa')
       const detalhamento = data.detalhamento;
+      const dataDoc = data.dataDoc;
       const tipo = data.tipo || 'Sem Tipo'; // Obtém o tipo da movimentação
       const ministerio = data.ministerio ? data.ministerio.trim() : 'Sem Ministério'; // Obtém o ministério associado ao registro, normalizado
 
@@ -179,6 +181,7 @@ export function AppProvider({ children }) {
           ministerio: ministerio, // Armazena o ministério
           detalhamento: detalhamento,
           valor:valor,
+          dataDoc:dataDoc,
           tipo: tipo, // Armazena o tipo original
           mes: mes // Armazena o mês
         };
