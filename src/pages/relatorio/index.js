@@ -1,11 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, Dimensions, StyleSheet, ScrollView } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { AppContext } from "../../context/appContext";
+import { AppContext } from '../../context/appContext';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import Botao from '../../componentes/Botao';
-import { useNavigation } from '@react-navigation/native';
 
 export default function Relatorio() {
   const { BuscarSaldo, resumoFinanceiro, formatoMoeda } = useContext(AppContext);
@@ -16,7 +15,9 @@ export default function Relatorio() {
     const fetchData = async () => {
       await BuscarSaldo();
     };
+    
     fetchData();
+
   }, []);
 
   useEffect(() => {
@@ -28,82 +29,79 @@ export default function Relatorio() {
       return dataMes >= umAno;
     });
 
-    
-
     setDadosFiltrados(filtrados);
   }, [resumoFinanceiro]);
 
-
   const Tab = createMaterialTopTabNavigator();
 
-
-const generatePDF = async (mesData) => {
-  try {
-    // Agrupa receitas por tipo, somando totais
-    const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
-      if (
-        key !== 'ano' &&
-        key !== 'mes' &&
-        key !== 'nomeMes' &&
-        key !== 'receita' &&
-        key !== 'despesa' &&
-        key !== 'saldo' &&
-        mesData[key].movimentacao === 'receita' &&
-        mesData[key].total > 0
-      ) {
-        const tipo = mesData[key].tipo;
-        if (!acc[tipo]) {
-          acc[tipo] = { total: 0, tipo };
-        }
-        acc[tipo].total += mesData[key].total;
-      }
-      return acc;
-    }, {});
-    const receitas = Object.values(receitasAgrupadas);
-
-    // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
-    const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
-      if (
-        key !== 'ano' &&
-        key !== 'mes' &&
-        key !== 'nomeMes' &&
-        key !== 'receita' &&
-        key !== 'despesa' &&
-        key !== 'saldo' &&
-        mesData[key].movimentacao === 'despesa' &&
-        mesData[key].total > 0
-      ) {
-        const tipo = mesData[key].tipo;
-        if (!acc[tipo]) {
-          acc[tipo] = { total: 0, tipo, items: [] };
-        }
-        acc[tipo].total += mesData[key].total;
-        acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
-      }
-      return acc;
-    }, {});
-    const despesas = Object.values(despesasAgrupadas);
-
-    // Lista de todos os registros detalhados para a coluna de detalhamento
-    const detalhamento = Object.keys(mesData)
-      .filter(
-        key =>
+  const generatePDF = async (mesData) => {
+    try {
+      // Agrupa receitas por tipo, somando totais
+      const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+        if (
           key !== 'ano' &&
           key !== 'mes' &&
           key !== 'nomeMes' &&
           key !== 'receita' &&
           key !== 'despesa' &&
-          key !== 'saldo'
-      )
-      .map(key => ({
-        detalhamento: mesData[key].detalhamento,
-        valor: mesData[key].valor,
-        movimentacao: mesData[key].movimentacao,
-        tipo: mesData[key].tipo,
-        dataDoc: mesData[key].dataDoc,
-      }));
+          key !== 'saldo' &&
+          mesData[key].movimentacao === 'receita' &&
+          mesData[key].total > 0
+        ) {
+          const tipo = mesData[key].tipo;
 
-    const htmlContent = `
+          if (!acc[tipo]) {
+            acc[tipo] = { total: 0, tipo };
+          }
+
+          acc[tipo].total += mesData[key].total;
+        }
+        return acc;
+      }, {});
+      const receitas = Object.values(receitasAgrupadas);
+
+      // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
+      const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+        if (
+          key !== 'ano' &&
+          key !== 'mes' &&
+          key !== 'nomeMes' &&
+          key !== 'receita' &&
+          key !== 'despesa' &&
+          key !== 'saldo' &&
+          mesData[key].movimentacao === 'despesa' &&
+          mesData[key].total > 0
+        ) {
+          const tipo = mesData[key].tipo;
+          if (!acc[tipo]) {
+            acc[tipo] = { total: 0, tipo, items: [] };
+          }
+          acc[tipo].total += mesData[key].total;
+          acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
+        }
+        return acc;
+      }, {});
+      const despesas = Object.values(despesasAgrupadas);
+
+      const detalhamento = Object.keys(mesData)
+        .filter(
+          key =>
+            key !== 'ano' &&
+            key !== 'mes' &&
+            key !== 'nomeMes' &&
+            key !== 'receita' &&
+            key !== 'despesa' &&
+            key !== 'saldo'
+        )
+        .map(key => ({
+          detalhamento: mesData[key].detalhamento,
+          valor: mesData[key].valor,
+          movimentacao: mesData[key].movimentacao,
+          tipo: mesData[key].tipo,
+          dataDoc: mesData[key].dataDoc,
+        }));
+
+      const htmlContent = `
       <html>
         <head>
           <style>
@@ -187,6 +185,14 @@ const generatePDF = async (mesData) => {
             .details {
               margin-bottom: 10px;
             }
+            .tipo-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 4px 6px;
+              font-size: 12px;
+              border-bottom: 0.5px solid #e0e0e0;
+              font-weight: 500
+            }
             .detail-row {
               display: flex;
               justify-content: space-between;
@@ -269,7 +275,7 @@ const generatePDF = async (mesData) => {
                 ${receitas.length > 0 ? `
                   <h3 class="section-title">Receitas</h3>
                   ${receitas.map(item => `
-                    <div class="detail-row">
+                    <div class="tipo-row">
                       <span class="detail-label">${item.tipo.toUpperCase()}</span>
                       <span class="detail-value positive">+ ${formatoMoeda.format(item.total)}</span>
                     </div>
@@ -279,7 +285,7 @@ const generatePDF = async (mesData) => {
                 ${despesas.length > 0 ? `
                   <h3 class="section-title">Despesas</h3>
                   ${despesas.map(item => `
-                    <div class="detail-row">
+                    <div class="tipo-row">
                       <span class="detail-label">${item.tipo.toUpperCase()}</span>
                       <span class="detail-value negative">- ${formatoMoeda.format(item.total)}</span>
                     </div>
@@ -312,20 +318,24 @@ const generatePDF = async (mesData) => {
       </html>
     `;
 
-    const { uri } = await Print.printToFileAsync({ html: htmlContent });
-    await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `Compartilhar Relatório ${mesData.nomeMes}` });
-  } catch (error) {
-    console.error('Erro ao gerar ou compartilhar o PDF:', error);
-  }
-};
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `Compartilhar Relatório ${mesData.nomeMes}` });
+    } catch (error) {
+      console.error('Erro ao gerar ou compartilhar o PDF:', error);
+    }
+  };
 
   const MesScreen = ({ mesData }) => {
-
-    // Agrupa receitas por tipo, somando totais
     const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
       if (
-        key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-        mesData[key].movimentacao === 'receita' && mesData[key].total > 0
+        key !== 'ano' &&
+        key !== 'mes' &&
+        key !== 'nomeMes' &&
+        key !== 'receita' &&
+        key !== 'despesa' &&
+        key !== 'saldo' &&
+        mesData[key].movimentacao === 'receita' &&
+        mesData[key].total > 0
       ) {
         const tipo = mesData[key].tipo;
         if (!acc[tipo]) {
@@ -337,74 +347,84 @@ const generatePDF = async (mesData) => {
     }, {});
     const receitas = Object.values(receitasAgrupadas);
 
-    // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
     const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
       if (
-        key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-        mesData[key].movimentacao === 'despesa' && mesData[key].total > 0
+        key !== 'ano' &&
+        key !== 'mes' &&
+        key !== 'nomeMes' &&
+        key !== 'receita' &&
+        key !== 'despesa' &&
+        key !== 'saldo' &&
+        mesData[key].movimentacao === 'despesa' &&
+        mesData[key].total > 0
       ) {
         const tipo = mesData[key].tipo;
         if (!acc[tipo]) {
           acc[tipo] = { total: 0, tipo, items: [] };
         }
         acc[tipo].total += mesData[key].total;
-        acc[tipo].items.push({ ministerio: mesData[key].ministerio,detalhamento: mesData[key].detalhamento, total: mesData[key].total });
+        acc[tipo].items.push({ ministerio: mesData[key].ministerio, detalhamento: mesData[key].detalhamento, total: mesData[key].total });
       }
       return acc;
     }, {});
     const despesas = Object.values(despesasAgrupadas);
 
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-        </View>
-        <View style={styles.summary}>
-          <View style={[styles.summaryCard]}>
-            <Text style={styles.summaryLabel}>RECEITAS</Text>
-            <Text style={styles.summaryValue}>R$ {formatoMoeda.format(mesData.receita)}</Text>
+      <View style={styles.screenContainer}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.summary}>
+            <View style={[styles.summaryCard, { backgroundColor: '#fff' }]}>
+              <Text style={styles.summaryLabel}>RECEITAS</Text>
+              <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.receita)}</Text>
+            </View>
+            <View style={[styles.summaryCard, { backgroundColor: '#fff' }]}>
+              <Text style={styles.summaryLabel}>DESPESAS</Text>
+              <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.despesa)}</Text>
+            </View>
+            <View style={[styles.summaryCard, { backgroundColor: '#fff' }]}>
+              <Text style={styles.summaryLabel}>SALDO</Text>
+              <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.saldo)}</Text>
+            </View>
           </View>
-          <View style={[styles.summaryCard]}>
-            <Text style={styles.summaryLabel}>DESPESAS</Text>
-            <Text style={styles.summaryValue}>R$ {formatoMoeda.format(mesData.despesa)}</Text>
-          </View>
-          <View style={[styles.summaryCard]}>
-            <Text style={styles.summaryLabel}>SALDO</Text>
-            <Text style={styles.summaryValue}>R$ {formatoMoeda.format(mesData.saldo)}</Text>
-          </View>
-        </View>
-        <View style={styles.details}>
-          {receitas.length > 0 && (
-            <>
-              {receitas.map((item) => (
-                <View key={item.tipo} style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                  <Text style={[styles.detailValue, styles.positive]}>+ R$ {formatoMoeda.format(item.total)}</Text>
-                </View>
-              ))}
-            </>
-          )}
-          {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
-          {despesas.length > 0 && (
-            <>
-              {despesas.map((item) => (
-                <View key={item.tipo}>
-                  <View style={styles.detailRow}>
+          <View style={styles.details}>
+            {receitas.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>Receitas</Text>
+                {receitas.map((item) => (
+                  <View key={item.tipo} style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                    <Text style={[styles.detailValue, styles.negative]}>- R$ {formatoMoeda.format(item.total)}</Text>
+                    <Text style={[styles.detailValue, styles.positive]}>+ {formatoMoeda.format(item.total)}</Text>
                   </View>
-                  {item.items.map((min, index) => (
-                    
-                    <View key={index} style={[styles.detailRow, styles.subRow]}>
-                      <Text style={styles.detailLabel}>{min.ministerio.toUpperCase()}</Text>
-                      <Text style={[styles.detailValue, styles.negative]}>- R$ {formatoMoeda.format(min.total)}</Text>
+                ))}
+              </>
+            )}
+            {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
+            {despesas.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>Despesas</Text>
+                {despesas.map((item) => (
+                  <View key={item.tipo}>
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
+                      <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(item.total)}</Text>
                     </View>
-                  ))}
-                </View>
-              ))}
-            </>
-          )}
-        </View>
-        <Botao acao={() => generatePDF(mesData)} texto={'Gerar e Compartilhar PDF'} />
+                    {item.items.map((min, index) => (
+                      <View key={index} style={[styles.detailRow, styles.subRow]}>
+                        <Text style={styles.detailLabel}>{min.ministerio.toUpperCase()}</Text>
+                        <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(min.total)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
+          <Botao acao={() => generatePDF(mesData)} texto={'Gerar e Compartilhar PDF'} />
+        </ScrollView>
       </View>
     );
   };
@@ -429,11 +449,10 @@ const generatePDF = async (mesData) => {
           height: 60,
           justifyContent: 'center',
           backgroundColor: '#fff',
-          elevation: 0,
+          elevation: 2,
           marginHorizontal: 14,
-          borderBottomStartRadius: 24,
-          borderBottomEndRadius: 24,
-          overflow: 'hidden',
+          borderBottomStartRadius: 21,
+          borderBottomEndRadius: 21,
         },
       }}
     >
@@ -449,22 +468,16 @@ const generatePDF = async (mesData) => {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screenContainer: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
     paddingHorizontal: 14,
-    paddingVertical: 7,
-    backgroundColor: '#f4f7fa',
-  },
-  header: {
-    alignItems: 'center',
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  subtitle: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    marginTop: 3,
+    paddingVertical: 21,
+    paddingBottom: 21,
   },
   summary: {
     flexDirection: 'row',
@@ -473,7 +486,6 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 10,
     borderRadius: 21,
     alignItems: 'center',
@@ -483,13 +495,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginBottom: 3,
     color: '#34495e',
-    fontFamily: 'Roboto-Regular' 
+    fontFamily: 'Roboto-Regular',
   },
   summaryValue: {
     fontFamily: 'Roboto-Regular',
     fontSize: 12,
   },
-  
+  sectionTitle: {
+    fontSize: 16,
+    color: '#2c3e50',
+    marginVertical: 10,
+    paddingLeft: 8,
+  },
   details: {
     marginBottom: 21,
   },
@@ -503,7 +520,7 @@ const styles = StyleSheet.create({
   },
   subRow: {
     marginLeft: 21,
-    backgroundColor: '#f4f7fa',
+    backgroundColor: '#edededff',
   },
   detailLabel: {
     fontSize: 11,
@@ -513,6 +530,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Roboto-Regular',
     color: '#2c3e50',
+  },
+  positive: {
+    color: '#1a8748',
+  },
+  negative: {
+    color: '#c0392b',
   },
   divider: {
     borderBottomWidth: 1,

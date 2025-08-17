@@ -18,12 +18,12 @@ export default function Bxsaldo({ dados }) {
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0, // Move to original position
-          duration: 500,
+          duration: 300,
           useNativeDriver: true,
         }),
         Animated.timing(opacityAnim, {
           toValue: 1, // Fade in
-          duration: 500,
+          duration: 300,
           useNativeDriver: true,
         }),
       ]).start();
@@ -70,6 +70,7 @@ export default function Bxsaldo({ dados }) {
               borderBottomStartRadius: 21,
               borderBottomEndRadius: 21,
               height: 70,
+              elevation:2,
               alignItems: 'center'
             }}
           >
@@ -78,7 +79,7 @@ export default function Bxsaldo({ dados }) {
                 {obterNomeMes(new Date().getMonth() - 1).toUpperCase()}
               </Text>
               <Text style={{ color: colors.contra_theme, fontSize: 14, fontFamily: 'Roboto-Regular' }}>
-                R$ {formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}
+                {formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}
               </Text>
             </View>
 
@@ -87,14 +88,14 @@ export default function Bxsaldo({ dados }) {
                 {obterNomeMes(new Date().getMonth()).toUpperCase()}
               </Text>
               <Text style={{ color: colors.contra_theme, fontSize: 14, fontFamily: 'Roboto-Regular' }}>
-                R$ {formatoMoeda.format(dados.saldoAtual)}
+                {formatoMoeda.format(dados.saldoAtual)}
               </Text>
             </View>
 
             <TouchableOpacity onPress={() => navigation.navigate('Futuro')} style={{ flex: 1, alignItems: 'center', gap:3 }}>
               <Text style={{ fontSize: 10, color: colors.contra_theme, fontFamily: 'Roboto-Light' }}>FUTURO</Text>
               <Text style={{ color: colors.contra_theme, fontSize: 14, fontFamily: 'Roboto-Regular' }}>
-                R$ {formatoMoeda.format(-dados.futurosTotal + dados.saldoAtual)}
+                {formatoMoeda.format(-dados.futurosTotal + dados.saldoAtual)}
               </Text>
             </TouchableOpacity>
           </Animated.View>

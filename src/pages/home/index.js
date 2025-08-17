@@ -44,7 +44,7 @@ export default function Home() {
           </View>
         }
         data={sortedRegistros}
-        renderItem={({ item, index }) => <Item item={item} />}
+        renderItem={({ item }) => <Item item={item} />}
       />
 
     </View>

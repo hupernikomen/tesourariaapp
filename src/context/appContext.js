@@ -147,7 +147,7 @@ export function AppProvider({ children }) {
       // Converte o timestamp para Date
       const date = new Date(dataTimestamp);
       const ano = date.getFullYear(); // Obtém o ano da data
-      const mes = date.getMonth() + 1; // Obtém o mês da data (0-11, então adiciona 1)
+      const mes = date.getMonth(); // Obtém o mês da data (0-11, então adiciona 1)
 
       // Agrupa os resultados por ano e mês
       if (!resultadosMap[ano]) resultadosMap[ano] = {}; // Inicializa o ano se não existir
