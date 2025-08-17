@@ -23,7 +23,6 @@ const Tab = createMaterialTopTabNavigator();
       background: '#f3f3f3',
       receita: '#457f79',
       despesa: '#c54343',
-      
     },
   };
 
@@ -34,7 +33,7 @@ function TabNavigator() {
         tabBarScrollEnabled: true,
         tabBarItemStyle: { width: 110 },
         tabBarActiveTintColor: Theme.colors.contra_theme,
-        tabBarInactiveTintColor: Theme.colors.contra_theme + '4' ,
+        tabBarInactiveTintColor: Theme.colors.contra_theme + '3' ,
         tabBarIndicatorStyle: { backgroundColor: Theme.colors.contra_theme + '5', height: 1 },
         tabBarStyle: { backgroundColor: Theme.colors.theme },
         tabBarLabelStyle: {

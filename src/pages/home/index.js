@@ -27,7 +27,7 @@ export default function Home() {
       return dateB - dateA;
     })
     : [];
-    
+
 
   return (
     <View style={{ flex: 1 }}>
@@ -35,11 +35,12 @@ export default function Home() {
       <FlatList
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={<View style={{ marginVertical: 2 }} />}
+        ListFooterComponent={<View style={{height:21}}/>}
         ListHeaderComponent={
           <View style={{ gap: 21 }}>
             <Bxsaldo dados={{ futurosTotal, saldoAtual }} />
             <CarrosselParcelas dadosParcelas={dadosParcelas} />
-            <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 35, marginVertical: 14 }} size={12} />
+            {sortedRegistros.length > 0 ? <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 35, marginVertical: 14 }} size={12} /> : null}
           </View>
         }
         data={sortedRegistros}

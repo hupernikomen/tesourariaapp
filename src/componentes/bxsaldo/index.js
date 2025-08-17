@@ -67,8 +67,8 @@ export default function Bxsaldo({ dados }) {
               transform: [{ translateY: slideAnim }],
               opacity: opacityAnim,
               backgroundColor: colors.theme,
-              borderBottomStartRadius: 28,
-              borderBottomEndRadius: 28,
+              borderBottomStartRadius: 21,
+              borderBottomEndRadius: 21,
               height: 70,
               alignItems: 'center'
             }}

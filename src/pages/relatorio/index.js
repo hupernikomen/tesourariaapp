@@ -12,8 +12,6 @@ export default function Relatorio() {
   const [dadosFiltrados, setDadosFiltrados] = useState([]);
   const width = Dimensions.get('window').width;
 
-  const navigation = useNavigation();
-
   useEffect(() => {
     const fetchData = async () => {
       await BuscarSaldo();
@@ -30,157 +28,219 @@ export default function Relatorio() {
       return dataMes >= umAno;
     });
 
+    
+
     setDadosFiltrados(filtrados);
   }, [resumoFinanceiro]);
 
+
   const Tab = createMaterialTopTabNavigator();
 
-  const generatePDF = async (mesData) => {
-    try {
-      // Agrupa receitas por tipo, somando totais
-      const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
-        if (
-          key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-          mesData[key].movimentacao === 'receita' && mesData[key].total > 0
-        ) {
-          const tipo = mesData[key].tipo;
-          if (!acc[tipo]) {
-            acc[tipo] = { total: 0, tipo };
-          }
-          acc[tipo].total += mesData[key].total;
+ const generatePDF = async (mesData) => {
+  try {
+    // Agrupa receitas por tipo, somando totais
+    const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+      if (
+        key !== 'ano' &&
+        key !== 'mes' &&
+        key !== 'nomeMes' &&
+        key !== 'receita' &&
+        key !== 'despesa' &&
+        key !== 'saldo' &&
+        mesData[key].movimentacao === 'receita' &&
+        mesData[key].total > 0
+      ) {
+        const tipo = mesData[key].tipo;
+        if (!acc[tipo]) {
+          acc[tipo] = { total: 0, tipo };
         }
-        return acc;
-      }, {});
-      const receitas = Object.values(receitasAgrupadas);
+        acc[tipo].total += mesData[key].total;
+      }
+      return acc;
+    }, {});
+    const receitas = Object.values(receitasAgrupadas);
 
-      // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
-      const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
-        if (
-          key !== 'ano' && key !== 'mes' && key !== 'nomeMes' && key !== 'receita' && key !== 'despesa' && key !== 'saldo' &&
-          mesData[key].movimentacao === 'despesa' && mesData[key].total > 0
-        ) {
-          const tipo = mesData[key].tipo;
-          if (!acc[tipo]) {
-            acc[tipo] = { total: 0, tipo, items: [] };
-          }
-          acc[tipo].total += mesData[key].total;
-          acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
+    // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
+    const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+      if (
+        key !== 'ano' &&
+        key !== 'mes' &&
+        key !== 'nomeMes' &&
+        key !== 'receita' &&
+        key !== 'despesa' &&
+        key !== 'saldo' &&
+        mesData[key].movimentacao === 'despesa' &&
+        mesData[key].total > 0
+      ) {
+        const tipo = mesData[key].tipo;
+        if (!acc[tipo]) {
+          acc[tipo] = { total: 0, tipo, items: [] };
         }
-        return acc;
-      }, {});
-      const despesas = Object.values(despesasAgrupadas);
+        acc[tipo].total += mesData[key].total;
+        acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
+      }
+      return acc;
+    }, {});
+    const despesas = Object.values(despesasAgrupadas);
 
-      const htmlContent = `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: 'Arial', sans-serif;
-                margin: 0;
-                padding: 20px;
-                background-color: #f4f7fa;
-                color: #333;
-              }
-              .container {
-                max-width: 900px;
-                margin: 0 auto;
-                background-color: #fff;
-                border-radius: 8px;
-                padding: 20px;
-              }
-              .header {
-                text-align: center;
-                padding-bottom: 10px;
-                border-bottom: 1px solid #e0e0e0;
-              }
-              .title {
-                font-size: 24px;
-                font-weight: bold;
-                color: #2c3e50;
-                margin: 0;
-              }
-              .subtitle {
-                font-size: 12px;
-                color: #7f8c8d;
-                margin-top: 3px;
-              }
-              .summary {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-                margin: 15px 0;
-              }
-              .summary-card {
-                background-color: #ecf0f1;
-                padding: 10px;
-                border-radius: 6px;
-                text-align: center;
-                transition: transform 0.2s;
-              }
-              .summary-card:hover {
-                transform: translateY(-3px);
-              }
-              .summary-card.green { background-color: #e8f5e9; }
-              .summary-card.red { background-color: #ffebee; }
-              .summary-card.blue { background-color: #e3f2fd; }
-              .summary-label {
-                font-size: 12px;
-                font-weight: bold;
-                color: #34495e;
-                margin-bottom: 5px;
-              }
-              .summary-value {
-                font-size: 16px;
-                color: #2c3e50;
-              }
-              .section-title {
-                font-size: 16px;
-                font-weight: bold;
-                color: #2c3e50;
-                margin: 15px 0 10px;
-                padding-left: 8px;
-              }
-              .details {
-                margin-bottom: 10px;
-              }
-              .detail-row {
-                display: flex;
-                justify-content: space-between;
-                padding: 8px 10px;
-                background-color: #f9f9f9;
-                border-radius: 4px;
-                margin-bottom: 4px;
-                font-size: 12px;
-              }
-              .detail-row.sub-row {
-                margin-left: 15px;
-                background-color: #f1f1f1;
-                font-size: 11px;
-              }
-              .detail-label {
-                color: #34495e;
-                font-weight: 500;
-              }
-              .detail-value {
-                color: #2c3e50;
-              }
+    // Lista de todos os registros detalhados para a coluna de detalhamento
+    const detalhamento = Object.keys(mesData)
+      .filter(
+        key =>
+          key !== 'ano' &&
+          key !== 'mes' &&
+          key !== 'nomeMes' &&
+          key !== 'receita' &&
+          key !== 'despesa' &&
+          key !== 'saldo'
+      )
+      .map(key => ({
+        detalhamento: mesData[key].detalhamento,
+        valor: mesData[key].valor,
+        movimentacao: mesData[key].movimentacao,
+        tipo: mesData[key].tipo,
+      }));
 
-              .divider {
-                border-bottom: 1px dashed #e0e0e0;
-                margin: 8px 0;
-              }
-              .footer {
-                text-align: center;
-                font-size: 10px;
-                color: #7f8c8d;
-                margin-top: 15px;
-                padding-top: 10px;
-                border-top: 1px solid #e0e0e0;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            body {
+              font-family: 'Arial', sans-serif;
+              margin: 0;
+              padding: 20px;
+              background-color: #fff;
+              color: #333;
+            }
+            .container {
+              max-width: 900px;
+              margin: 0 auto;
+              display: flex;
+              border-radius: 8px;
+              padding: 20px;
+              gap: 20px;
+            }
+            .main-column {
+              flex: 7;
+              padding-right: 10px;
+            }
+            .detail-column {
+              flex: 3;
+              border-left: 1px solid #e0e0e0;
+              padding-left: 10px;
+            }
+            .header {
+              text-align: center;
+              padding-bottom: 10px;
+              border-bottom: 1px solid #e0e0e0;
+            }
+            .title {
+              font-size: 24px;
+              font-weight: bold;
+              color: #2c3e50;
+              margin: 0;
+            }
+            .subtitle {
+              font-size: 12px;
+              color: #7f8c8d;
+              margin-top: 3px;
+            }
+            .summary {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 10px;
+              margin: 15px 0;
+            }
+            .summary-card {
+              background-color: #ecf0f1;
+              padding: 10px;
+              border-radius: 6px;
+              text-align: center;
+              transition: transform 0.2s;
+            }
+            .summary-card:hover {
+              transform: translateY(-3px);
+            }
+            .summary-card.green { background-color: #e8f5e9; }
+            .summary-card.red { background-color: #ffebee; }
+            .summary-card.blue { background-color: #e3f2fd; }
+            .summary-label {
+              font-size: 12px;
+              color: #34495e;
+              margin-bottom: 5px;
+            }
+            .summary-value {
+              font-size: 16px;
+              color: #2c3e50;
+            }
+            .section-title {
+              font-size: 16px;
+              color: #2c3e50;
+              margin: 15px 0 10px;
+              padding-left: 8px;
+            }
+            .details {
+              margin-bottom: 10px;
+            }
+            .detail-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 4px 6px;
+              font-size: 12px;
+              border-bottom: 0.5px solid #f3f3f3ff;
+            }
+            .detail-row.sub-row {
+              margin-left: 15px;
+              padding: 4px 6px;
+              margin-bottom: 1px;
+              font-size: 11px;
+              border-bottom: 0.5px solid #f3f3f3ff;
+            }
+            .detail-label {
+              color: #34495e;
+            }
+            .detail-value {
+              color: #2c3e50;
+            }
+            .detail-value.positive {
+              color: #1a8748ff;
+            }
+            .detail-value.negative {
+              color: #c0392b;
+            }
+            .divider {
+              margin: 8px 0;
+            }
+            .footer {
+              text-align: center;
+              font-size: 10px;
+              color: #7f8c8d;
+              margin-top: 15px;
+              padding-top: 10px;
+              border-top: 1px solid #e0e0e0;
+            }
+            .detail-column .detail-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 4px 6px;
+              font-size: 10px;
+              margin-bottom: 1px;
+            }
+            .detail-column .detail-label {
+              flex: 2;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .detail-column .detail-value {
+              flex: 1;
+              text-align: right;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="main-column">
               <div class="header">
                 <h1 class="title">Relatório Financeiro - ${mesData.nomeMes.toUpperCase()}</h1>
                 <p class="subtitle">Resumo Financeiro Mensal</p>
@@ -227,21 +287,34 @@ export default function Relatorio() {
                 ` : ''}
               </div>
               <div class="footer">
-                Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} | Sistema Financeiro da Igreja Batista no PSH
+                Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')} | Sistema Financeiro da Igreja Batista no PSH
               </div>
             </div>
-          </body>
-        </html>
-      `;
+            <div class="detail-column">
+              <h3 class="section-title">Movimentações</h3>
+              ${detalhamento.length > 0 ? detalhamento.map(det => `
+                <div class="detail-row">
+                  <span class="detail-label">${det.tipo === 'Dízimos' ? '********' : det.detalhamento}</span>
+                  <span class="detail-value ${det.movimentacao === 'receita' ? 'positive' : 'negative'}">
+                    ${det.movimentacao === 'receita' ? '+' : '-'} ${formatoMoeda.format(det.valor)}
+                  </span>
+                </div>
+              `).join('') : '<p>Nenhum registro detalhado disponível.</p>'}
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
 
-      const { uri } = await Print.printToFileAsync({ html: htmlContent });
-      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `Compartilhar Relatório ${mesData.nomeMes}` });
-    } catch (error) {
-      console.error('Erro ao gerar ou compartilhar o PDF:', error);
-    }
-  };
+    const { uri } = await Print.printToFileAsync({ html: htmlContent });
+    await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `Compartilhar Relatório ${mesData.nomeMes}` });
+  } catch (error) {
+    console.error('Erro ao gerar ou compartilhar o PDF:', error);
+  }
+};
 
   const MesScreen = ({ mesData }) => {
+
     // Agrupa receitas por tipo, somando totais
     const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
       if (
@@ -269,7 +342,7 @@ export default function Relatorio() {
           acc[tipo] = { total: 0, tipo, items: [] };
         }
         acc[tipo].total += mesData[key].total;
-        acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
+        acc[tipo].items.push({ ministerio: mesData[key].ministerio,detalhamento: mesData[key].detalhamento, total: mesData[key].total });
       }
       return acc;
     }, {});
@@ -280,17 +353,17 @@ export default function Relatorio() {
         <View style={styles.header}>
         </View>
         <View style={styles.summary}>
-          <View style={[styles.summaryCard, styles.greenCard]}>
+          <View style={[styles.summaryCard]}>
             <Text style={styles.summaryLabel}>RECEITAS</Text>
-            <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.receita)}</Text>
+            <Text style={styles.summaryValue}>R$ {formatoMoeda.format(mesData.receita)}</Text>
           </View>
-          <View style={[styles.summaryCard, styles.redCard]}>
+          <View style={[styles.summaryCard]}>
             <Text style={styles.summaryLabel}>DESPESAS</Text>
-            <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.despesa)}</Text>
+            <Text style={styles.summaryValue}>R$ {formatoMoeda.format(mesData.despesa)}</Text>
           </View>
-          <View style={[styles.summaryCard, styles.blueCard]}>
+          <View style={[styles.summaryCard]}>
             <Text style={styles.summaryLabel}>SALDO</Text>
-            <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.saldo)}</Text>
+            <Text style={styles.summaryValue}>R$ {formatoMoeda.format(mesData.saldo)}</Text>
           </View>
         </View>
         <View style={styles.details}>
@@ -299,7 +372,7 @@ export default function Relatorio() {
               {receitas.map((item) => (
                 <View key={item.tipo} style={styles.detailRow}>
                   <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                  <Text style={[styles.detailValue, styles.positive]}>+ {formatoMoeda.format(item.total)}</Text>
+                  <Text style={[styles.detailValue, styles.positive]}>+ R$ {formatoMoeda.format(item.total)}</Text>
                 </View>
               ))}
             </>
@@ -311,12 +384,13 @@ export default function Relatorio() {
                 <View key={item.tipo}>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                    <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(item.total)}</Text>
+                    <Text style={[styles.detailValue, styles.negative]}>- R$ {formatoMoeda.format(item.total)}</Text>
                   </View>
                   {item.items.map((min, index) => (
+                    
                     <View key={index} style={[styles.detailRow, styles.subRow]}>
                       <Text style={styles.detailLabel}>{min.ministerio.toUpperCase()}</Text>
-                      <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(min.total)}</Text>
+                      <Text style={[styles.detailValue, styles.negative]}>- R$ {formatoMoeda.format(min.total)}</Text>
                     </View>
                   ))}
                 </View>
@@ -346,8 +420,8 @@ export default function Relatorio() {
         tabBarInactiveTintColor: '#ddd',
         tabBarLabelStyle: { fontSize: 12 },
         tabBarStyle: {
-          height:60,
-          justifyContent:'center',
+          height: 60,
+          justifyContent: 'center',
           backgroundColor: '#fff',
           elevation: 0,
           marginHorizontal: 14,
@@ -381,7 +455,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
-
   subtitle: {
     fontSize: 12,
     color: '#7f8c8d',
@@ -396,21 +469,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 10,
-    borderRadius: 6,
+    borderRadius: 21,
     alignItems: 'center',
     marginHorizontal: 2,
   },
-  
   summaryLabel: {
-    fontSize: 12,
+    fontSize: 11,
+    marginBottom: 3,
     color: '#34495e',
+    fontFamily: 'Roboto-Regular' 
   },
   summaryValue: {
+    fontFamily: 'Roboto-Regular',
     fontSize: 12,
   },
-
+  
   details: {
-    marginBottom: 10,
+    marginBottom: 21,
   },
   detailRow: {
     flexDirection: 'row',
@@ -430,9 +505,9 @@ const styles = StyleSheet.create({
   },
   detailValue: {
     fontSize: 12,
+    fontFamily: 'Roboto-Regular',
     color: '#2c3e50',
   },
-
   divider: {
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
