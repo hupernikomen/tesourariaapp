@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react'
 import { View, FlatList } from 'react-native'
-import { useIsFocused } from '@react-navigation/native'
+import { useIsFocused, useNavigation } from '@react-navigation/native'
 
 import CarrosselParcelas from '../../componentes/CarrosselParcelas'
 import { AppContext } from "../../context/appContext";
@@ -14,9 +14,17 @@ export default function Home() {
   const { saldoAtual, BuscarRegistrosFinanceiros, dadosFinancas, futurosTotal, dadosParcelas } = useContext(AppContext)
 
   const focus = useIsFocused()
+  const navigation = useNavigation()
 
   useEffect(() => {
     Promise.all([BuscarRegistrosFinanceiros()])
+
+    navigation.setOptions({
+      headerRight: () => (
+        <Text>ok</Text>
+      )
+    })
+
   }, [focus])
 
 
@@ -38,8 +46,8 @@ export default function Home() {
         ListFooterComponent={<View style={{height:21}}/>}
         ListHeaderComponent={
           <View style={{ gap: 21 }}>
-            <Bxsaldo dados={{ futurosTotal, saldoAtual }} />
-            <CarrosselParcelas dadosParcelas={dadosParcelas} />
+            <Bxsaldo dados={{ futurosTotal, saldoAtual, dadosParcelas }} />
+            {/* <CarrosselParcelas dadosParcelas={dadosParcelas} /> */}
             {sortedRegistros.length > 0 ? <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 35, marginVertical: 14 }} size={12} /> : null}
           </View>
         }

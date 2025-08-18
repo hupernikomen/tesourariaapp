@@ -6,7 +6,7 @@ import { AppContext } from '../../context/appContext';
 import { db } from '../../firebaseConnection';
 import { doc, deleteDoc, updateDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useTheme } from '@react-navigation/native';
 
 export default function Item({ item, vencido }) {
   const { formatoMoeda, BuscarRegistrosFinanceiros, swipedItemId, setSwipedItemId } = useContext(AppContext);
@@ -15,6 +15,7 @@ export default function Item({ item, vencido }) {
   const [isSwiped, setIsSwiped] = useState(false);
   const translateX = useState(new Animated.Value(0))[0]; // Animação para deslocamento
   const focus = useIsFocused()
+  const {colors} = useTheme()
 
   useEffect(() => {
     setIsSwiped(false)
@@ -175,7 +176,7 @@ export default function Item({ item, vencido }) {
               {
                 flex: 1,
                 justifyContent: 'center',
-                backgroundColor: '#fff',
+                backgroundColor: '#fefefe',
                 paddingHorizontal: 21,
                 paddingVertical:14,
                 borderRadius: 21,
@@ -189,7 +190,7 @@ export default function Item({ item, vencido }) {
               <View
                 style={{
                   flexDirection: 'row',
-                  backgroundColor: item.movimentacao === 'despesa' ? (vencido ? '#E39B0E' : '#F56465') : '#659f99',
+                  backgroundColor: item.movimentacao === 'despesa' ? (vencido ? colors.alerta : colors.despesa) : colors.receita,
                   borderRadius: 10,
                   alignItems: 'center',
                 }}

@@ -1,9 +1,10 @@
-import { StatusBar } from 'react-native';
+import { StatusBar, TouchableOpacity } from 'react-native';
 import * as Font from 'expo-font';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useEffect, useState } from 'react';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 import Home from './src/pages/home';
 import Registro from './src/pages/registro';
@@ -15,27 +16,27 @@ import LoginScreen from './src/pages/login';
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
-  const Theme = {
-    ...DefaultTheme,
-    colors: {
-      theme: '#fff',
-      contra_theme:'#000',
-      background: '#f3f3f3',
-      receita: '#457f79',
-      despesa: '#c54343',
-    },
-  };
+const Theme = {
+  ...DefaultTheme,
+  colors: {
+    theme: '#fff',
+    contra_theme: '#000',
+    background: '#f3f3f3',
+    receita: '#457f79',
+    despesa: '#c54343',
+    alerta: '#E39B0E',
+  },
+};
 
 function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarScrollEnabled: true,
-        tabBarItemStyle: { width: 110 },
+        tabBarScrollEnabled: false,
         tabBarActiveTintColor: Theme.colors.contra_theme,
-        tabBarInactiveTintColor: Theme.colors.contra_theme + '3' ,
-        tabBarIndicatorStyle: { backgroundColor: Theme.colors.contra_theme + '5', height: 1 },
-        tabBarStyle: { backgroundColor: Theme.colors.theme },
+        tabBarInactiveTintColor: '#ccc',
+        tabBarIndicatorStyle: { backgroundColor: Theme.colors.contra_theme + '99', height: 0 },
+        tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 0 },
         tabBarLabelStyle: {
           fontSize: 12,
         },
@@ -43,7 +44,6 @@ function TabNavigator() {
     >
       <Tab.Screen name="Home" component={Home} options={{ title: 'FEITO' }} />
       <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO' }} />
-      <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
       <Tab.Screen
         name="Relatorio"
         component={Relatorio}
@@ -55,8 +55,6 @@ function TabNavigator() {
 
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-
-
 
   // Carrega a fonte personalizada
   useEffect(() => {
@@ -77,7 +75,9 @@ export default function App() {
     loadFonts();
   }, []);
 
-
+  if (!fontsLoaded) {
+    return null; // Ou um componente de loading
+  }
 
   return (
     <NavigationContainer theme={Theme}>
@@ -85,16 +85,22 @@ export default function App() {
       <AppProvider>
         <Stack.Navigator
           initialRouteName="Main"
-          screenOptions={{
+          screenOptions={({ navigation, route }) => ({
             headerStyle: {
               backgroundColor: Theme.colors.theme,
             },
-            headerTitleAlign:'center',
+            headerTitleAlign: 'center',
             headerTitleStyle: {
               fontSize: 17,
             },
             headerTintColor: Theme.colors.contra_theme,
-          }}
+            headerRight: () =>
+              route.name === 'Main' ? (
+                <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
+                  <AntDesign name="plus" size={24} color={Theme.colors.contra_theme} />
+                </TouchableOpacity>
+              ) : null,
+          })}
         >
           <Stack.Screen
             name="LoginScreen"
@@ -112,7 +118,11 @@ export default function App() {
             component={TabNavigator}
             options={{ title: 'Tesouraria PSH', headerShadowVisible: false }}
           />
-         
+          <Stack.Screen
+            name="Registro"
+            component={Registro}
+            options={{ title: 'Criar Registro', headerShadowVisible: false }}
+          />
         </Stack.Navigator>
       </AppProvider>
     </NavigationContainer>

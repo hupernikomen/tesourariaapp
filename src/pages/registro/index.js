@@ -5,7 +5,7 @@ import { db } from '../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Importação corrigida
 import { Picker } from '@react-native-picker/picker';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useTheme } from '@react-navigation/native';
 import { AppContext } from '../../context/appContext';
 import Input from '../../componentes/Input';
 import Botao from '../../componentes/Botao';
@@ -19,6 +19,7 @@ export default function AddRegistros() {
   const { ResumoFinanceiro } = useContext(AppContext);
   const focus = useIsFocused();
   const navigation = useNavigation();
+  const {colors} = useTheme()
 
   const [dataDoc, setDataDoc] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
@@ -273,7 +274,7 @@ export default function AddRegistros() {
       <Input value={!imageUri ? 'Imagem da Nota' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'camerao' : 'check'} onpress={() => takePhotoAsync()} />
       <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
-      <Botao acao={() => Registrar()} texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? '#F56465' : '#659f99ff'} />
+      <Botao acao={() => Registrar()} texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? colors.despesa : colors.receita} />
     </ScrollView>
   );
 }

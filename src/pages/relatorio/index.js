@@ -1,23 +1,25 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, Dimensions, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Dimensions, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { AppContext } from '../../context/appContext';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import Botao from '../../componentes/Botao';
+import { useTheme } from '@react-navigation/native';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 export default function Relatorio() {
   const { BuscarSaldo, resumoFinanceiro, formatoMoeda } = useContext(AppContext);
   const [dadosFiltrados, setDadosFiltrados] = useState([]);
   const width = Dimensions.get('window').width;
+  const { colors } = useTheme();
 
   useEffect(() => {
     const fetchData = async () => {
       await BuscarSaldo();
     };
-    
-    fetchData();
 
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -326,6 +328,10 @@ export default function Relatorio() {
   };
 
   const MesScreen = ({ mesData }) => {
+    const [isReceitasExpanded, setIsReceitasExpanded] = useState(false);
+    const [isDespesasExpanded, setIsDespesasExpanded] = useState(false);
+    const [expandedTipos, setExpandedTipos] = useState({});
+
     const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
       if (
         key !== 'ano' &&
@@ -369,6 +375,21 @@ export default function Relatorio() {
     }, {});
     const despesas = Object.values(despesasAgrupadas);
 
+    const toggleReceitas = () => {
+      setIsReceitasExpanded(!isReceitasExpanded);
+    };
+
+    const toggleDespesas = () => {
+      setIsDespesasExpanded(!isDespesasExpanded);
+    };
+
+    const toggleTipo = (tipo) => {
+      setExpandedTipos((prev) => ({
+        ...prev,
+        [tipo]: !prev[tipo],
+      }));
+    };
+
     return (
       <View style={styles.screenContainer}>
         <ScrollView
@@ -376,54 +397,96 @@ export default function Relatorio() {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.summary}>
-            <View style={[styles.summaryCard, { backgroundColor: '#fff' }]}>
-              <Text style={styles.summaryLabel}>RECEITAS</Text>
-              <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.receita)}</Text>
-            </View>
-            <View style={[styles.summaryCard, { backgroundColor: '#fff' }]}>
-              <Text style={styles.summaryLabel}>DESPESAS</Text>
-              <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.despesa)}</Text>
-            </View>
-            <View style={[styles.summaryCard, { backgroundColor: '#fff' }]}>
-              <Text style={styles.summaryLabel}>SALDO</Text>
-              <Text style={styles.summaryValue}>{formatoMoeda.format(mesData.saldo)}</Text>
-            </View>
-          </View>
+
           <View style={styles.details}>
             {receitas.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>Receitas</Text>
+              <TouchableOpacity style={styles.sectionHeader} onPress={toggleReceitas}>
+                <View style={styles.headerContent}>
+                  <AntDesign
+                    name={isReceitasExpanded ? 'down' : 'right'}
+                    size={16}
+                    color={colors.contra_theme}
+                    style={styles.iconLeft}
+                  />
+                  <Text style={styles.sectionTitle}>Receitas</Text>
+                </View>
+                <Text style={[styles.detailValue, styles.positive]}>
+                  + {formatoMoeda.format(mesData.receita)}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {isReceitasExpanded && receitas.length > 0 && (
+              <View>
                 {receitas.map((item) => (
                   <View key={item.tipo} style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                    <Text style={[styles.detailValue, styles.positive]}>+ {formatoMoeda.format(item.total)}</Text>
+                    <Text style={[styles.detailValue, styles.positive]}>
+                      + {formatoMoeda.format(item.total)}
+                    </Text>
                   </View>
                 ))}
-              </>
+              </View>
             )}
             {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
             {despesas.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>Despesas</Text>
+              <TouchableOpacity style={styles.sectionHeader} onPress={toggleDespesas}>
+                <View style={styles.headerContent}>
+                  <AntDesign
+                    name={isDespesasExpanded ? 'down' : 'right'}
+                    size={16}
+                    color={colors.contra_theme}
+                    style={styles.iconLeft}
+                  />
+                  <Text style={styles.sectionTitle}>Despesas</Text>
+                </View>
+                <Text style={[styles.detailValue, styles.negative]}>
+                  - {formatoMoeda.format(mesData.despesa)}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {isDespesasExpanded && despesas.length > 0 && (
+              <View>
                 {despesas.map((item) => (
                   <View key={item.tipo}>
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                      <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(item.total)}</Text>
-                    </View>
-                    {item.items.map((min, index) => (
+                    <TouchableOpacity style={styles.sectionHeader} onPress={() => toggleTipo(item.tipo)}>
+                      <View style={styles.headerContent}>
+                        <AntDesign
+                          name={expandedTipos[item.tipo] ? 'down' : 'right'}
+                          size={16}
+                          color={colors.contra_theme}
+                          style={styles.iconLeft}
+                        />
+                        <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
+                      </View>
+                      <Text style={[styles.detailValue, styles.negative]}>
+                        - {formatoMoeda.format(item.total)}
+                      </Text>
+                    </TouchableOpacity>
+                    {expandedTipos[item.tipo] && item.items.map((min, index) => (
                       <View key={index} style={[styles.detailRow, styles.subRow]}>
                         <Text style={styles.detailLabel}>{min.ministerio.toUpperCase()}</Text>
-                        <Text style={[styles.detailValue, styles.negative]}>- {formatoMoeda.format(min.total)}</Text>
+                        <Text style={[styles.detailValue, styles.negative]}>
+                          - {formatoMoeda.format(min.total)}
+                        </Text>
                       </View>
                     ))}
                   </View>
                 ))}
-              </>
+              </View>
+            )}
+                {despesas.length > 0 && <View style={styles.divider} />}
+            {(receitas.length > 0 || despesas.length > 0) && (
+              <View style={styles.sectionHeader}>
+                <View style={styles.headerContent}>
+                  <Text style={styles.sectionTitle}>Saldo</Text>
+                </View>
+                <Text style={[styles.detailValue, mesData.saldo >= 0 ? styles.positive : styles.negative]}>
+                  {mesData.saldo >= 0 ? '+' : '-'} {formatoMoeda.format(Math.abs(mesData.saldo))}
+                </Text>
+              </View>
             )}
           </View>
-          <Botao acao={() => generatePDF(mesData)} texto={'Gerar e Compartilhar PDF'} />
+          <Botao acao={() => generatePDF(mesData)} texto={'Gerar e Compartilhar PDF'} corBotao={colors.receita} />
         </ScrollView>
       </View>
     );
@@ -449,10 +512,8 @@ export default function Relatorio() {
           height: 60,
           justifyContent: 'center',
           backgroundColor: '#fff',
-          elevation: 2,
-          marginHorizontal: 14,
-          borderBottomStartRadius: 21,
-          borderBottomEndRadius: 21,
+          borderBottomStartRadius: 35,
+          borderBottomEndRadius: 35,
         },
       }}
     >
@@ -506,6 +567,22 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
     marginVertical: 10,
     paddingLeft: 8,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconLeft: {
+    marginRight: 8,
   },
   details: {
     marginBottom: 21,
