@@ -1,4 +1,4 @@
-import { StatusBar, TouchableOpacity } from 'react-native';
+import { StatusBar, TouchableOpacity, View } from 'react-native';
 import * as Font from 'expo-font';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,7 +11,6 @@ import Registro from './src/pages/registro';
 import Futuro from './src/pages/futuro';
 import Relatorio from './src/pages/relatorio';
 import { AppProvider } from './src/context/appContext';
-import LoginScreen from './src/pages/login';
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -19,7 +18,8 @@ const Tab = createMaterialTopTabNavigator();
 const Theme = {
   ...DefaultTheme,
   colors: {
-    theme: '#fff',
+    theme: '#fefefe',
+    botao: '#fbfbfb',
     contra_theme: '#000',
     background: '#f3f3f3',
     receita: '#457f79',
@@ -34,21 +34,20 @@ function TabNavigator() {
       screenOptions={{
         tabBarScrollEnabled: false,
         tabBarActiveTintColor: Theme.colors.contra_theme,
-        tabBarInactiveTintColor: '#ccc',
-        tabBarIndicatorStyle: { backgroundColor: Theme.colors.contra_theme + '99', height: 0 },
+        tabBarInactiveTintColor: '#ddd',
         tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 0 },
         tabBarLabelStyle: {
           fontSize: 12,
         },
       }}
     >
-      <Tab.Screen name="Home" component={Home} options={{ title: 'FEITO' }} />
-      <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO' }} />
-      <Tab.Screen
+      <Tab.Screen name="Home" component={Home} options={{ title: 'REGISTROS' }} />
+      <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO', tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 5 } }} />
+      {/* <Tab.Screen
         name="Relatorio"
         component={Relatorio}
         options={{ headerShadowVisible: false, title: 'RELATÓRIO' }}
-      />
+      /> */}
     </Tab.Navigator>
   );
 }
@@ -89,30 +88,26 @@ export default function App() {
             headerStyle: {
               backgroundColor: Theme.colors.theme,
             },
-            headerTitleAlign: 'center',
             headerTitleStyle: {
-              fontSize: 17,
+              fontFamily: 'Roboto-Bold',
+              fontSize:20
             },
             headerTintColor: Theme.colors.contra_theme,
             headerRight: () =>
               route.name === 'Main' ? (
-                <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
-                  <AntDesign name="plus" size={24} color={Theme.colors.contra_theme} />
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+                  <TouchableOpacity style={{ width: 45, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }} onPress={() => navigation.navigate('Registro')}>
+                    <AntDesign name="addfile" size={20} color={Theme.colors.contra_theme} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={{ width: 45, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }} onPress={() => navigation.navigate('Relatorio')}>
+                    <AntDesign name="profile" size={20} color={Theme.colors.contra_theme} />
+                  </TouchableOpacity>
+                </View>
               ) : null,
           })}
         >
-          <Stack.Screen
-            name="LoginScreen"
-            component={LoginScreen}
-            options={{
-              headerShadowVisible: false,
-              title: '',
-              headerTransparent: true,
-              headerStyle: { backgroundColor: 'transparent' },
-              headerTintColor: '#659f99ff',
-            }}
-          />
           <Stack.Screen
             name="Main"
             component={TabNavigator}
@@ -122,6 +117,11 @@ export default function App() {
             name="Registro"
             component={Registro}
             options={{ title: 'Criar Registro', headerShadowVisible: false }}
+          />
+          <Stack.Screen
+            name="Relatorio"
+            component={Relatorio}
+            options={{ title: 'Relatório Financeiro', headerShadowVisible: false }}
           />
         </Stack.Navigator>
       </AppProvider>

@@ -35,9 +35,9 @@ export default function Futuro() {
   return (
     <View style={{ flex: 1 }}>
       <FlatList
-        contentContainerStyle={{ paddingVertical: 7 }}
+        contentContainerStyle={{ paddingVertical: 14 }}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={<View style={{ marginVertical: 2 }} />}
+        ItemSeparatorComponent={<View style={{ marginVertical: 3.5 }} />}
         ListFooterComponent={<View style={{ marginVertical: 4 }} />}
         data={sortedParcelas}
         renderItem={({ item }) => <Item item={item} />}

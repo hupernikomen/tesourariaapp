@@ -4,6 +4,10 @@ import { AppContext } from "../../context/appContext";
 import { useNavigation, useTheme } from '@react-navigation/native';
 
 export default function Bxsaldo({ dados }) {
+
+  console.log(dados);
+  
+
   const { colors } = useTheme();
   const { obterNomeMes, formatoMoeda, resumoFinanceiro, loadSaldo } = useContext(AppContext);
   const navigation = useNavigation();
@@ -56,7 +60,7 @@ export default function Bxsaldo({ dados }) {
   return (
     <View>
       <View style={{
-        alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', backgroundColor: colors.theme, elevation: 5, borderBottomStartRadius: 35,
+        alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', backgroundColor: colors.theme, elevation: 3, borderBottomStartRadius: 35,
         borderBottomEndRadius: 35,
       }}>
         {loadSaldo ? (

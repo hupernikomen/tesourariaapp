@@ -42,7 +42,7 @@ export default function Home() {
 
       <FlatList
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={<View style={{ marginVertical: 2 }} />}
+        ItemSeparatorComponent={<View style={{ marginVertical: 3.5 }} />}
         ListFooterComponent={<View style={{height:21}}/>}
         ListHeaderComponent={
           <View style={{ gap: 21 }}>

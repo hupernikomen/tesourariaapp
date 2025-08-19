@@ -7,6 +7,7 @@ import { db } from '../../firebaseConnection';
 import { doc, deleteDoc, updateDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { useIsFocused, useTheme } from '@react-navigation/native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function Item({ item, vencido }) {
   const { formatoMoeda, BuscarRegistrosFinanceiros, swipedItemId, setSwipedItemId } = useContext(AppContext);
@@ -15,16 +16,18 @@ export default function Item({ item, vencido }) {
   const [isSwiped, setIsSwiped] = useState(false);
   const translateX = useState(new Animated.Value(0))[0]; // Animação para deslocamento
   const focus = useIsFocused()
-  const {colors} = useTheme()
+  const { colors } = useTheme()
+
+  const [show, setShow] = useState(false)
 
   useEffect(() => {
     setIsSwiped(false)
-      setSwipedItemId(null);
+    setSwipedItemId(null);
     Animated.timing(translateX, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   }, [focus])
 
   useEffect(() => {
@@ -69,7 +72,8 @@ export default function Item({ item, vencido }) {
     }
   };
 
-  async function RegistrarPagamentoParcela(item) {
+  async function RegistrarPagamentoParcela(dataDoc) {
+
     if (item.pago) {
       return;
     }
@@ -86,7 +90,7 @@ export default function Item({ item, vencido }) {
 
       await addDoc(collection(db, 'registros'), {
         reg: item.dataDoc,
-        dataDoc: Date.now(),
+        dataDoc: new Date(dataDoc).getTime(),
         tipo: item.tipo,
         valor: item.valor,
         movimentacao: item.movimentacao,
@@ -158,14 +162,39 @@ export default function Item({ item, vencido }) {
     }
   }
 
+  
   const options = {
     month: '2-digit',
     day: '2-digit',
     timeZone: 'America/Sao_Paulo',
   };
 
+  const onChange = (event, selectedDate) => {
+    if (event.type === 'dismissed') {
+      setShow(false);
+      setSwipedItemId(null);
+      return; // Interrompe a função imediatamente
+    }
+
+    const currentDate = selectedDate;
+    setShow(false);
+    if (currentDate instanceof Date && !isNaN(currentDate)) {
+      RegistrarPagamentoParcela(currentDate);
+    } else {
+      console.log('Data inválida selecionada:', currentDate);
+    }
+  };
+
   return (
     <>
+      {show && (
+        <DateTimePicker
+          value={new Date()}
+          mode="date"
+          display="calendar"
+          onChange={onChange}
+        />
+      )}
       <View style={{ position: 'relative' }}>
         <Animated.View style={{ transform: [{ translateX }] }}>
           <TouchableOpacity
@@ -176,9 +205,8 @@ export default function Item({ item, vencido }) {
               {
                 flex: 1,
                 justifyContent: 'center',
-                backgroundColor: '#fefefe',
-                paddingHorizontal: 21,
-                paddingVertical:14,
+                backgroundColor: colors.botao,
+                padding: 21,
                 borderRadius: 21,
                 marginHorizontal: 14,
                 borderTopRightRadius: isSwiped ? 0 : 21,
@@ -186,7 +214,7 @@ export default function Item({ item, vencido }) {
               },
             ]}
           >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems:'center' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View
                 style={{
                   flexDirection: 'row',
@@ -216,7 +244,7 @@ export default function Item({ item, vencido }) {
                 />
               </View>
               <Texto
-                texto={`R$ ${formatoMoeda.format(item.valor)}`}
+                texto={`${formatoMoeda.format(item.valor)}`}
                 size={13}
                 estilo={{ color: '#000', fontFamily: 'Roboto-Regular' }}
               />
@@ -253,20 +281,20 @@ export default function Item({ item, vencido }) {
             <TouchableOpacity
               style={{
                 width: 60,
-                backgroundColor: '#4CAF50',
+                backgroundColor: colors.receita,
                 justifyContent: 'center',
                 alignItems: 'center',
                 borderTopRightRadius: 0,
                 borderBottomRightRadius: 0,
               }}
-              onPress={() => RegistrarPagamentoParcela(item)}
+              onPress={() => setShow(true)}
             >
               <AntDesign name="check" size={24} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
               style={{
                 width: 60,
-                backgroundColor: '#F44336',
+                backgroundColor: colors.despesa,
                 justifyContent: 'center',
                 alignItems: 'center',
                 borderTopRightRadius: 21,

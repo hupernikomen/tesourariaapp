@@ -95,71 +95,83 @@ export default function AddRegistros() {
 
 
   async function Registrar() {
-    // Validação inicial
-    if (selectedOption === 'vazio' || !valor || !detalhamento || reload) {
-      console.log('Campos inválidos ou em recarga');
-      return;
-    }
+  // Função para verificar se detalhamento é uma string válida
+  const isValidString = (str) => {
+    if (typeof str !== 'string' || str.trim() === '') return false;
+    // Permite letras (com acentos), números, espaços, hífens, e pontuação comum
+    const validPattern = /^[A-Za-zÀ-ÿ0-9\s.,;!?()-]+$/;
+    return validPattern.test(str) && str.trim().length >= 7; // Mínimo de 3 caracteres
+  };
 
-    setReload(true);
-
-    try {
-      if (!recorrencia) {
-        // Registro único (sem recorrência)
-        const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
-        await addDoc(collection(db, 'registros'), {
-          reg: Date.now(),
-          dataDoc: dataDoc.getTime(),
-          tipo: selectedOption,
-          valor: parseFloat(valor),
-          movimentacao: transactionType,
-          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-          imageUrl,
-          detalhamento,
-          pago: true
-        });
-        await ResumoFinanceiro();
-      } else {
-        // Registro de pagamento parcelado (um único documento com array de parcelas)
-        const parcelas = [];
-        const initialTimestamp = dataDoc.getTime();
-        const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
-
-        // Cria o array de parcelas
-        for (let i = 0; i < recorrencia; i++) {
-          const nextPaymentDate = new Date(initialTimestamp);
-          nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
-          parcelas.push({
-            dataDoc: nextPaymentDate.getTime(),
-            valor: parseFloat(valor) / recorrencia,
-            parcela: i + 1,
-            pago: false
-          });
-        }
-
-        // Adiciona um único documento na coleção 'futuro'
-        await addDoc(collection(db, 'futuro'), {
-          reg: Date.now(),
-          tipo: selectedOption,
-          recorrencia,
-          movimentacao: transactionType,
-          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-          imageUrl,
-          detalhamento,
-          valorTotal: parseFloat(valor),
-          parcelas, // Array contendo todas as parcelas
-        });
-
-        await ResumoFinanceiro();
-      }
-    } catch (e) {
-      console.log('Erro ao adicionar documento:', e);
-    } finally {
-      setReload(false);
-      navigation.goBack();
-    }
+  // Validação inicial
+  if (!selectedOption || !valor || !isValidString(detalhamento) || reload) {
+    console.log(
+      !selectedOption ? 'Opção não selecionada' :
+      !valor ? 'Valor não informado' :
+      !isValidString(detalhamento) ? 'Detalhamento inválido' :
+      'Em recarga'
+    );
+    return;
   }
 
+  setReload(true);
+
+  try {
+    if (!recorrencia) {
+      // Registro único (sem recorrência)
+      const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
+      await addDoc(collection(db, 'registros'), {
+        reg: Date.now(),
+        dataDoc: dataDoc.getTime(),
+        tipo: selectedOption,
+        valor: parseFloat(valor),
+        movimentacao: transactionType,
+        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+        imageUrl,
+        detalhamento,
+        pago: true
+      });
+      await ResumoFinanceiro();
+    } else {
+      // Registro de pagamento parcelado (um único documento com array de parcelas)
+      const parcelas = [];
+      const initialTimestamp = dataDoc.getTime();
+      const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
+
+      // Cria o array de parcelas
+      for (let i = 0; i < recorrencia; i++) {
+        const nextPaymentDate = new Date(initialTimestamp);
+        nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
+        parcelas.push({
+          dataDoc: nextPaymentDate.getTime(),
+          valor: parseFloat(valor) / recorrencia,
+          parcela: i + 1,
+          pago: false
+        });
+      }
+
+      // Adiciona um único documento na coleção 'futuro'
+      await addDoc(collection(db, 'futuro'), {
+        reg: Date.now(),
+        tipo: selectedOption,
+        recorrencia,
+        movimentacao: transactionType,
+        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+        imageUrl,
+        detalhamento,
+        valorTotal: parseFloat(valor),
+        parcelas, // Array contendo todas as parcelas
+      });
+
+      await ResumoFinanceiro();
+    }
+  } catch (e) {
+    console.log('Erro ao adicionar documento:', e);
+  } finally {
+    setReload(false);
+    navigation.goBack();
+  }
+}
 
 
   async function uploadImage(uri) {
@@ -201,10 +213,16 @@ export default function AddRegistros() {
       setReload(false)
     }
   };
-
-
-
-
+  
+  // Função para obter a primeira e a última data do mês atual
+  const getCurrentMonthRange = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1); // Primeiro dia do mês
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Último dia do mês
+    return { minimumDate: firstDay, maximumDate: lastDay };
+  };
+  
+  const { minimumDate, maximumDate } = getCurrentMonthRange();
 
 
   const onChange = (event, selectedDate) => {
@@ -218,10 +236,13 @@ export default function AddRegistros() {
 
       {show && (
         <DateTimePicker
+
           value={dataDoc}
           mode="date"
           display="calendar"
           onChange={onChange}
+          minimumDate={minimumDate} // Restringe à primeira data do mês
+        maximumDate={maximumDate} // Restringe à última data do mês
         />
       )}
 
@@ -242,13 +263,11 @@ export default function AddRegistros() {
 
       </View>
 
-      {transactionParcela ?
         <View>
 
           <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar'} />
-          <Texto linhas={0} estilo={{ textAlign: 'center', color: '#333', marginBottom: 21, paddingHorizontal: 21 }} size={12} wheight={300} texto={'Informe a data da primeira prestação do pagamento'} />
+          <Texto linhas={0} estilo={{ textAlign: 'center', color: '#333', marginBottom: 21, paddingHorizontal: 21 }} size={12} wheight={300} texto={'Informe a data do registro ou primeira prestação do pagamento'} />
         </View>
-        : null}
 
 
       <Input title={`${transactionParcela ? 'Total a pagar' : 'Valor'}`} value={valor} setValue={setValor} type='numeric' />

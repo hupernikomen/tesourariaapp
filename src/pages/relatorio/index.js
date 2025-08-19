@@ -474,10 +474,17 @@ export default function Relatorio() {
                 ))}
               </View>
             )}
-                {despesas.length > 0 && <View style={styles.divider} />}
+            {despesas.length > 0 && <View style={styles.divider} />}
             {(receitas.length > 0 || despesas.length > 0) && (
               <View style={styles.sectionHeader}>
+
                 <View style={styles.headerContent}>
+                  <AntDesign
+                    name={mesData.saldo >= 0 ? 'smileo' : 'frowno'}
+                    size={18}
+                    color={colors.contra_theme}
+                    style={styles.iconLeft}
+                  />
                   <Text style={styles.sectionTitle}>Saldo</Text>
                 </View>
                 <Text style={[styles.detailValue, mesData.saldo >= 0 ? styles.positive : styles.negative]}>
@@ -486,7 +493,19 @@ export default function Relatorio() {
               </View>
             )}
           </View>
-          <Botao acao={() => generatePDF(mesData)} texto={'Gerar e Compartilhar PDF'} corBotao={colors.receita} />
+          {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
+          <TouchableOpacity style={[styles.sectionHeader, { elevation: 3, alignItems: 'center', justifyContent: 'center' }]} onPress={() => generatePDF(mesData)}>
+            <View style={styles.sectionHeader}>
+              <AntDesign
+                name={'sharealt'}
+                size={20}
+                color={colors.contra_theme}
+                style={styles.iconLeft}
+              />
+              <Text>Gerar e Compartilhar PDF</Text>
+            </View>
+
+          </TouchableOpacity>
         </ScrollView>
       </View>
     );
@@ -499,6 +518,8 @@ export default function Relatorio() {
       </View>
     );
   }
+
+  
 
   return (
     <Tab.Navigator
@@ -514,6 +535,7 @@ export default function Relatorio() {
           backgroundColor: '#fff',
           borderBottomStartRadius: 35,
           borderBottomEndRadius: 35,
+          elevation: 3
         },
       }}
     >
@@ -528,107 +550,108 @@ export default function Relatorio() {
   );
 }
 
-const styles = StyleSheet.create({
-  screenContainer: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 14,
-    paddingVertical: 21,
-    paddingBottom: 21,
-  },
-  summary: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 15,
-  },
-  summaryCard: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 21,
-    alignItems: 'center',
-    marginHorizontal: 2,
-  },
-  summaryLabel: {
-    fontSize: 11,
-    marginBottom: 3,
-    color: '#34495e',
-    fontFamily: 'Roboto-Regular',
-  },
-  summaryValue: {
-    fontFamily: 'Roboto-Regular',
-    fontSize: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    color: '#2c3e50',
-    marginVertical: 10,
-    paddingLeft: 8,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 8,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconLeft: {
-    marginRight: 8,
-  },
-  details: {
-    marginBottom: 21,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 8,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  subRow: {
-    marginLeft: 21,
-    backgroundColor: '#edededff',
-  },
-  detailLabel: {
-    fontSize: 11,
-    color: '#34495e',
-  },
-  detailValue: {
-    fontSize: 12,
-    fontFamily: 'Roboto-Regular',
-    color: '#2c3e50',
-  },
-  positive: {
-    color: '#1a8748',
-  },
-  negative: {
-    color: '#c0392b',
-  },
-  divider: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    marginVertical: 8,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '300',
-    color: '#000',
-    paddingHorizontal: 42,
-    textAlign: 'center',
-  },
-});
+
+
+    const styles = StyleSheet.create({
+      screenContainer: {
+        flex: 1,
+      },
+      scrollView: {
+        flex: 1,
+      },
+      contentContainer: {
+        paddingHorizontal: 14,
+        paddingVertical: 21,
+        paddingBottom: 21,
+      },
+      summary: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginVertical: 15,
+      },
+      summaryCard: {
+        flex: 1,
+        padding: 10,
+        borderRadius: 21,
+        alignItems: 'center',
+        marginHorizontal: 2,
+      },
+      summaryLabel: {
+        fontSize: 11,
+        marginBottom: 3,
+        color: '#34495e',
+        fontFamily: 'Roboto-Regular',
+      },
+      summaryValue: {
+        fontFamily: 'Roboto-Regular',
+        fontSize: 12,
+      },
+      sectionTitle: {
+        fontSize: 16,
+        color: '#2c3e50',
+        marginVertical: 10,
+        paddingLeft: 8,
+      },
+      sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 21,
+        paddingVertical: 7,
+        backgroundColor: '#fbfbfb',
+        borderRadius: 14,
+        marginBottom: 4,
+      },
+      headerContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      iconLeft: {
+        marginRight: 8,
+      },
+      details: {
+        marginBottom: 21,
+      },
+      detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 8,
+        borderRadius: 4,
+        marginBottom: 4,
+      },
+      subRow: {
+        marginLeft: 21,
+      },
+      detailLabel: {
+        fontSize: 11,
+        color: '#34495e',
+      },
+      detailValue: {
+        fontSize: 12,
+        fontFamily: 'Roboto-Regular',
+        color: '#2c3e50',
+      },
+      positive: {
+        color: '#1a8748',
+      },
+      negative: {
+        color: '#c0392b',
+      },
+      divider: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+        marginVertical: 8,
+      },
+      emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      emptyText: {
+        fontSize: 16,
+        fontWeight: '300',
+        color: '#000',
+        paddingHorizontal: 42,
+        textAlign: 'center',
+      },
+    });
