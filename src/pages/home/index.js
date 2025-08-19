@@ -19,13 +19,8 @@ export default function Home() {
   useEffect(() => {
     Promise.all([BuscarRegistrosFinanceiros()])
 
-    navigation.setOptions({
-      headerRight: () => (
-        <Text>ok</Text>
-      )
-    })
 
-  }, [focus])
+  }, [])
 
 
   const sortedRegistros = dadosFinancas
@@ -48,7 +43,7 @@ export default function Home() {
           <View style={{ gap: 21 }}>
             <Bxsaldo dados={{ futurosTotal, saldoAtual, dadosParcelas }} />
             {sortedRegistros.length > 0 ? <View style={{ flexDirection: 'row', marginLeft: 35, gap: 14, alignItems:'center', marginVertical:14 }}>
-              <Icone nome={'play-outline'} size={22}/>
+              <Icone nome={'return-up-forward'} size={22}/>
               <Texto texto={'ÚLTIMOS REGISTROS'} size={12} />
             </View> : null}
           </View>

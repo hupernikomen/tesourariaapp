@@ -13,6 +13,31 @@ export default function Bxsaldo({ dados }) {
   const slideAnim = useRef(new Animated.Value(-100)).current; // Start position: -100 (above the view)
   const opacityAnim = useRef(new Animated.Value(0)).current; // Start opacity: 0 (invisible)
 
+  // Referência para o valor animado da opacidade
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Configura a animação de piscar
+  useEffect(() => {
+    const piscar = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0, // Opacidade vai para 0 (invisível)
+          duration: 200, // Meio segundo para desaparecer
+          useNativeDriver: true, // Usa driver nativo para melhor desempenho
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: .4, // Opacidade volta para 1 (visível)
+          duration: 600, // Meio segundo para reaparecer
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    piscar.start(); // Inicia a animação
+
+    return () => piscar.stop(); // Para a animação quando o componente é desmontado
+  }, [fadeAnim, loadSaldo]);
+
   useEffect(() => {
     if (!loadSaldo) {
       // When loadSaldo is false, animate content in
@@ -56,9 +81,9 @@ export default function Bxsaldo({ dados }) {
 
   return (
     <View>
-      <View style={{  
-        alignItems: 'center', 
-        flexDirection: 'row', justifyContent: 'space-between', backgroundColor: colors.botao, 
+      <View style={{
+        alignItems: 'center',
+        flexDirection: 'row', justifyContent: 'space-between', backgroundColor: colors.botao,
       }}>
         {loadSaldo ? (
           <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, height: 65 }}>
@@ -67,7 +92,7 @@ export default function Bxsaldo({ dados }) {
         ) : (
           <Animated.View
             style={{
-            
+
               flex: 1,
               flexDirection: 'row',
               justifyContent: 'space-between',
@@ -83,7 +108,7 @@ export default function Bxsaldo({ dados }) {
               <Text style={{ fontSize: 11, color: colors.contra_theme, fontFamily: 'Roboto-Light' }}>
                 {obterNomeMes(new Date().getMonth() - 1).toUpperCase()}
               </Text>
-              <Text style={{ color: colors.contra_theme, fontSize: 14, fontFamily: 'Roboto-Regular' }}>
+              <Text style={{ color: colors.contra_theme, fontSize: 15, fontFamily: 'Roboto-Medium' }}>
                 {formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}
               </Text>
             </View>
@@ -92,15 +117,26 @@ export default function Bxsaldo({ dados }) {
               <Text style={{ fontSize: 10, color: colors.contra_theme, fontFamily: 'Roboto-Light' }}>
                 {obterNomeMes(new Date().getMonth()).toUpperCase()}
               </Text>
-              <Text style={{ color: colors.contra_theme, fontSize: 14, fontFamily: 'Roboto-Regular' }}>
+              <Text style={{ color: colors.contra_theme, fontSize: 15, fontFamily: 'Roboto-Medium' }}>
                 {formatoMoeda.format(dados.saldoAtual)}
               </Text>
             </View>
 
             <TouchableOpacity onPress={() => navigation.navigate('Futuro')} style={{ flex: 1, alignItems: 'center' }}>
-
+              {isVencido? <Animated.View
+                style={{
+                  width: 8,
+                  aspectRatio: 1,
+                  backgroundColor: colors.alerta,
+                  position: 'absolute',
+                  right: 30,
+                  borderRadius: 10,
+                  top: -4,
+                  opacity: fadeAnim, // Aplica a opacidade animada
+                }}
+              />: null}
               <Text style={{ fontSize: 10, color: colors.contra_theme, fontFamily: 'Roboto-Light' }}>FUTURO</Text>
-              <Text style={{ color: colors.contra_theme, fontSize: 14, fontFamily: 'Roboto-Regular' }}>
+              <Text style={{ color: colors.contra_theme, fontSize: 15, fontFamily: 'Roboto-Medium' }}>
                 {formatoMoeda.format(-dados.futurosTotal + dados.saldoAtual)}
               </Text>
             </TouchableOpacity>
@@ -108,10 +144,7 @@ export default function Bxsaldo({ dados }) {
         )}
       </View>
 
-      {isVencido ?
-        <View style={{ alignItems: "center", padding: 7 }}>
-          <Text style={{ fontSize: 10, fontWeight: 300, color: '#fff', backgroundColor: colors.alerta, paddingHorizontal: 14, borderRadius: 14, paddingVertical: 4 }}>EXISTEM CONTAS PENDENTES</Text>
-        </View> : null}
+
     </View>
   );
 }

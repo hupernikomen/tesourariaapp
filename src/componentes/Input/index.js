@@ -30,7 +30,7 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
       fontSize: 13
     },
     input: {
-      color: editable ? '#000' : '#999',
+      color: '#000',
       flex: 1,
     },
     containerInput: {
@@ -42,7 +42,7 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
   })
 
   return (
-    <View style={stl.box}>
+    <Pressable onPress={onpress} style={stl.box}>
       <View style={stl.boxtop}>
         <Text style={stl.title}>{title}</Text>
       </View>
@@ -50,8 +50,6 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
       <View style={stl.containerInput}>
 
         <TextInput
-
-          // placeholder={value ? place : title}
           placeholderTextColor={'#999'}
           editable={editable}
           maxLength={maxlength}
@@ -62,12 +60,7 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
           onChangeText={(e) => setValue(e)}
         />
 
-        {!!onpress ?
-          <Pressable onPress={onpress} style={{ padding: 7, marginRight: -7 }}>
-            <Icone nome={iconName} />
-          </Pressable>
-          : null}
       </View>
-    </View>
+    </Pressable>
   );
 }

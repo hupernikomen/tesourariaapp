@@ -37,6 +37,7 @@ export default function AddRegistros() {
   const [selectedOption, setSelectedOption] = useState('');
   const [transactionType, setTransactionType] = useState(null);
   const [transactionParcela, setTransactionParcela] = useState(null);
+  const [tipos, setTipos] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -44,53 +45,78 @@ export default function AddRegistros() {
       setHasCameraPermission(cameraStatus.status === 'granted');
     })();
     BuscarMinisterios()
+    BuscarTipos()
   }, []);
 
-  useEffect(() => {
-    setSelectedOption('');
-    setDataDoc(new Date());
-    setValor('');
-    setRecorrencia('')
-    setDetalhamento('');
-    setSelecionaMinisterio('');
-    setTransactionParcela(null)
-    setImageUri(null)
-    setSelectedImage(undefined); // Limpa a imagem selecionada ao focar
-  }, [focus]);
 
-
-  const pickerOptions = [
-    { label: 'Dízimos', type: 'receita', parcela: false },
-    { label: 'Ofertas', type: 'receita', parcela: false },
-    { label: 'Ofertas Alçadas', type: 'receita', parcela: false },
-    { label: 'Contas Recorrentes', type: 'despesa', parcela: false },
-    { label: 'Compras à Vista', type: 'despesa', parcela: false },
-    { label: 'Compras Parceladas', type: 'despesa', parcela: true },
-    { label: 'Empréstimos', type: 'despesa', parcela: true },
-    { label: 'Prebendas', type: 'despesa', parcela: false },
-  ];
+// Ordena o array: receitas primeiro, depois despesas
+const tiposOrdenados = tipos.sort((a, b) => {
+      if (a.type === "receita" && b.type === "despesa") return -1; // Receita antes de despesa
+      if (a.type === "despesa" && b.type === "receita") return 1;  // Despesa depois de receita
+      // Se ambos são do mesmo tipo, ordena por label alfabeticamente
+      return a.label.localeCompare(b.label);
+    });
 
 
   const handleValueChange = (value) => {
     setSelectedOption(value);
-    const selectedItem = pickerOptions.find((option) => option.label === value);
+    const selectedItem = tipos.find((option) => option.label === value);
     setTransactionType(selectedItem ? selectedItem.type : '');
     setTransactionParcela(selectedItem ? selectedItem.parcela : '');
   };
 
 
-  async function BuscarMinisterios() {
-    const nome = collection(db, "ministerios");
+  async function BuscarTipos() {
+    const nome = collection(db, "tipos");
     try {
       const snapshot = await getDocs(nome);
-      snapshot.forEach((doc) => {
-        setMinisterios(doc.data().nomes); // Assuming setMinisterio can handle multiple names
+    const tiposArray = snapshot.docs.map((doc) => ({
+      id: doc.id, // Inclui o ID do documento, se necessário
+      ...doc.data(), // Espalha os dados do documento (label, parcela, type)
+    }));
 
-      });
+    setTipos(tiposArray); // Atualiza o estado com o array de tipos
+
+    return tiposArray; // Retorna o array para uso posterior, se necessário
     } catch (error) {
       console.log("Erro ao buscar Saldo em Home", error);
     }
   }
+async function BuscarMinisterios() {
+  const nome = collection(db, "ministerios");
+  try {
+    const snapshot = await getDocs(nome);
+    if (snapshot.empty) {
+      console.log("Nenhum documento encontrado na coleção ministerios");
+      setMinisterios([]);
+      return [];
+    }
+
+    // Assume que o primeiro documento contém o array de nomes
+    const doc = snapshot.docs[0];
+    const nomes = doc.data().nomes || []; // Obtém o array de nomes ou um array vazio
+
+    // Ordena o array ignorando os prefixos "Min. de ", "Min. ", e "Min. da "
+    const nomesOrdenados = [...nomes].sort((a, b) => {
+      // Garante que a entrada é uma string e remove espaços extras
+      const strA = String(a).trim();
+      const strB = String(b).trim();
+
+      // Remove os prefixos para comparação
+      const nomeA = strA.replace(/^(Min\.)/i, '').trim();
+      const nomeB = strB.replace(/^(Min\. )/i, '').trim();
+      // Ordena alfabeticamente em português brasileiro
+      return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+    });
+
+    setMinisterios(nomesOrdenados); // Atualiza o estado com a lista ordenada
+    return nomesOrdenados; // Retorna a lista para uso posterior
+  } catch (error) {
+    console.error("Erro ao buscar ministérios em BuscarMinisterios:", error);
+    setMinisterios([]);
+    return [];
+  }
+}
 
 
 
@@ -169,6 +195,15 @@ export default function AddRegistros() {
       console.log('Erro ao adicionar documento:', e);
     } finally {
       setReload(false);
+      setSelectedOption('');
+      setDataDoc(new Date());
+      setValor('');
+      setRecorrencia('')
+      setDetalhamento('');
+      setSelecionaMinisterio('');
+      setTransactionParcela(null)
+      setImageUri(null)
+      setSelectedImage(undefined); // Limpa a imagem selecionada ao focar
       navigation.goBack();
     }
   }
@@ -214,13 +249,13 @@ export default function AddRegistros() {
     }
   };
 
-// Função para obter a primeira data do mês atual e a data de 3 dias antes de hoje
-const getCurrentMonthRange = () => {
-  const now = new Date();
-  const threeDaysAgo = new Date(now); // Cria uma nova instância da data atual
-  threeDaysAgo.setDate(now.getDate() - 1); // Subtrai 3 dias da data atual
-  return { minimumDate: threeDaysAgo };
-};
+  // Função para obter a primeira data do mês atual e a data de 3 dias antes de hoje
+  const getCurrentMonthRange = () => {
+    const now = new Date();
+    const threeDaysAgo = new Date(now); // Cria uma nova instância da data atual
+    threeDaysAgo.setDate(now.getDate() - 1); // Subtrai 3 dias da data atual
+    return { minimumDate: threeDaysAgo };
+  };
 
   const { minimumDate } = getCurrentMonthRange();
 
@@ -232,7 +267,7 @@ const getCurrentMonthRange = () => {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginHorizontal: 14, marginVertical: 3.5 }}>
+    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginHorizontal: 14, marginVertical: 10 }}>
 
       {show && (
         <DateTimePicker
@@ -245,8 +280,9 @@ const getCurrentMonthRange = () => {
       )}
 
 
+      <Input title={'Data'} editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar-clear-outline'} />
 
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 7, backgroundColor: '#fff', paddingHorizontal: 14 }}>
+      <View style={{ height: 60, marginVertical: 4, borderRadius: 7, backgroundColor: '#fff', paddingHorizontal: 12 }}>
 
         <Picker
           style={{ left: 4 }}
@@ -254,15 +290,14 @@ const getCurrentMonthRange = () => {
           onValueChange={handleValueChange}
         >
           <Picker.Item style={{ fontSize: 14, color: '#999' }} label={'Tipo de Registro'} />
-          {pickerOptions.map((option, index) => (
-            <Picker.Item style={{ fontSize: 14 }} key={index} label={option.label} value={option.label} />
+          {tiposOrdenados.map((option, index) => (
+            <Picker.Item style={{ fontSize: 15, color:'#000' }} key={index} label={option.label} value={option.label} />
           ))}
         </Picker>
 
       </View>
       {transactionType === 'despesa' ? (
         <>
-          {transactionParcela ? <Input title={'Nº de Prestações'} value={recorrencia} setValue={setRecorrencia} type='numeric' maxlength={2} /> : null}
           <View style={{ height: 60, marginVertical: 4, borderRadius: 7, backgroundColor: '#fff', paddingHorizontal: 14 }}>
             <Picker
               style={{ left: 4 }}
@@ -271,19 +306,20 @@ const getCurrentMonthRange = () => {
             >
               <Picker.Item style={{ fontSize: 15, color: '#999', }} label={'Ministério'} />
               {ministerios.map((item, index) => (
-                <Picker.Item key={index} label={item} value={item} style={{ fontSize: 14 }} />
+                <Picker.Item key={index} label={item} value={item} style={{ fontSize: 15, color:'#000' }} />
               ))}
             </Picker>
           </View>
         </>
       ) : null}
 
-      <Input title={'Data'} editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar-clear-outline'} />
       <Input title={'Imagem da Nota'} value={!imageUri ? '' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'attach' : 'checkmark-done'} onpress={() => takePhotoAsync()} />
       <Input title={`${transactionParcela ? 'Total a pagar' : 'Valor'}`} value={valor} setValue={setValor} type='numeric' />
+          {transactionParcela ? <Input title={'Nº de Prestações'} value={recorrencia} setValue={setRecorrencia} type='numeric' maxlength={2} /> : null}
+
       <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
-      <Botao acao={() => Registrar()} texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? colors.despesa : colors.receita} />
+      <Botao acao={() => Registrar()} texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'} reload={reload}  icone={'save-outline'} corBotao={colors.receita}/>
     </ScrollView>
   );
 }

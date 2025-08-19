@@ -1,4 +1,4 @@
-import { StatusBar, TouchableOpacity, View } from 'react-native';
+import { StatusBar, TouchableOpacity, View, Text } from 'react-native';
 import * as Font from 'expo-font';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import Registro from './src/pages/registro';
 import Futuro from './src/pages/futuro';
 import Relatorio from './src/pages/relatorio';
 import { AppProvider } from './src/context/appContext';
+import Icone from './src/componentes/Icone';
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -21,8 +22,8 @@ const Theme = {
     botao: '#fbfbfb',
     contra_theme: '#000',
     background: '#f5f5f3ff',
-    receita: '#457f79',
-    despesa: '#c54343',
+    receita: '#659f99',
+    despesa: '#db5e5eff',
     alerta: '#E39B0E',
   },
 };
@@ -38,15 +39,98 @@ function TabNavigator() {
         tabBarLabelStyle: {
           fontSize: 12,
         },
+        tabBarIcon: () => null, // Remove o ícone padrão
+        // Garante que o rótulo padrão não seja exibido
+        tabBarLabel: () => null,
       }}
     >
-      <Tab.Screen name="Home" component={Home} options={{ title: 'REGISTROS' }} />
-      <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO', tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 5 } }} />
-      <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
+      <Tab.Screen name="Home" component={Home} options={{
+        tabBarIcon: ({ color, size, focused }) => (
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 4 }}>
+            <Icone
+              name={'repeat'}
+              size={20} // Tamanho menor para alinhar com o texto
+              color={color}
+              style={{ marginRight: 14 }} // Espaço entre ícone e texto
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                color: color,
+                fontFamily: 'Roboto-Regular', // Ajuste a fonte conforme necessário
+              }}
+            >
+              FEED
+            </Text>
+          </View>
+        ),
+      }} />
+      <Tab.Screen name="Futuro" component={Futuro} options={{
+        tabBarIcon: ({ color, size, focused }) => (
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 4 }}>
+            <Icone
+              name={'locate-outline'}
+              size={18} // Tamanho menor para alinhar com o texto
+              color={color}
+              style={{ marginRight: 14 }} // Espaço entre ícone e texto
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                color: color,
+                fontFamily: 'Roboto-Regular', // Ajuste a fonte conforme necessário
+              }}
+            >
+              FUTURO
+            </Text>
+          </View>
+        ),
+      }} />
+      <Tab.Screen name="Registro" component={Registro} options={{
+        tabBarIcon: ({ color, size, focused }) => (
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 4 }}>
+            <Icone
+              name={'document-outline'}
+              size={20} // Tamanho menor para alinhar com o texto
+              color={color}
+              style={{ marginRight: 14 }} // Espaço entre ícone e texto
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                color: color,
+                fontFamily: 'Roboto-Regular', // Ajuste a fonte conforme necessário
+              }}
+            >
+              REGISTRAR
+            </Text>
+          </View>
+        ),
+      }} />
       <Tab.Screen
         name="Relatorio"
         component={Relatorio}
-        options={{title: 'RELATÓRIO', tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 5 } }}
+        options={{
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 4 }}>
+              <Icone
+                name={'pie-chart-outline'}
+                size={18} // Tamanho menor para alinhar com o texto
+                color={color}
+                style={{ marginRight: 14 }} // Espaço entre ícone e texto
+              />
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: color,
+                  fontFamily: 'Roboto-Regular', // Ajuste a fonte conforme necessário
+                }}
+              >
+                RELATÓRIO
+              </Text>
+            </View>
+          ),
+        }}
       />
     </Tab.Navigator>
   );
@@ -90,16 +174,25 @@ export default function App() {
             },
             headerTitleStyle: {
               fontFamily: 'Roboto-Bold',
-              fontSize:20
+              fontSize: 18
             },
             headerTintColor: Theme.colors.contra_theme,
-            
+
           })}
         >
           <Stack.Screen
             name="Main"
             component={TabNavigator}
-            options={{ title: 'Tesouraria PSH', headerShadowVisible: false }}
+            options={{
+              title: 'Tesouraria PSH', headerShadowVisible: false,
+              headerLeft: () => {
+                return (
+                  <View style={{ paddingHorizontal: 7 }}>
+                    <Icone nome={'leaf'} color={Theme.colors.receita} />
+                  </View>
+                )
+              }
+            }}
           />
           <Stack.Screen
             name="Registro"

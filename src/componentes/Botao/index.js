@@ -1,5 +1,5 @@
 import { Pressable, View, Text, ActivityIndicator } from 'react-native';
-import AntDesign from '@expo/vector-icons/AntDesign'
+import Icone from '../Icone';
 
 export default function Botao({ icone, acao, texto, corTexto = '#fff', corBotao = '#659f99ff', altura = 55, reload }) {
 
@@ -10,7 +10,7 @@ export default function Botao({ icone, acao, texto, corTexto = '#fff', corBotao 
       borderRadius: 7,
       alignItems: 'center',
       justifyContent: 'center',
-      elevation: 5,
+      elevation: 2,
       marginTop: 7,
 
     }} onPress={acao}>
@@ -18,7 +18,7 @@ export default function Botao({ icone, acao, texto, corTexto = '#fff', corBotao 
         <ActivityIndicator color={'#fff'} />
         :
         <View style={{ flexDirection: 'row', alignItems: "center", gap: 14 }}>
-          {!!icone ? <AntDesign size={22} color={'#fff'} name={icone} /> : null}
+          {!!icone ? <Icone size={20} color={'#fff'} nome={icone} /> : null}
           <Text style={{ color: corTexto }}>{texto}</Text>
         </View>
       }

@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Modal, StyleSheet, Image, Dimensions, Animated } from 'react-native';
 import Texto from '../Texto';
 import { AppContext } from '../../context/appContext';
@@ -19,6 +19,8 @@ export default function Item({ item, vencido }) {
   const { colors } = useTheme()
 
   const [show, setShow] = useState(false)
+
+  
 
   useEffect(() => {
     setIsSwiped(false)
@@ -187,6 +189,9 @@ export default function Item({ item, vencido }) {
     }
   };
 
+  const isVencido = new Date(item.dataDoc) < new Date();
+  
+
   return (
     <>
       {show && (
@@ -197,14 +202,15 @@ export default function Item({ item, vencido }) {
           onChange={onChange}
         />
       )}
-      <View style={{ position: 'relative' }}>
-        <Animated.View style={{ transform: [{ translateX }] }}>
+      <View style={{ position: 'relative', }}>
+        <Animated.View style={{ transform: [{ translateX }],  }}>
           <TouchableOpacity
             activeOpacity={1}
             onPress={toqueItem}
             onLongPress={handleLongPress}
             style={[
               {
+               
                 flex: 1,
                 justifyContent: 'center',
                 backgroundColor: colors.botao,
@@ -218,7 +224,7 @@ export default function Item({ item, vencido }) {
               <View
                 style={{
                   flexDirection: 'row',
-                  backgroundColor: item.movimentacao === 'despesa' ? (vencido ? colors.alerta : colors.despesa) : colors.receita,
+                  backgroundColor: item.movimentacao === 'despesa' ? colors.despesa : colors.receita,
                   borderRadius: 10,
                   alignItems: 'center',
                 }}
@@ -244,23 +250,16 @@ export default function Item({ item, vencido }) {
                 />
               </View>
               <Texto
-                texto={`${formatoMoeda.format(item.valor)}`}
-                size={13}
+                texto={`${item.movimentacao === 'despesa' ? '-' : '+'} ${formatoMoeda.format(item.valor)}`}
+                size={12}
                 estilo={{ color: '#000', fontFamily: 'Roboto-Regular' }}
               />
             </View>
 
-            <View style={{ flexDirection: 'row',gap:3, alignItems: 'flex-end', marginTop: 7 }}>
-              <Icone nome={'chevron-forward'} size={14}/>
-              {item.parcelaQuit ? <Texto
-                linhas={2}
-                texto={item.parcelaQuit + ' -'}
-                size={13}
-                estilo={{ fontFamily: 'Roboto-Regular' }}
-              />:null}
+            <View style={{ flexDirection: 'row', gap: 3, alignItems: 'flex-end', marginTop: 7 }}>
               <Texto
                 linhas={2}
-                texto={item.detalhamento}
+                texto={item.parcelaQuit ? item.parcelaQuit + ' - ' + item.detalhamento : item.detalhamento}
                 size={14}
                 estilo={{ fontFamily: 'Roboto-Regular' }}
               />
@@ -268,9 +267,9 @@ export default function Item({ item, vencido }) {
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               {item.ministerio ? (
-                <Texto texto={item.ministerio} size={12} wheight={300} estilo={{ color: '#777' }} />
+                <Texto texto={item.ministerio.replace('Min. ', '')} size={12} wheight={300} estilo={{ color: '#555' }} />
               ) : null}
-              {!!item.imageUrl ? <Icone name="paperclip" /> : ''}
+              {!!item.imageUrl ? <Icone size={16} nome="attach" /> : ''}
             </View>
           </TouchableOpacity>
         </Animated.View>

@@ -39,174 +39,164 @@ export default function Relatorio() {
   const generatePDF = async (mesData) => {
     try {
       // Agrupa receitas por tipo, somando totais
-      const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+      const receitasAgrupadas = Object.keys(mesData.tipos).reduce((acc, key) => {
         if (
-          key !== 'ano' &&
-          key !== 'mes' &&
-          key !== 'nomeMes' &&
-          key !== 'receita' &&
-          key !== 'despesa' &&
-          key !== 'saldo' &&
-          mesData[key].movimentacao === 'receita' &&
-          mesData[key].total > 0
+          mesData.tipos[key].movimentacao === 'receita' &&
+          mesData.tipos[key].total > 0
         ) {
-          const tipo = mesData[key].tipo;
+          const tipo = mesData.tipos[key].tipo;
 
           if (!acc[tipo]) {
             acc[tipo] = { total: 0, tipo };
           }
 
-          acc[tipo].total += mesData[key].total;
+          acc[tipo].total += mesData.tipos[key].total;
         }
         return acc;
       }, {});
       const receitas = Object.values(receitasAgrupadas);
 
       // Agrupa despesas por tipo, somando totais e coletando itens de ministérios
-      const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+      const despesasAgrupadas = Object.keys(mesData.tipos).reduce((acc, key) => {
         if (
-          key !== 'ano' &&
-          key !== 'mes' &&
-          key !== 'nomeMes' &&
-          key !== 'receita' &&
-          key !== 'despesa' &&
-          key !== 'saldo' &&
-          mesData[key].movimentacao === 'despesa' &&
-          mesData[key].total > 0
+          mesData.tipos[key].movimentacao === 'despesa' &&
+          mesData.tipos[key].total > 0
         ) {
-          const tipo = mesData[key].tipo;
+          const tipo = mesData.tipos[key].tipo;
           if (!acc[tipo]) {
             acc[tipo] = { total: 0, tipo, items: [] };
           }
-          acc[tipo].total += mesData[key].total;
-          acc[tipo].items.push({ ministerio: mesData[key].ministerio, total: mesData[key].total });
+          acc[tipo].total += mesData.tipos[key].total;
+          acc[tipo].items.push({ ministerio: mesData.tipos[key].ministerio, total: mesData.tipos[key].total });
         }
         return acc;
       }, {});
       const despesas = Object.values(despesasAgrupadas);
 
-      const detalhamento = Object.keys(mesData)
-        .filter(
-          key =>
-            key !== 'ano' &&
-            key !== 'mes' &&
-            key !== 'nomeMes' &&
-            key !== 'receita' &&
-            key !== 'despesa' &&
-            key !== 'saldo'
-        )
-        .map(key => ({
-          detalhamento: mesData[key].detalhamento,
-          valor: mesData[key].valor,
-          movimentacao: mesData[key].movimentacao,
-          tipo: mesData[key].tipo,
-          dataDoc: mesData[key].dataDoc,
-        }));
+      // Detalhamento usando o array movements (todos os movimentos individuais)
+      let detalhamento = mesData.movements.map(move => ({
+        detalhamento: move.detalhamento,
+        valor: move.valor,
+        movimentacao: move.movimentacao,
+        tipo: move.tipo,
+        dataDoc: move.dataDoc
+      }));
+
+      // Ordena por dataDoc (crescente)
+      detalhamento.sort((a, b) => a.dataDoc - b.dataDoc);
 
       const htmlContent = `
       <html>
         <head>
           <style>
+            @page {
+              size: A4;
+              margin: 10mm; /* Margens reduzidas para mais espaço */
+            }
             body {
               font-family: 'Arial', sans-serif;
               margin: 0;
-              padding: 20px;
+              padding: 10mm 10mm 20mm 10mm; /* Margens reduzidas */
               background-color: #fff;
               color: #333;
+              min-height: 297mm;
+              width: 210mm;
+              box-sizing: border-box;
+              position: relative;
             }
             .container {
-              max-width: 900px;
+              max-width: 190mm; /* Aumentado para preencher mais a página */
               margin: 0 auto;
               display: flex;
-              border-radius: 8px;
-              padding: 20px;
-              gap: 20px;
+              border-radius: 4mm;
+              padding: 2mm; /* Reduzido */
+              gap: 2mm; /* Reduzido */
               box-sizing: border-box;
             }
             .main-column {
-              width: 66.67%;
-              padding-right: 10px;
+              width: 65%;
+              padding-right: 2mm;
               box-sizing: border-box;
             }
             .detail-column {
-              width: 33.33%;
+              width: 35%;
               border-left: 1px solid #e0e0e0;
-              padding-left: 10px;
+              padding-left: 2mm;
               box-sizing: border-box;
             }
             .header {
               text-align: center;
-              padding-bottom: 10px;
+              padding-bottom: 2mm;
               border-bottom: 1px solid #e0e0e0;
             }
             .title {
-              font-size: 24px;
+              font-size: 18pt;
               font-weight: bold;
               color: #2c3e50;
               margin: 0;
             }
             .subtitle {
-              font-size: 12px;
+              font-size: 10pt;
               color: #7f8c8d;
-              margin-top: 3px;
+              margin-top: 1mm;
             }
             .summary {
               display: grid;
               grid-template-columns: repeat(3, 1fr);
-              gap: 10px;
-              margin: 15px 0;
+              gap: 2mm;
+              margin: 3mm 0;
             }
             .summary-card {
               background-color: #ecf0f1;
-              padding: 10px;
-              border-radius: 6px;
+              padding: 2mm;
+              border-radius: 2mm;
               text-align: center;
               transition: transform 0.2s;
             }
             .summary-card:hover {
-              transform: translateY(-3px);
+              transform: translateY(-1mm);
             }
             .summary-card.green { background-color: #e8f5e9; }
             .summary-card.red { background-color: #ffebee; }
             .summary-card.blue { background-color: #e3f2fd; }
             .summary-label {
-              font-size: 12px;
+              font-size: 10pt;
               color: #34495e;
-              margin-bottom: 5px;
+              margin-bottom: 1mm;
             }
             .summary-value {
-              font-size: 16px;
+              font-size: 12pt;
               color: #2c3e50;
             }
             .section-title {
-              font-size: 16px;
+              font-size: 14pt;
               color: #2c3e50;
-              margin: 15px 0 10px;
-              padding-left: 8px;
+              margin: 3mm 0 2mm;
+              padding-left: 1mm;
             }
             .details {
-              margin-bottom: 10px;
+              margin-bottom: 2mm;
             }
             .tipo-row {
               display: flex;
               justify-content: space-between;
-              padding: 4px 6px;
-              font-size: 12px;
+              padding: 1mm 1mm;
+              font-size: 10pt;
               border-bottom: 0.5px solid #e0e0e0;
-              font-weight: 500
+              font-weight: 500;
             }
             .detail-row {
               display: flex;
               justify-content: space-between;
-              padding: 4px 6px;
-              font-size: 12px;
+              padding: 1mm 1mm;
+              font-size: 10pt;
               border-bottom: 0.5px solid #e0e0e0;
             }
             .detail-row.sub-row {
-              margin-left: 15px;
-              padding: 4px 6px;
-              margin-bottom: 1px;
-              font-size: 11px;
+              margin-left: 3mm;
+              padding: 1mm 1mm;
+              margin-bottom: 0.2mm;
+              font-size: 9pt;
               border-bottom: 0.5px solid #e0e0e0;
             }
             .detail-label {
@@ -216,29 +206,34 @@ export default function Relatorio() {
               color: #2c3e50;
             }
             .detail-value.positive {
-              color: #1a8748ff;
+              color: #1a8748;
             }
             .detail-value.negative {
               color: #c0392b;
             }
             .divider {
               border-bottom: 1px dashed #e0e0e0;
-              margin: 8px 0;
+              margin: 2mm 0;
             }
             .footer {
+              position: absolute;
+              bottom: 5mm;
+              left: 0;
+              right: 0;
               text-align: center;
-              font-size: 10px;
+              font-size: 8pt;
               color: #7f8c8d;
-              margin-top: 15px;
-              padding-top: 10px;
+              padding-top: 2mm;
               border-top: 1px solid #e0e0e0;
+              width: 100%;
+              box-sizing: border-box;
             }
             .detail-column .detail-row {
               display: flex;
               justify-content: space-between;
-              padding: 4px 6px;
-              font-size: 10px;
-              margin-bottom: 1px;
+              padding: 1mm 1mm;
+              font-size: 9pt;
+              margin-bottom: 0.2mm;
             }
             .detail-column .detail-label {
               flex: 2;
@@ -249,6 +244,30 @@ export default function Relatorio() {
             .detail-column .detail-value {
               flex: 1;
               text-align: right;
+            }
+            @media print {
+              @page {
+                size: A4;
+                margin: 10mm;
+              }
+              body {
+                margin: 0;
+                padding: 10mm 10mm 20mm 10mm;
+                width: 210mm;
+                min-height: 297mm;
+              }
+              .container {
+                margin-bottom: 20mm;
+                max-width: 190mm;
+              }
+              .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 0;
+                padding: 2mm 0;
+              }
             }
           </style>
         </head>
@@ -293,28 +312,35 @@ export default function Relatorio() {
                     </div>
                     ${item.items.map(min => `
                       <div class="detail-row sub-row">
-                        <span class="detail-label">${min.ministerio.toUpperCase()}</span>
+                        <span class="detail-label">${min.ministerio.replace('Min. ', '').toUpperCase()}</span>
                         <span class="detail-value negative">- ${formatoMoeda.format(min.total)}</span>
                       </div>
                     `).join('')}
                   `).join('')}
                 ` : ''}
               </div>
-              <div class="footer">
-                Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')} | Sistema Financeiro da Igreja Batista no PSH
-              </div>
             </div>
             <div class="detail-column">
               <h3 class="section-title">Movimentações</h3>
-              ${detalhamento.length > 0 ? detalhamento.map(det => `
+              ${detalhamento.length > 0 ? detalhamento.map(det => {
+                // Verifica se dataDoc é um número válido
+                const date = Number.isFinite(det.dataDoc) ? new Date(det.dataDoc) : null;
+                const formattedDate = date && !isNaN(date.getTime()) 
+                  ? date.getDate().toString().padStart(2, '0') 
+                  : 'Data Inválida';
+                return `
                 <div class="detail-row">
-                  <span class="detail-label">${new Date(det.dataDoc).getDate().toString().padStart(2, '0')} - ${det.tipo === 'Dízimos' ? '********' : det.detalhamento}</span>
+                  <span class="detail-label">${formattedDate} - ${det.tipo === 'Dízimos' ? '********' : det.detalhamento}</span>
                   <span class="detail-value ${det.movimentacao === 'receita' ? 'positive' : 'negative'}">
                     ${det.movimentacao === 'receita' ? '+' : '-'} ${formatoMoeda.format(det.valor)}
                   </span>
                 </div>
-              `).join('') : '<p>Nenhum registro detalhado disponível.</p>'}
+              `;
+              }).join('') : '<p>Nenhum registro detalhado disponível.</p>'}
             </div>
+          </div>
+          <div class="footer">
+            Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')} | Sistema Financeiro da Igreja Batista no PSH
           </div>
         </body>
       </html>
@@ -332,44 +358,32 @@ export default function Relatorio() {
     const [isDespesasExpanded, setIsDespesasExpanded] = useState(false);
     const [expandedTipos, setExpandedTipos] = useState({});
 
-    const receitasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+    const receitasAgrupadas = Object.keys(mesData.tipos).reduce((acc, key) => {
       if (
-        key !== 'ano' &&
-        key !== 'mes' &&
-        key !== 'nomeMes' &&
-        key !== 'receita' &&
-        key !== 'despesa' &&
-        key !== 'saldo' &&
-        mesData[key].movimentacao === 'receita' &&
-        mesData[key].total > 0
+        mesData.tipos[key].movimentacao === 'receita' &&
+        mesData.tipos[key].total > 0
       ) {
-        const tipo = mesData[key].tipo;
+        const tipo = mesData.tipos[key].tipo;
         if (!acc[tipo]) {
           acc[tipo] = { total: 0, tipo };
         }
-        acc[tipo].total += mesData[key].total;
+        acc[tipo].total += mesData.tipos[key].total;
       }
       return acc;
     }, {});
     const receitas = Object.values(receitasAgrupadas);
 
-    const despesasAgrupadas = Object.keys(mesData).reduce((acc, key) => {
+    const despesasAgrupadas = Object.keys(mesData.tipos).reduce((acc, key) => {
       if (
-        key !== 'ano' &&
-        key !== 'mes' &&
-        key !== 'nomeMes' &&
-        key !== 'receita' &&
-        key !== 'despesa' &&
-        key !== 'saldo' &&
-        mesData[key].movimentacao === 'despesa' &&
-        mesData[key].total > 0
+        mesData.tipos[key].movimentacao === 'despesa' &&
+        mesData.tipos[key].total > 0
       ) {
-        const tipo = mesData[key].tipo;
+        const tipo = mesData.tipos[key].tipo;
         if (!acc[tipo]) {
           acc[tipo] = { total: 0, tipo, items: [] };
         }
-        acc[tipo].total += mesData[key].total;
-        acc[tipo].items.push({ ministerio: mesData[key].ministerio, detalhamento: mesData[key].detalhamento, total: mesData[key].total });
+        acc[tipo].total += mesData.tipos[key].total;
+        acc[tipo].items.push({ ministerio: mesData.tipos[key].ministerio, detalhamento: mesData.tipos[key].detalhamento, total: mesData.tipos[key].total });
       }
       return acc;
     }, {});
@@ -397,7 +411,6 @@ export default function Relatorio() {
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
-
           <View style={styles.details}>
             {receitas.length > 0 && (
               <TouchableOpacity style={styles.sectionHeader} onPress={toggleReceitas}>
@@ -410,7 +423,7 @@ export default function Relatorio() {
                   />
                   <Text style={styles.sectionTitle}>Receitas</Text>
                 </View>
-                <Text style={[styles.detailValue, styles.positive]}>
+                <Text style={[styles.detailValue, { color: colors.receita }]}>
                   + {formatoMoeda.format(mesData.receita)}
                 </Text>
               </TouchableOpacity>
@@ -420,7 +433,7 @@ export default function Relatorio() {
                 {receitas.map((item) => (
                   <View key={item.tipo} style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                    <Text style={[styles.detailValue, styles.positive]}>
+                    <Text style={[styles.detailValue, { color: colors.receita }]}>
                       + {formatoMoeda.format(item.total)}
                     </Text>
                   </View>
@@ -464,7 +477,7 @@ export default function Relatorio() {
                     </TouchableOpacity>
                     {expandedTipos[item.tipo] && item.items.map((min, index) => (
                       <View key={index} style={[styles.detailRow, styles.subRow]}>
-                        <Text style={styles.detailLabel}>{min.ministerio.toUpperCase()}</Text>
+                        <Text style={styles.detailLabel}>{min.ministerio.replace('Min. ', '').toUpperCase()}</Text>
                         <Text style={[styles.detailValue, styles.negative]}>
                           - {formatoMoeda.format(min.total)}
                         </Text>
@@ -477,7 +490,6 @@ export default function Relatorio() {
             {despesas.length > 0 && <View style={styles.divider} />}
             {(receitas.length > 0 || despesas.length > 0) && (
               <View style={styles.sectionHeader}>
-
                 <View style={styles.headerContent}>
                   <Icone
                     nome={mesData.saldo >= 0 ? 'trending-up' : 'trending-down'}
@@ -487,25 +499,14 @@ export default function Relatorio() {
                   />
                   <Text style={styles.sectionTitle}>Saldo</Text>
                 </View>
-                <Text style={[styles.detailValue, mesData.saldo >= 0 ? styles.positive : styles.negative]}>
+                <Text style={[styles.detailValue, { color: mesData.saldo >= 0 ? colors.receita : colors.despesa }]}>
                   {mesData.saldo >= 0 ? '+' : '-'} {formatoMoeda.format(Math.abs(mesData.saldo))}
                 </Text>
               </View>
             )}
           </View>
           {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
-          <TouchableOpacity style={[styles.sectionHeader, { elevation: 3, alignItems: 'center', justifyContent: 'center' }]} onPress={() => generatePDF(mesData)}>
-            <View style={styles.sectionHeader}>
-              <Icone
-                nome={'share-social-outline'}
-                size={20}
-                color={colors.contra_theme}
-                style={styles.iconLeft}
-              />
-              <Text>Gerar e Compartilhar PDF</Text>
-            </View>
-
-          </TouchableOpacity>
+          <Botao texto={'Gerar e Compartilhar PDF'} icone={'share-social-outline'} acao={() => generatePDF(mesData)} corBotao={colors.receita} />
         </ScrollView>
       </View>
     );
@@ -518,8 +519,6 @@ export default function Relatorio() {
       </View>
     );
   }
-
-  
 
   return (
     <Tab.Navigator
@@ -548,110 +547,108 @@ export default function Relatorio() {
   );
 }
 
-
-
-    const styles = StyleSheet.create({
-      screenContainer: {
-        flex: 1,
-      },
-      scrollView: {
-        flex: 1,
-      },
-      contentContainer: {
-        paddingHorizontal: 14,
-        paddingVertical: 21,
-        paddingBottom: 21,
-      },
-      summary: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginVertical: 15,
-      },
-      summaryCard: {
-        flex: 1,
-        padding: 10,
-        borderRadius: 7,
-        alignItems: 'center',
-        marginHorizontal: 2,
-      },
-      summaryLabel: {
-        fontSize: 11,
-        marginBottom: 3,
-        color: '#34495e',
-        fontFamily: 'Roboto-Regular',
-      },
-      summaryValue: {
-        fontFamily: 'Roboto-Regular',
-        fontSize: 12,
-      },
-      sectionTitle: {
-        fontSize: 16,
-        color: '#2c3e50',
-        marginVertical: 10,
-        paddingLeft: 8,
-      },
-      sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 21,
-        paddingVertical: 7,
-        backgroundColor: '#fbfbfb',
-        borderRadius: 7,
-        marginBottom: 4,
-      },
-      headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-      },
-      iconLeft: {
-        marginRight: 8,
-      },
-      details: {
-        marginBottom: 21,
-      },
-      detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 8,
-        paddingHorizontal:21,
-        borderRadius: 4,
-        marginBottom: 4,
-      },
-      subRow: {
-        marginLeft: 21,
-      },
-      detailLabel: {
-        fontSize: 11,
-        color: '#34495e',
-        marginLeft:28
-      },
-      detailValue: {
-        fontSize: 12,
-        fontFamily: 'Roboto-Regular',
-        color: '#2c3e50',
-      },
-      positive: {
-        color: '#1a8748',
-      },
-      negative: {
-        color: '#c0392b',
-      },
-      divider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-        marginVertical: 8,
-      },
-      emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      emptyText: {
-        fontSize: 16,
-        fontWeight: '300',
-        color: '#000',
-        paddingHorizontal: 42,
-        textAlign: 'center',
-      },
-    });
+const styles = StyleSheet.create({
+  screenContainer: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 14,
+    paddingVertical: 21,
+    paddingBottom: 21,
+  },
+  summary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 15,
+  },
+  summaryCard: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 7,
+    alignItems: 'center',
+    marginHorizontal: 2,
+  },
+  summaryLabel: {
+    fontSize: 11,
+    marginBottom: 3,
+    color: '#34495e',
+    fontFamily: 'Roboto-Regular',
+  },
+  summaryValue: {
+    fontFamily: 'Roboto-Regular',
+    fontSize: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    color: '#2c3e50',
+    marginVertical: 10,
+    paddingLeft: 8,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 21,
+    paddingVertical: 7,
+    backgroundColor: '#fbfbfb',
+    borderRadius: 7,
+    marginBottom: 4,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconLeft: {
+    marginRight: 8,
+  },
+  details: {
+    marginBottom: 21,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 21,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  subRow: {
+    marginLeft: 21,
+  },
+  detailLabel: {
+    fontSize: 11,
+    color: '#34495e',
+    marginLeft: 28
+  },
+  detailValue: {
+    fontSize: 12,
+    fontFamily: 'Roboto-Regular',
+    color: '#2c3e50',
+  },
+  positive: {
+    color: '#1a8748',
+  },
+  negative: {
+    color: '#c0392b',
+  },
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    marginVertical: 8,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '300',
+    color: '#000',
+    paddingHorizontal: 42,
+    textAlign: 'center',
+  },
+});
