@@ -19,7 +19,7 @@ export default function AddRegistros() {
   const { ResumoFinanceiro } = useContext(AppContext);
   const focus = useIsFocused();
   const navigation = useNavigation();
-  const {colors} = useTheme()
+  const { colors } = useTheme()
 
   const [dataDoc, setDataDoc] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
@@ -95,83 +95,83 @@ export default function AddRegistros() {
 
 
   async function Registrar() {
-  // Função para verificar se detalhamento é uma string válida
-  const isValidString = (str) => {
-    if (typeof str !== 'string' || str.trim() === '') return false;
-    // Permite letras (com acentos), números, espaços, hífens, e pontuação comum
-    const validPattern = /^[A-Za-zÀ-ÿ0-9\s.,;!?()-]+$/;
-    return validPattern.test(str) && str.trim().length >= 7; // Mínimo de 3 caracteres
-  };
+    // Função para verificar se detalhamento é uma string válida
+    const isValidString = (str) => {
+      if (typeof str !== 'string' || str.trim() === '') return false;
+      // Permite letras (com acentos), números, espaços, hífens, e pontuação comum
+      const validPattern = /^[A-Za-zÀ-ÿ0-9\s.,;!?()-]+$/;
+      return validPattern.test(str) && str.trim().length >= 5; // Mínimo de 3 caracteres
+    };
 
-  // Validação inicial
-  if (!selectedOption || !valor || !isValidString(detalhamento) || reload) {
-    console.log(
-      !selectedOption ? 'Opção não selecionada' :
-      !valor ? 'Valor não informado' :
-      !isValidString(detalhamento) ? 'Detalhamento inválido' :
-      'Em recarga'
-    );
-    return;
-  }
-
-  setReload(true);
-
-  try {
-    if (!recorrencia) {
-      // Registro único (sem recorrência)
-      const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
-      await addDoc(collection(db, 'registros'), {
-        reg: Date.now(),
-        dataDoc: dataDoc.getTime(),
-        tipo: selectedOption,
-        valor: parseFloat(valor),
-        movimentacao: transactionType,
-        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-        imageUrl,
-        detalhamento,
-        pago: true
-      });
-      await ResumoFinanceiro();
-    } else {
-      // Registro de pagamento parcelado (um único documento com array de parcelas)
-      const parcelas = [];
-      const initialTimestamp = dataDoc.getTime();
-      const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
-
-      // Cria o array de parcelas
-      for (let i = 0; i < recorrencia; i++) {
-        const nextPaymentDate = new Date(initialTimestamp);
-        nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
-        parcelas.push({
-          dataDoc: nextPaymentDate.getTime(),
-          valor: parseFloat(valor) / recorrencia,
-          parcela: i + 1,
-          pago: false
-        });
-      }
-
-      // Adiciona um único documento na coleção 'futuro'
-      await addDoc(collection(db, 'futuro'), {
-        reg: Date.now(),
-        tipo: selectedOption,
-        recorrencia,
-        movimentacao: transactionType,
-        ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
-        imageUrl,
-        detalhamento,
-        valorTotal: parseFloat(valor),
-        parcelas, // Array contendo todas as parcelas
-      });
-
-      await ResumoFinanceiro();
+    // Validação inicial
+    if (!selectedOption || !valor || !isValidString(detalhamento) || reload) {
+      console.log(
+        !selectedOption ? 'Opção não selecionada' :
+          !valor ? 'Valor não informado' :
+            !isValidString(detalhamento) ? 'Detalhamento inválido' :
+              'Em recarga'
+      );
+      return;
     }
-  } catch (e) {
-    console.log('Erro ao adicionar documento:', e);
-  } finally {
-    setReload(false);
-    navigation.goBack();
+
+    setReload(true);
+
+    try {
+      if (!recorrencia) {
+        // Registro único (sem recorrência)
+        const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
+        await addDoc(collection(db, 'registros'), {
+          reg: Date.now(),
+          dataDoc: dataDoc.getTime(),
+          tipo: selectedOption,
+          valor: parseFloat(valor),
+          movimentacao: transactionType,
+          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+          imageUrl,
+          detalhamento,
+          pago: true
+        });
+        await ResumoFinanceiro();
+      } else {
+        // Registro de pagamento parcelado (um único documento com array de parcelas)
+        const parcelas = [];
+        const initialTimestamp = dataDoc.getTime();
+        const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
+
+        // Cria o array de parcelas
+        for (let i = 0; i < recorrencia; i++) {
+          const nextPaymentDate = new Date(initialTimestamp);
+          nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
+          parcelas.push({
+            dataDoc: nextPaymentDate.getTime(),
+            valor: parseFloat(valor) / recorrencia,
+            parcela: i + 1,
+            pago: false
+          });
+        }
+
+        // Adiciona um único documento na coleção 'futuro'
+        await addDoc(collection(db, 'futuro'), {
+          reg: Date.now(),
+          tipo: selectedOption,
+          recorrencia,
+          movimentacao: transactionType,
+          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+          imageUrl,
+          detalhamento,
+          valorTotal: parseFloat(valor),
+          parcelas, // Array contendo todas as parcelas
+        });
+
+        await ResumoFinanceiro();
+      }
+    } catch (e) {
+      console.log('Erro ao adicionar documento:', e);
+    } finally {
+      setReload(false);
+      navigation.goBack();
+    }
   }
-}
 
 
   async function uploadImage(uri) {
@@ -213,16 +213,16 @@ export default function AddRegistros() {
       setReload(false)
     }
   };
-  
-  // Função para obter a primeira e a última data do mês atual
-  const getCurrentMonthRange = () => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1); // Primeiro dia do mês
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Último dia do mês
-    return { minimumDate: firstDay, maximumDate: lastDay };
-  };
-  
-  const { minimumDate, maximumDate } = getCurrentMonthRange();
+
+// Função para obter a primeira data do mês atual e a data de 3 dias antes de hoje
+const getCurrentMonthRange = () => {
+  const now = new Date();
+  const threeDaysAgo = new Date(now); // Cria uma nova instância da data atual
+  threeDaysAgo.setDate(now.getDate() - 1); // Subtrai 3 dias da data atual
+  return { minimumDate: threeDaysAgo };
+};
+
+  const { minimumDate } = getCurrentMonthRange();
 
 
   const onChange = (event, selectedDate) => {
@@ -232,23 +232,21 @@ export default function AddRegistros() {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginHorizontal: 14, marginVertical:3.5 }}>
+    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginHorizontal: 14, marginVertical: 3.5 }}>
 
       {show && (
         <DateTimePicker
-
           value={dataDoc}
           mode="date"
           display="calendar"
           onChange={onChange}
           minimumDate={minimumDate} // Restringe à primeira data do mês
-        maximumDate={maximumDate} // Restringe à última data do mês
         />
       )}
 
 
 
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
+      <View style={{ height: 60, marginVertical: 4, borderRadius: 7, backgroundColor: '#fff', paddingHorizontal: 14 }}>
 
         <Picker
           style={{ left: 4 }}
@@ -262,20 +260,10 @@ export default function AddRegistros() {
         </Picker>
 
       </View>
-
-        <View>
-
-          <Input editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar'} />
-          <Texto linhas={0} estilo={{ textAlign: 'center', color: '#333', marginBottom: 21, paddingHorizontal: 21 }} size={12} wheight={300} texto={'Informe a data do registro ou primeira prestação do pagamento'} />
-        </View>
-
-
-      <Input title={`${transactionParcela ? 'Total a pagar' : 'Valor'}`} value={valor} setValue={setValor} type='numeric' />
-
       {transactionType === 'despesa' ? (
         <>
           {transactionParcela ? <Input title={'Nº de Prestações'} value={recorrencia} setValue={setRecorrencia} type='numeric' maxlength={2} /> : null}
-          <View style={{ height: 60, marginVertical: 4, borderRadius: 21, backgroundColor: '#fff', paddingHorizontal: 14 }}>
+          <View style={{ height: 60, marginVertical: 4, borderRadius: 7, backgroundColor: '#fff', paddingHorizontal: 14 }}>
             <Picker
               style={{ left: 4 }}
               selectedValue={selecionaMinisterio}
@@ -290,7 +278,9 @@ export default function AddRegistros() {
         </>
       ) : null}
 
-      <Input value={!imageUri ? 'Imagem da Nota' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'camerao' : 'check'} onpress={() => takePhotoAsync()} />
+      <Input title={'Data'} editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar-clear-outline'} />
+      <Input title={'Imagem da Nota'} value={!imageUri ? '' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'attach' : 'checkmark-done'} onpress={() => takePhotoAsync()} />
+      <Input title={`${transactionParcela ? 'Total a pagar' : 'Valor'}`} value={valor} setValue={setValor} type='numeric' />
       <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
 
       <Botao acao={() => Registrar()} texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'} reload={reload} corBotao={transactionType === 'despesa' ? colors.despesa : colors.receita} />

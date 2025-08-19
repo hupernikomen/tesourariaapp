@@ -7,7 +7,7 @@ export default function Botao({ icone, acao, texto, corTexto = '#fff', corBotao 
     <Pressable style={{
       backgroundColor: corBotao,
       height: altura,
-      borderRadius: 21,
+      borderRadius: 7,
       alignItems: 'center',
       justifyContent: 'center',
       elevation: 5,

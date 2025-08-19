@@ -4,7 +4,6 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useEffect, useState } from 'react';
-import AntDesign from '@expo/vector-icons/AntDesign';
 
 import Home from './src/pages/home';
 import Registro from './src/pages/registro';
@@ -21,7 +20,7 @@ const Theme = {
     theme: '#fefefe',
     botao: '#fbfbfb',
     contra_theme: '#000',
-    background: '#f3f3f3',
+    background: '#f5f5f3ff',
     receita: '#457f79',
     despesa: '#c54343',
     alerta: '#E39B0E',
@@ -32,10 +31,10 @@ function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarScrollEnabled: false,
+        tabBarScrollEnabled: true,
         tabBarActiveTintColor: Theme.colors.contra_theme,
         tabBarInactiveTintColor: '#ddd',
-        tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 0 },
+        tabBarStyle: { backgroundColor: Theme.colors.theme },
         tabBarLabelStyle: {
           fontSize: 12,
         },
@@ -43,11 +42,12 @@ function TabNavigator() {
     >
       <Tab.Screen name="Home" component={Home} options={{ title: 'REGISTROS' }} />
       <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO', tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 5 } }} />
-      {/* <Tab.Screen
+      <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
+      <Tab.Screen
         name="Relatorio"
         component={Relatorio}
-        options={{ headerShadowVisible: false, title: 'RELATÓRIO' }}
-      /> */}
+        options={{title: 'RELATÓRIO', tabBarStyle: { backgroundColor: Theme.colors.theme, elevation: 5 } }}
+      />
     </Tab.Navigator>
   );
 }
@@ -93,19 +93,7 @@ export default function App() {
               fontSize:20
             },
             headerTintColor: Theme.colors.contra_theme,
-            headerRight: () =>
-              route.name === 'Main' ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-
-                  <TouchableOpacity style={{ width: 45, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }} onPress={() => navigation.navigate('Registro')}>
-                    <AntDesign name="addfile" size={20} color={Theme.colors.contra_theme} />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={{ width: 45, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' }} onPress={() => navigation.navigate('Relatorio')}>
-                    <AntDesign name="profile" size={20} color={Theme.colors.contra_theme} />
-                  </TouchableOpacity>
-                </View>
-              ) : null,
+            
           })}
         >
           <Stack.Screen

@@ -6,7 +6,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import Botao from '../../componentes/Botao';
 import { useTheme } from '@react-navigation/native';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import Icone from '../../componentes/Icone';
 
 export default function Relatorio() {
   const { BuscarSaldo, resumoFinanceiro, formatoMoeda } = useContext(AppContext);
@@ -402,9 +402,9 @@ export default function Relatorio() {
             {receitas.length > 0 && (
               <TouchableOpacity style={styles.sectionHeader} onPress={toggleReceitas}>
                 <View style={styles.headerContent}>
-                  <AntDesign
-                    name={isReceitasExpanded ? 'down' : 'right'}
-                    size={16}
+                  <Icone
+                    nome={isReceitasExpanded ? 'chevron-down' : 'chevron-forward'}
+                    size={18}
                     color={colors.contra_theme}
                     style={styles.iconLeft}
                   />
@@ -431,8 +431,8 @@ export default function Relatorio() {
             {despesas.length > 0 && (
               <TouchableOpacity style={styles.sectionHeader} onPress={toggleDespesas}>
                 <View style={styles.headerContent}>
-                  <AntDesign
-                    name={isDespesasExpanded ? 'down' : 'right'}
+                  <Icone
+                    nome={isDespesasExpanded ? 'chevron-down' : 'chevron-forward'}
                     size={16}
                     color={colors.contra_theme}
                     style={styles.iconLeft}
@@ -450,8 +450,8 @@ export default function Relatorio() {
                   <View key={item.tipo}>
                     <TouchableOpacity style={styles.sectionHeader} onPress={() => toggleTipo(item.tipo)}>
                       <View style={styles.headerContent}>
-                        <AntDesign
-                          name={expandedTipos[item.tipo] ? 'down' : 'right'}
+                        <Icone
+                          nome={expandedTipos[item.tipo] ? 'chevron-down' : 'chevron-forward'}
                           size={16}
                           color={colors.contra_theme}
                           style={styles.iconLeft}
@@ -479,8 +479,8 @@ export default function Relatorio() {
               <View style={styles.sectionHeader}>
 
                 <View style={styles.headerContent}>
-                  <AntDesign
-                    name={mesData.saldo >= 0 ? 'smileo' : 'frowno'}
+                  <Icone
+                    nome={mesData.saldo >= 0 ? 'trending-up' : 'trending-down'}
                     size={18}
                     color={colors.contra_theme}
                     style={styles.iconLeft}
@@ -496,8 +496,8 @@ export default function Relatorio() {
           {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
           <TouchableOpacity style={[styles.sectionHeader, { elevation: 3, alignItems: 'center', justifyContent: 'center' }]} onPress={() => generatePDF(mesData)}>
             <View style={styles.sectionHeader}>
-              <AntDesign
-                name={'sharealt'}
+              <Icone
+                nome={'share-social-outline'}
                 size={20}
                 color={colors.contra_theme}
                 style={styles.iconLeft}
@@ -530,12 +530,10 @@ export default function Relatorio() {
         tabBarInactiveTintColor: '#ddd',
         tabBarLabelStyle: { fontSize: 12 },
         tabBarStyle: {
-          height: 60,
+          height: 50,
           justifyContent: 'center',
-          backgroundColor: '#fff',
-          borderBottomStartRadius: 35,
-          borderBottomEndRadius: 35,
-          elevation: 3
+          backgroundColor: colors.botao,
+          elevation: 0
         },
       }}
     >
@@ -572,7 +570,7 @@ export default function Relatorio() {
       summaryCard: {
         flex: 1,
         padding: 10,
-        borderRadius: 21,
+        borderRadius: 7,
         alignItems: 'center',
         marginHorizontal: 2,
       },
@@ -599,7 +597,7 @@ export default function Relatorio() {
         paddingHorizontal: 21,
         paddingVertical: 7,
         backgroundColor: '#fbfbfb',
-        borderRadius: 14,
+        borderRadius: 7,
         marginBottom: 4,
       },
       headerContent: {
@@ -615,7 +613,8 @@ export default function Relatorio() {
       detailRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 8,
+        paddingVertical: 8,
+        paddingHorizontal:21,
         borderRadius: 4,
         marginBottom: 4,
       },
@@ -625,6 +624,7 @@ export default function Relatorio() {
       detailLabel: {
         fontSize: 11,
         color: '#34495e',
+        marginLeft:28
       },
       detailValue: {
         fontSize: 12,

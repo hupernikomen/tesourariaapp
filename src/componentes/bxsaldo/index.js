@@ -5,9 +5,6 @@ import { useNavigation, useTheme } from '@react-navigation/native';
 
 export default function Bxsaldo({ dados }) {
 
-  console.log(dados);
-  
-
   const { colors } = useTheme();
   const { obterNomeMes, formatoMoeda, resumoFinanceiro, loadSaldo } = useContext(AppContext);
   const navigation = useNavigation();
@@ -59,17 +56,18 @@ export default function Bxsaldo({ dados }) {
 
   return (
     <View>
-      <View style={{
-        alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', backgroundColor: colors.theme, elevation: 3, borderBottomStartRadius: 35,
-        borderBottomEndRadius: 35,
+      <View style={{  
+        alignItems: 'center', 
+        flexDirection: 'row', justifyContent: 'space-between', backgroundColor: colors.botao, 
       }}>
         {loadSaldo ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, height: 60 }}>
+          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, height: 65 }}>
             <ActivityIndicator color={colors.receita} />
           </View>
         ) : (
           <Animated.View
             style={{
+            
               flex: 1,
               flexDirection: 'row',
               justifyContent: 'space-between',
@@ -77,7 +75,7 @@ export default function Bxsaldo({ dados }) {
               opacity: opacityAnim,
               borderBottomStartRadius: 35,
               borderBottomEndRadius: 35,
-              height: 60,
+              height: 65,
               alignItems: 'center'
             }}
           >

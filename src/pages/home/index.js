@@ -2,12 +2,12 @@ import { useContext, useEffect } from 'react'
 import { View, FlatList } from 'react-native'
 import { useIsFocused, useNavigation } from '@react-navigation/native'
 
-import CarrosselParcelas from '../../componentes/CarrosselParcelas'
 import { AppContext } from "../../context/appContext";
 
 import Texto from '../../componentes/Texto';
 import Bxsaldo from '../../componentes/bxsaldo';
 import Item from '../../componentes/Item';
+import Icone from '../../componentes/Icone';
 
 export default function Home() {
 
@@ -43,12 +43,14 @@ export default function Home() {
       <FlatList
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={<View style={{ marginVertical: 3.5 }} />}
-        ListFooterComponent={<View style={{height:21}}/>}
+        ListFooterComponent={<View style={{ height: 21 }} />}
         ListHeaderComponent={
           <View style={{ gap: 21 }}>
             <Bxsaldo dados={{ futurosTotal, saldoAtual, dadosParcelas }} />
-            {/* <CarrosselParcelas dadosParcelas={dadosParcelas} /> */}
-            {sortedRegistros.length > 0 ? <Texto texto={'ÚLTIMOS REGISTROS'} estilo={{ marginLeft: 35, marginVertical: 14 }} size={12} /> : null}
+            {sortedRegistros.length > 0 ? <View style={{ flexDirection: 'row', marginLeft: 35, gap: 14, alignItems:'center', marginVertical:14 }}>
+              <Icone nome={'play-outline'} size={22}/>
+              <Texto texto={'ÚLTIMOS REGISTROS'} size={12} />
+            </View> : null}
           </View>
         }
         data={sortedRegistros}

@@ -1,6 +1,5 @@
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
-import { useTheme } from '@react-navigation/native';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import Icone from '../Icone';
 
 export default function Input({ list = [], iconName, editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info, onpress, place }) {
 
@@ -8,9 +7,8 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
   const stl = StyleSheet.create({
     box: {
       minHeight: 60,
-      paddingVertical: 8,
       marginVertical: 3.5,
-      borderRadius: 21,
+      borderRadius: 7,
       paddingHorizontal: 21,
       backgroundColor: "#fff"
     },
@@ -21,10 +19,11 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
     },
     title: {
       color: '#999',
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: 300,
       marginLeft: 3,
-      marginTop: -5
+      marginTop: 5,
+      alignSelf: 'flex-start'
     },
     info: {
       color: '#aaa',
@@ -32,26 +31,27 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
     },
     input: {
       color: editable ? '#000' : '#999',
-      marginTop: -10,
       flex: 1,
     },
     containerInput: {
       flexDirection: 'row',
+      marginTop: -7,
       justifyContent: 'space-between',
+      alignItems: "center"
     }
   })
 
   return (
     <View style={stl.box}>
       <View style={stl.boxtop}>
-        <Text style={stl.title}>{value ? title : ''}</Text>
+        <Text style={stl.title}>{title}</Text>
       </View>
 
       <View style={stl.containerInput}>
 
         <TextInput
 
-          placeholder={value ? place : title}
+          // placeholder={value ? place : title}
           placeholderTextColor={'#999'}
           editable={editable}
           maxLength={maxlength}
@@ -63,8 +63,8 @@ export default function Input({ list = [], iconName, editable = true, type = 'de
         />
 
         {!!onpress ?
-          <Pressable onPress={onpress}>
-            <AntDesign name={iconName} size={20} />
+          <Pressable onPress={onpress} style={{ padding: 7, marginRight: -7 }}>
+            <Icone nome={iconName} />
           </Pressable>
           : null}
       </View>

@@ -1,13 +1,13 @@
 import { useState, useContext, useEffect } from 'react';
 import { View, TouchableOpacity, Modal, StyleSheet, Image, Dimensions, Animated } from 'react-native';
 import Texto from '../Texto';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import { AppContext } from '../../context/appContext';
 import { db } from '../../firebaseConnection';
 import { doc, deleteDoc, updateDoc, addDoc, collection, getDoc } from 'firebase/firestore';
 import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { useIsFocused, useTheme } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Icone from '../Icone';
 
 export default function Item({ item, vencido }) {
   const { formatoMoeda, BuscarRegistrosFinanceiros, swipedItemId, setSwipedItemId } = useContext(AppContext);
@@ -72,6 +72,7 @@ export default function Item({ item, vencido }) {
     }
   };
 
+
   async function RegistrarPagamentoParcela(dataDoc) {
 
     if (item.pago) {
@@ -98,6 +99,7 @@ export default function Item({ item, vencido }) {
         imageUrl: item.imageUrl || '',
         detalhamento: item.detalhamento,
         pago: true,
+        parcelaQuit: String(item.parcela + '/' + item.recorrencia)
       });
 
       const novasParcelas = parcelas.filter((p) => p.parcela !== item.parcela);
@@ -162,7 +164,7 @@ export default function Item({ item, vencido }) {
     }
   }
 
-  
+
   const options = {
     month: '2-digit',
     day: '2-digit',
@@ -207,10 +209,8 @@ export default function Item({ item, vencido }) {
                 justifyContent: 'center',
                 backgroundColor: colors.botao,
                 padding: 21,
-                borderRadius: 21,
+                borderRadius: 7,
                 marginHorizontal: 14,
-                borderTopRightRadius: isSwiped ? 0 : 21,
-                borderBottomRightRadius: isSwiped ? 0 : 21,
               },
             ]}
           >
@@ -250,7 +250,14 @@ export default function Item({ item, vencido }) {
               />
             </View>
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 7 }}>
+            <View style={{ flexDirection: 'row',gap:3, alignItems: 'flex-end', marginTop: 7 }}>
+              <Icone nome={'chevron-forward'} size={14}/>
+              {item.parcelaQuit ? <Texto
+                linhas={2}
+                texto={item.parcelaQuit + ' -'}
+                size={13}
+                estilo={{ fontFamily: 'Roboto-Regular' }}
+              />:null}
               <Texto
                 linhas={2}
                 texto={item.detalhamento}
@@ -263,7 +270,7 @@ export default function Item({ item, vencido }) {
               {item.ministerio ? (
                 <Texto texto={item.ministerio} size={12} wheight={300} estilo={{ color: '#777' }} />
               ) : null}
-              {!!item.imageUrl ? <AntDesign name="paperclip" /> : ''}
+              {!!item.imageUrl ? <Icone name="paperclip" /> : ''}
             </View>
           </TouchableOpacity>
         </Animated.View>
@@ -289,7 +296,7 @@ export default function Item({ item, vencido }) {
               }}
               onPress={() => setShow(true)}
             >
-              <AntDesign name="check" size={24} color="#fff" />
+              <Icone nome="checkmark-done" size={24} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
               style={{
@@ -302,7 +309,7 @@ export default function Item({ item, vencido }) {
               }}
               onPress={ExcluiRegistro}
             >
-              <AntDesign name="delete" size={24} color="#fff" />
+              <Icone nome="trash-outline" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
         )}
@@ -327,7 +334,7 @@ export default function Item({ item, vencido }) {
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
-              <AntDesign name="close" size={24} color="#fff" />
+              <Icone name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
