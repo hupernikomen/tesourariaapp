@@ -128,7 +128,7 @@ export function AppProvider({ children }) {
       const detalhamento = data.detalhamento || '';
       const dataDoc = data.dataDoc;
       const tipo = data.tipo || 'Sem Tipo'; // Obtém o tipo da movimentação
-      const ministerio = data.ministerio ? data.ministerio.trim() : 'Sem Ministério'; // Obtém o ministério associado ao registro, normalizado
+      const ministerio = data.ministerio?.label ? data.ministerio?.label?.trim() : 'Sem Ministério'; // Obtém o ministério associado ao registro, normalizado
 
 
       // Converte o timestamp para Date

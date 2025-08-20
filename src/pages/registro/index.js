@@ -1,9 +1,9 @@
 import { useState, useContext, useEffect } from 'react';
-import { View, ScrollView, Text } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Importação corrigida
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Picker } from '@react-native-picker/picker';
 import { useIsFocused, useNavigation, useTheme } from '@react-navigation/native';
 import { AppContext } from '../../context/appContext';
@@ -11,128 +11,104 @@ import Input from '../../componentes/Input';
 import Botao from '../../componentes/Botao';
 import { Camera } from 'expo-camera';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Texto from '../../componentes/Texto';
-
+import CustomPickerModal from '../../componentes/picker';
 
 export default function AddRegistros() {
   const [reload, setReload] = useState(false);
-  const { ResumoFinanceiro } = useContext(AppContext);
+  const { ResumoFinanceiro, BuscarRegistrosFinanceiros } = useContext(AppContext);
   const focus = useIsFocused();
   const navigation = useNavigation();
-  const { colors } = useTheme()
+  const { colors } = useTheme();
 
   const [dataDoc, setDataDoc] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
-  const [valor, setValor] = useState(0);
+  const [valor, setValor] = useState('');
   const [selecionaMinisterio, setSelecionaMinisterio] = useState('');
   const [selectedImage, setSelectedImage] = useState(undefined);
   const [imageUri, setImageUri] = useState('');
   const [recorrencia, setRecorrencia] = useState('');
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
-
-  const [ministerios, setMinisterios] = useState([])
-  const [show, setShow] = useState(false)
-
-
-  const [selectedOption, setSelectedOption] = useState('');
-  const [transactionType, setTransactionType] = useState(null);
-  const [transactionParcela, setTransactionParcela] = useState(null);
+  const [ministerios, setMinisterios] = useState([]);
+  const [show, setShow] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [tipos, setTipos] = useState([]);
 
   useEffect(() => {
     (async () => {
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
       setHasCameraPermission(cameraStatus.status === 'granted');
+      await BuscarMinisterios();
+      await BuscarTipos();
     })();
-    BuscarMinisterios()
-    BuscarTipos()
-  }, []);
-
-
-// Ordena o array: receitas primeiro, depois despesas
-const tiposOrdenados = tipos.sort((a, b) => {
-      if (a.type === "receita" && b.type === "despesa") return -1; // Receita antes de despesa
-      if (a.type === "despesa" && b.type === "receita") return 1;  // Despesa depois de receita
-      // Se ambos são do mesmo tipo, ordena por label alfabeticamente
-      return a.label.localeCompare(b.label);
-    });
-
-
-  const handleValueChange = (value) => {
-    setSelectedOption(value);
-    const selectedItem = tipos.find((option) => option.label === value);
-    setTransactionType(selectedItem ? selectedItem.type : '');
-    setTransactionParcela(selectedItem ? selectedItem.parcela : '');
-  };
-
+  }, [focus]);
 
   async function BuscarTipos() {
     const nome = collection(db, "tipos");
     try {
       const snapshot = await getDocs(nome);
-    const tiposArray = snapshot.docs.map((doc) => ({
-      id: doc.id, // Inclui o ID do documento, se necessário
-      ...doc.data(), // Espalha os dados do documento (label, parcela, type)
-    }));
-
-    setTipos(tiposArray); // Atualiza o estado com o array de tipos
-
-    return tiposArray; // Retorna o array para uso posterior, se necessário
+      const tiposArray = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTipos(tiposArray);
+      return tiposArray;
     } catch (error) {
-      console.log("Erro ao buscar Saldo em Home", error);
+      console.log("Erro ao buscar tipos em AddRegistros", error);
     }
   }
-async function BuscarMinisterios() {
-  const nome = collection(db, "ministerios");
-  try {
-    const snapshot = await getDocs(nome);
-    if (snapshot.empty) {
-      console.log("Nenhum documento encontrado na coleção ministerios");
-      setMinisterios([]);
-      return [];
+  async function BuscarMinisterios() {
+    const nome = collection(db, "ministerios");
+    try {
+      const snapshot = await getDocs(nome);
+      const tiposArray = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMinisterios(tiposArray);
+      return tiposArray;
+    } catch (error) {
+      console.log("Erro ao buscar tipos em AddRegistros", error);
     }
-
-    // Assume que o primeiro documento contém o array de nomes
-    const doc = snapshot.docs[0];
-    const nomes = doc.data().nomes || []; // Obtém o array de nomes ou um array vazio
-
-    // Ordena o array ignorando os prefixos "Min. de ", "Min. ", e "Min. da "
-    const nomesOrdenados = [...nomes].sort((a, b) => {
-      // Garante que a entrada é uma string e remove espaços extras
-      const strA = String(a).trim();
-      const strB = String(b).trim();
-
-      // Remove os prefixos para comparação
-      const nomeA = strA.replace(/^(Min\.)/i, '').trim();
-      const nomeB = strB.replace(/^(Min\. )/i, '').trim();
-      // Ordena alfabeticamente em português brasileiro
-      return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
-    });
-
-    setMinisterios(nomesOrdenados); // Atualiza o estado com a lista ordenada
-    return nomesOrdenados; // Retorna a lista para uso posterior
-  } catch (error) {
-    console.error("Erro ao buscar ministérios em BuscarMinisterios:", error);
-    setMinisterios([]);
-    return [];
   }
-}
 
+  // async function BuscarMinisterios() {
+  //   const nome = collection(db, "ministerios");
+  //   try {
+  //     const snapshot = await getDocs(nome);
 
+  //     if (snapshot.empty) {
+  //       console.log("Nenhum documento encontrado na coleção ministerios");
+  //       setMinisterios([]);
+  //       return [];
+  //     }
+  //     const doc = snapshot.docs;
+  //     console.log(doc.data(), 'data');
+
+  //     const nomes = doc.data().nomes || [];
+  //     const nomesOrdenados = [...nomes].sort((a, b) => {
+  //       const nomeA = String(a).trim().replace(/^(Min\.)/i, '').trim();
+  //       const nomeB = String(b).trim().replace(/^(Min\.)/i, '').trim();
+  //       return nomeA.localeCompare(nomeB, 'pt-BR', { sensitivity: 'base' });
+  //     });
+  //     setMinisterios(nomesOrdenados);
+  //     return nomesOrdenados;
+  //   } catch (error) {
+  //     console.error("Erro ao buscar ministérios em BuscarMinisterios:", error);
+  //     setMinisterios([]);
+  //     return [];
+  //   }
+  // }
 
   async function Registrar() {
-    // Função para verificar se detalhamento é uma string válida
     const isValidString = (str) => {
       if (typeof str !== 'string' || str.trim() === '') return false;
-      // Permite letras (com acentos), números, espaços, hífens, e pontuação comum
       const validPattern = /^[A-Za-zÀ-ÿ0-9\s.,;!?()-]+$/;
-      return validPattern.test(str) && str.trim().length >= 5; // Mínimo de 3 caracteres
+      return validPattern.test(str) && str.trim().length >= 5;
     };
 
-    // Validação inicial
-    if (!selectedOption || !valor || !isValidString(detalhamento) || reload) {
+    if (!selectedCategory || !valor || !isValidString(detalhamento) || reload) {
       console.log(
-        !selectedOption ? 'Opção não selecionada' :
+        !selectedCategory ? 'Categoria não selecionada' :
           !valor ? 'Valor não informado' :
             !isValidString(detalhamento) ? 'Detalhamento inválido' :
               'Em recarga'
@@ -144,49 +120,45 @@ async function BuscarMinisterios() {
 
     try {
       if (!recorrencia) {
-        // Registro único (sem recorrência)
         const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
         await addDoc(collection(db, 'registros'), {
           reg: Date.now(),
           dataDoc: dataDoc.getTime(),
-          tipo: selectedOption,
+          tipo: selectedCategory.label,
           valor: parseFloat(valor),
-          movimentacao: transactionType,
-          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+          movimentacao: selectedCategory.type,
+          ministerio: selectedCategory.type === 'despesa' ? selecionaMinisterio : '',
           imageUrl,
           detalhamento,
-          pago: true
+          pago: true,
         });
         await ResumoFinanceiro();
       } else {
-        // Registro de pagamento parcelado (um único documento com array de parcelas)
         const parcelas = [];
         const initialTimestamp = dataDoc.getTime();
         const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
 
-        // Cria o array de parcelas
-        for (let i = 0; i < recorrencia; i++) {
+        for (let i = 0; i < parseInt(recorrencia); i++) {
           const nextPaymentDate = new Date(initialTimestamp);
           nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
           parcelas.push({
             dataDoc: nextPaymentDate.getTime(),
-            valor: parseFloat(valor) / recorrencia,
+            valor: parseFloat(valor) / parseInt(recorrencia),
             parcela: i + 1,
-            pago: false
+            pago: false,
           });
         }
 
-        // Adiciona um único documento na coleção 'futuro'
         await addDoc(collection(db, 'futuro'), {
           reg: Date.now(),
-          tipo: selectedOption,
-          recorrencia,
-          movimentacao: transactionType,
-          ministerio: transactionType === 'despesa' ? selecionaMinisterio : '',
+          tipo: selectedCategory.label,
+          recorrencia: parseInt(recorrencia),
+          movimentacao: selectedCategory.type,
+          ministerio: selectedCategory.type === 'despesa' ? selecionaMinisterio : '',
           imageUrl,
           detalhamento,
           valorTotal: parseFloat(valor),
-          parcelas, // Array contendo todas as parcelas
+          parcelas,
         });
 
         await ResumoFinanceiro();
@@ -195,19 +167,18 @@ async function BuscarMinisterios() {
       console.log('Erro ao adicionar documento:', e);
     } finally {
       setReload(false);
-      setSelectedOption('');
+      setSelectedCategory(null);
       setDataDoc(new Date());
       setValor('');
-      setRecorrencia('')
+      setRecorrencia('');
       setDetalhamento('');
       setSelecionaMinisterio('');
-      setTransactionParcela(null)
-      setImageUri(null)
-      setSelectedImage(undefined); // Limpa a imagem selecionada ao focar
+      setImageUri('');
+      setSelectedImage(undefined);
+      await BuscarRegistrosFinanceiros();
       navigation.goBack();
     }
   }
-
 
   async function uploadImage(uri) {
     const storage = getStorage();
@@ -215,27 +186,23 @@ async function BuscarMinisterios() {
     const blob = await response.blob();
     const filename = uri.substring(uri.lastIndexOf('/') + 1);
     const storageRef = ref(storage, `images/${filename}`);
-
     await uploadBytes(storageRef, blob);
     const downloadURL = await getDownloadURL(storageRef);
-    return downloadURL; // Retorna o URL da imagem
+    return downloadURL;
   }
 
-
   const takePhotoAsync = async () => {
-    setReload(true)
-
-
+    setReload(true);
     if (hasCameraPermission === false) {
       alert('Você não concedeu permissão para usar a câmera!');
+      setReload(false);
       return;
     }
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.mediaTypes,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         aspect: [9, 16],
         quality: 0.7,
-
       });
       if (!result.canceled) {
         setSelectedImage(result.assets[0].uri);
@@ -245,20 +212,18 @@ async function BuscarMinisterios() {
       console.error('Erro ao acessar câmera:', error);
       alert('Ocorreu um erro ao tentar abrir a câmera');
     } finally {
-      setReload(false)
+      setReload(false);
     }
   };
 
-  // Função para obter a primeira data do mês atual e a data de 3 dias antes de hoje
   const getCurrentMonthRange = () => {
     const now = new Date();
-    const threeDaysAgo = new Date(now); // Cria uma nova instância da data atual
-    threeDaysAgo.setDate(now.getDate() - 1); // Subtrai 3 dias da data atual
+    const threeDaysAgo = new Date(now);
+    threeDaysAgo.setDate(now.getDate() - 1);
     return { minimumDate: threeDaysAgo };
   };
 
   const { minimumDate } = getCurrentMonthRange();
-
 
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || dataDoc;
@@ -267,61 +232,83 @@ async function BuscarMinisterios() {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginHorizontal: 14, marginVertical: 10 }}>
-
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      style={{ flex: 1, marginHorizontal: 14, marginVertical: 10 }}
+    >
       {show && (
         <DateTimePicker
           value={dataDoc}
           mode="date"
           display="calendar"
           onChange={onChange}
-          minimumDate={minimumDate} // Restringe à primeira data do mês
+          minimumDate={minimumDate}
         />
       )}
 
+      <Input
+        title={'Data'}
+        editable={false}
+        value={dataDoc.toLocaleDateString('pt-BR')}
+        onpress={() => setShow(true)}
+        iconName={'calendar-clear-outline'}
+      />
 
-      <Input title={'Data'} editable={false} value={dataDoc.toLocaleDateString('pt-BR')} setValue={setDataDoc} onpress={() => setShow(true)} iconName={'calendar-clear-outline'} />
+      <CustomPickerModal
+        titulo={'Tipo de Registro'}
+        itens={tipos}
+        selectedValue={selectedCategory}
+        setSelectedValue={setSelectedCategory}
+      />
 
-      <View style={{ height: 60, marginVertical: 4, borderRadius: 7, backgroundColor: '#fff', paddingHorizontal: 12 }}>
+      {selectedCategory?.campoMin && (
+        <CustomPickerModal
+        titulo={'Ministério'}
+        itens={ministerios}
+        selectedValue={selecionaMinisterio}
+        setSelectedValue={setSelecionaMinisterio}
+      />)}
 
-        <Picker
-          style={{ left: 4 }}
-          selectedValue={selectedOption}
-          onValueChange={handleValueChange}
-        >
-          <Picker.Item style={{ fontSize: 14, color: '#999' }} label={'Tipo de Registro'} />
-          {tiposOrdenados.map((option, index) => (
-            <Picker.Item style={{ fontSize: 15, color:'#000' }} key={index} label={option.label} value={option.label} />
-          ))}
-        </Picker>
 
-      </View>
-      {transactionType === 'despesa' ? (
-        <>
-          <View style={{ height: 60, marginVertical: 4, borderRadius: 7, backgroundColor: '#fff', paddingHorizontal: 14 }}>
-            <Picker
-              style={{ left: 4 }}
-              selectedValue={selecionaMinisterio}
-              onValueChange={(itemValue) => setSelecionaMinisterio(itemValue)}
-            >
-              <Picker.Item style={{ fontSize: 15, color: '#999', }} label={'Ministério'} />
-              {ministerios.map((item, index) => (
-                <Picker.Item key={index} label={item} value={item} style={{ fontSize: 15, color:'#000' }} />
-              ))}
-            </Picker>
-          </View>
-        </>
-      ) : null}
 
-      <Input title={'Imagem da Nota'} value={!imageUri ? '' : 'Imagem Carregada'} editable={false} iconName={!imageUri ? 'attach' : 'checkmark-done'} onpress={() => takePhotoAsync()} />
-      <Input title={`${transactionParcela ? 'Total a pagar' : 'Valor'}`} value={valor} setValue={setValor} type='numeric' />
-          {transactionParcela ? <Input title={'Nº de Prestações'} value={recorrencia} setValue={setRecorrencia} type='numeric' maxlength={2} /> : null}
+      <Input
+        title={'Imagem da Nota'}
+        value={imageUri ? 'Imagem Carregada' : ''}
+        editable={false}
+        iconName={imageUri ? 'checkmark-done' : 'attach'}
+        onpress={takePhotoAsync}
+      />
 
-      <Input title={'Detalhamento'} value={detalhamento} setValue={setDetalhamento} />
+      <Input
+        title={selectedCategory?.parcela ? 'Total a pagar' : 'Valor'}
+        value={valor}
+        setValue={setValor}
+        type="numeric"
+      />
 
-      <Botao acao={() => Registrar()} texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'} reload={reload}  icone={'save-outline'} corBotao={colors.receita}/>
+      {selectedCategory?.parcela && (
+        <Input
+          title={'Nº de Prestações'}
+          value={recorrencia}
+          setValue={setRecorrencia}
+          type="numeric"
+          maxlength={2}
+        />
+      )}
+
+      <Input
+        title={'Detalhamento'}
+        value={detalhamento}
+        setValue={setDetalhamento}
+      />
+
+      <Botao
+        acao={Registrar}
+        texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'}
+        reload={reload}
+        icone={'save-outline'}
+        corBotao={colors.receita}
+      />
     </ScrollView>
   );
 }
-
-// 

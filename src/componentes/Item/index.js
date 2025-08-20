@@ -267,7 +267,7 @@ export default function Item({ item, vencido }) {
 
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               {item.ministerio ? (
-                <Texto texto={item.ministerio.replace('Min. ', '')} size={12} wheight={300} estilo={{ color: '#555' }} />
+                <Texto texto={item.ministerio?.label?.replace('Min. ', '')} size={12} wheight={300} estilo={{ color: '#555' }} />
               ) : null}
               {!!item.imageUrl ? <Icone size={16} nome="attach" /> : ''}
             </View>
