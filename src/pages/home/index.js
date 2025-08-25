@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react'
-import { View, FlatList, ActivityIndicator } from 'react-native'
-import { useIsFocused, useNavigation, useTheme } from '@react-navigation/native'
+import { View, FlatList } from 'react-native'
+import { useTheme } from '@react-navigation/native'
 
 import { AppContext } from "../../context/appContext";
 
@@ -14,14 +14,10 @@ export default function Home() {
 
   const { saldoAtual, BuscarRegistrosFinanceiros, dadosFinancas, futurosTotal, dadosParcelas, loadSaldo } = useContext(AppContext)
 
-  const focus = useIsFocused()
-  const navigation = useNavigation()
   const {colors} = useTheme()
 
   useEffect(() => {
     Promise.all([BuscarRegistrosFinanceiros()])
-
-
   }, [])
 
 

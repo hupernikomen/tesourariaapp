@@ -1,5 +1,5 @@
-import { useState, useContext, useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Modal, StyleSheet, Image, Dimensions, Animated } from 'react-native';
+import { useState, useContext, useEffect } from 'react';
+import { View, TouchableOpacity, Modal, StyleSheet, Image, Animated } from 'react-native';
 import Texto from '../Texto';
 import { AppContext } from '../../context/appContext';
 import { db } from '../../firebaseConnection';

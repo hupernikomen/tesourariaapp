@@ -1,5 +1,5 @@
-import { useContext, useEffect, useRef, useState } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
+import { useContext, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { AppContext } from "../../context/appContext";
 import { useNavigation, useTheme } from '@react-navigation/native';
 

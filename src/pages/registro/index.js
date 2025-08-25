@@ -1,10 +1,9 @@
 import { useState, useContext, useEffect } from 'react';
-import { View, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Picker } from '@react-native-picker/picker';
 import { useIsFocused, useNavigation, useTheme } from '@react-navigation/native';
 import { AppContext } from '../../context/appContext';
 import Input from '../../componentes/Input';
