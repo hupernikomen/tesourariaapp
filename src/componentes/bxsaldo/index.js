@@ -43,13 +43,14 @@ export default function Bxsaldo({ dados }) {
       // When loadSaldo is false, animate content in
       Animated.parallel([
         Animated.timing(slideAnim, {
+          delay:300,
           toValue: 0, // Move to original position
-          duration: 300,
+          duration: 500,
           useNativeDriver: true,
         }),
         Animated.timing(opacityAnim, {
           toValue: 1, // Fade in
-          duration: 300,
+          duration: 500,
           useNativeDriver: true,
         }),
       ]).start();
@@ -85,11 +86,7 @@ export default function Bxsaldo({ dados }) {
         alignItems: 'center',
         flexDirection: 'row', justifyContent: 'space-between', backgroundColor: colors.botao,
       }}>
-        {loadSaldo ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, height: 65 }}>
-            <ActivityIndicator color={colors.receita} />
-          </View>
-        ) : (
+
           <Animated.View
             style={{
 
@@ -98,9 +95,7 @@ export default function Bxsaldo({ dados }) {
               justifyContent: 'space-between',
               transform: [{ translateY: slideAnim }],
               opacity: opacityAnim,
-              borderBottomStartRadius: 35,
-              borderBottomEndRadius: 35,
-              height: 65,
+              height: 70,
               alignItems: 'center'
             }}
           >
@@ -141,7 +136,7 @@ export default function Bxsaldo({ dados }) {
               </Text>
             </TouchableOpacity>
           </Animated.View>
-        )}
+        
       </View>
 
 

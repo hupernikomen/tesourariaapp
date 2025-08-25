@@ -231,7 +231,7 @@ export default function Item({ item, vencido }) {
               >
                 <Texto
                   texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`}
-                  size={11}
+                  size={12}
                   estilo={{
                     fontFamily: 'Roboto-Regular',
                     marginLeft: -4,
@@ -256,7 +256,8 @@ export default function Item({ item, vencido }) {
               />
             </View>
 
-            <View style={{ flexDirection: 'row', gap: 3, alignItems: 'flex-end', marginTop: 7 }}>
+            <View style={{ flexDirection: 'row', gap: 3, alignItems: 'flex-start', marginTop: 14 }}>
+              <Icone nome={'chevron-forward'} size={10}/>
               <Texto
                 linhas={2}
                 texto={item.parcelaQuit ? item.parcelaQuit + ' - ' + item.detalhamento : item.detalhamento}
@@ -265,12 +266,10 @@ export default function Item({ item, vencido }) {
               />
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              {item.ministerio ? (
-                <Texto texto={item.ministerio?.label?.replace('Min. ', '')} size={12} wheight={300} estilo={{ color: '#555' }} />
-              ) : null}
+            {item.ministerio || !!item.imageUrl ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginLeft:10 }}>
+                <Texto texto={item.ministerio?.label?.replace('Min. ', '')} size={13} wheight={300} estilo={{ color: '#777' }} />
               {!!item.imageUrl ? <Icone size={16} nome="attach" /> : ''}
-            </View>
+            </View>:null}
           </TouchableOpacity>
         </Animated.View>
 

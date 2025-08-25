@@ -193,7 +193,7 @@ export default function Relatorio() {
               border-bottom: 0.5px solid #e0e0e0;
             }
             .detail-row.sub-row {
-              margin-left: 3mm;
+              margin-left: 10mm;
               padding: 1mm 1mm;
               margin-bottom: 0.2mm;
               font-size: 9pt;
@@ -303,21 +303,21 @@ export default function Relatorio() {
                   `).join('')}
                 ` : ''}
                 ${receitas.length > 0 && despesas.length > 0 ? '<div class="divider"></div>' : ''}
-                ${despesas.length > 0 ? `
-                  <h3 class="section-title">Despesas</h3>
-                  ${despesas.map(item => `
-                    <div class="tipo-row">
-                      <span class="detail-label">${item.tipo.toUpperCase()}</span>
-                      <span class="detail-value negative">- ${formatoMoeda.format(item.total)}</span>
+               ${despesas.length > 0 ? `
+              <h3 class="section-title">Despesas</h3>
+                ${despesas.map(item => `
+                  <div class="tipo-row">
+                    <span class="detail-label">${item.tipo.toUpperCase()}</span>
+                    <span class="detail-value negative">- ${formatoMoeda.format(item.total)}</span>
+                  </div>
+                  ${item.items.length > 1 ? item.items.map(min => `
+                    <div class="detail-row sub-row">
+                      <span class="detail-label">${min.ministerio.replace('Min. ', '').toUpperCase()}</span>
+                      <span class="detail-value">- ${formatoMoeda.format(min.total)}</span>
                     </div>
-                    ${item.items.map(min => `
-                      <div class="detail-row sub-row">
-                        <span class="detail-label">${min.ministerio.replace('Min. ', '').toUpperCase()}</span>
-                        <span class="detail-value negative">- ${formatoMoeda.format(min.total)}</span>
-                      </div>
-                    `).join('')}
-                  `).join('')}
-                ` : ''}
+                  `).join('') : ''}
+                `).join('')}
+              ` : ''}
               </div>
             </div>
             <div class="detail-column">

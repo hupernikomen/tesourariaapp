@@ -231,6 +231,8 @@ export default function AddRegistros() {
     setDataDoc(currentDate);
   };
 
+
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -261,13 +263,12 @@ export default function AddRegistros() {
         setSelectedValue={setSelectedCategory}
       />
 
-      {selectedCategory?.campoMin && (
         <CustomPickerModal
         titulo={'Ministério'}
         itens={ministerios}
         selectedValue={selecionaMinisterio}
         setSelectedValue={setSelecionaMinisterio}
-      />)}
+      />
 
 
 
