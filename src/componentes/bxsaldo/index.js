@@ -36,7 +36,7 @@ export default function Bxsaldo({ dados }) {
     piscar.start(); // Inicia a animação
 
     return () => piscar.stop(); // Para a animação quando o componente é desmontado
-  }, [fadeAnim, loadSaldo]);
+  }, [fadeAnim]);
 
   useEffect(() => {
     if (!loadSaldo) {
@@ -89,7 +89,6 @@ export default function Bxsaldo({ dados }) {
 
           <Animated.View
             style={{
-
               flex: 1,
               flexDirection: 'row',
               justifyContent: 'space-between',
@@ -113,7 +112,7 @@ export default function Bxsaldo({ dados }) {
                 {obterNomeMes(new Date().getMonth()).toUpperCase()}
               </Text>
               <Text style={{ color: colors.contra_theme, fontSize: 15, fontFamily: 'Roboto-Medium' }}>
-                {formatoMoeda.format(dados.saldoAtual)}
+                {formatoMoeda.format(dados.saldo)}
               </Text>
             </View>
 
@@ -132,7 +131,7 @@ export default function Bxsaldo({ dados }) {
               />: null}
               <Text style={{ fontSize: 10, color: colors.contra_theme, fontFamily: 'Roboto-Light' }}>FUTURO</Text>
               <Text style={{ color: colors.contra_theme, fontSize: 15, fontFamily: 'Roboto-Medium' }}>
-                {formatoMoeda.format(-dados.futurosTotal + dados.saldoAtual)}
+                {formatoMoeda.format(-dados.futurosTotal + dados.saldo)}
               </Text>
             </TouchableOpacity>
           </Animated.View>

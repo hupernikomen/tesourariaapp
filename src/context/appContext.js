@@ -1,59 +1,99 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, use, useEffect, useState } from "react";
 import { db } from '../firebaseConnection';
-import { updateDoc, doc, collection, getDocs, query, limit, orderBy, getDoc } from "firebase/firestore";
-
+import { updateDoc, doc, collection, getDocs, query, limit, orderBy, getDoc, addDoc, where, deleteDoc, setDoc, } from "firebase/firestore";
+import { getStorage, ref, deleteObject } from 'firebase/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export const AppContext = createContext({})
+
 
 export function AppProvider({ children }) {
   const [resumoFinanceiro, setResumoFinanceiro] = useState([]);
-  const [saldoAtual, setSaldoAtual] = useState(0);
+  const [saldo, setSaldo] = useState(0);
   const [dadosFinancas, setDadosFinanceiros] = useState([]);
   const [futurosTotal, setFuturosTotal] = useState(0);
   const [dadosParcelas, setDadosParcelas] = useState([]);
   const [loadSaldo, setLoadSaldo] = useState(true);
   const [swipedItemId, setSwipedItemId] = useState(null);
+  const [usuarioDoAS, setUsuarioDoAS] = useState('')
+
 
   useEffect(() => {
-    BuscarRegistrosFinanceiros();
+    BuscarUsuarioAsyncStorage()
+    HistoricoMovimentos();
+
   }, []);
 
-  async function BuscarFuturos() {
-    const parcelasCollection = collection(db, 'futuro');
-    const parcelasQuery = query(parcelasCollection, orderBy('reg', 'desc'));
+
+  async function BuscarUsuarioAsyncStorage() {
     try {
-      const querySnapshot = await getDocs(parcelasQuery);
-      const allDocuments = querySnapshot.docs.map((doc) => {
+      const usuarioAsyncStorage = await AsyncStorage.getItem('usuarioAsyncStorage');
+
+      if (usuarioAsyncStorage === null) {
+        setUsuarioDoAS(null); // ou outro valor padrão, como {}
+        return null; // ou outro valor que indique que não há usuário
+      }
+
+      const parseUsuario = JSON.parse(usuarioAsyncStorage);
+      setUsuarioDoAS(parseUsuario);
+      return parseUsuario; // opcional, dependendo do caso de uso
+    } catch (error) {
+      console.error('Erro ao buscar usuário do AsyncStorage:', error);
+      setUsuario(null); // ou outro valor padrão
+      return null; // opcional, para indicar falha
+    }
+
+  }
+
+
+
+
+  async function BuscarRegistrosFuturos() {
+
+    try {
+      const registros = collection(db, 'futuro');
+      const registrosEncontrados = query(
+        registros,
+        where('idUsuario', '==', usuarioDoAS.usuarioId),
+        orderBy('reg', 'desc')
+      );
+      const snapshot = await getDocs(registrosEncontrados);
+
+      const registrosFuturos = snapshot.docs.map((doc) => {
         const data = doc.data();
-        // Calcula o total do registro somando os valores das parcelas
-        const totalRegistro = data.parcelas
+        const totalRegistro = Array.isArray(data.parcelas)
           ? data.parcelas.reduce((sum, parcela) => sum + (parcela.valor || 0), 0)
           : 0;
         return {
           id: doc.id,
           ...data,
-          totalRegistro, // Adiciona o total do registro ao objeto
+          totalRegistro,
         };
       });
 
-      // Calcula o total geral somando os totais de cada registro
-      const futurosTotal = allDocuments.reduce((total, doc) => {
+      const futurosTotal = registrosFuturos.reduce((total, doc) => {
         return total + (doc.totalRegistro || 0);
       }, 0);
 
-      // Armazena os dados e o total no estado
-      setDadosParcelas(allDocuments);
+      setDadosParcelas(registrosFuturos);
       setFuturosTotal(futurosTotal);
     } catch (e) {
       console.log('Erro ao buscar documentos: ', e);
     }
   }
 
-  async function BuscarRegistrosFinanceiros() {
-    const registrosCollection = collection(db, "registros");
-    const registrosQuery = query(registrosCollection, orderBy("reg", "desc"), limit(500));
+  async function HistoricoMovimentos() {
 
     setLoadSaldo(true);
     try {
+
+      const registrosCollection = collection(db, "registros");
+      const registrosQuery = query(
+        registrosCollection,
+        where("idUsuario", "==", usuarioDoAS.usuarioId), // Filtra por idUsuario
+        orderBy("reg", "desc"),
+        limit(500)
+      );
+
       const querySnapshot = await getDocs(registrosQuery);
       const registros = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -61,11 +101,11 @@ export function AppProvider({ children }) {
       }));
 
       setDadosFinanceiros(registros);
-      await BuscarSaldo();
-      await BuscarFuturos();
     } catch (e) {
-      console.log("Erro ao buscar documentos: ", e);
+      console.log("Erro ao buscar documentos ou AsyncStorage: ", e);
     } finally {
+      await BuscarSaldo();
+      await BuscarRegistrosFuturos();
       setLoadSaldo(false);
     }
   }
@@ -79,59 +119,49 @@ export function AppProvider({ children }) {
   };
 
   async function BuscarSaldo() {
-    const saldo = doc(db, "saldoAtual", "1");
-    try {
-      getDoc(saldo).then((resposta) => {
-        setSaldoAtual(resposta.data()?.saldo);
-      });
 
-      await ResumoFinanceiro();
+    try {
+      const saldoDocRef = doc(db, "saldo", usuarioDoAS.usuarioId);
+      const saldoDoc = await getDoc(saldoDocRef);
+
+
+      if (saldoDoc.exists()) {
+        const atual = saldoDoc.data().atual;
+        setSaldo(atual);
+        await ResumoFinanceiro();
+        return atual; // Retorna o valor do campo 'atual'
+      } else {
+        setSaldo(null); // Define como null se o documento não existir
+        await ResumoFinanceiro();
+        return null;
+      }
     } catch (error) {
-      console.log("Erro ao buscar Saldo em Home", error);
+      console.log("Erro ao buscar Saldo em Home:", error);
+      setSaldo(0); // Define como null em caso de erro
+      return null;
     }
   }
 
   async function ResumoFinanceiro() {
-    // Define o saldo inicial fixo de 5.000
-    const SALDO_INICIAL = 5000;
-
-    // Referência à coleção "registros" no Firestore
     const ref = collection(db, "registros");
 
-    // Cria uma consulta para obter os registros, ordenados pela data (dataDoc) em ordem decrescente
-    const refs = query(ref, orderBy("dataDoc", "desc"));
+    const refs = query(ref, where("idUsuario", "==", usuarioDoAS.usuarioId), orderBy("dataDoc", "desc"));
 
-    // Objeto para armazenar os resultados agrupados por ano e mês
     const resultadosMap = {};
 
-    // Executa a consulta e obtém os documentos
     const querySnapshot = await getDocs(refs);
 
-    // Verifica se a consulta retornou documentos
-    if (querySnapshot.empty) {
-      console.log("Nenhum registro encontrado. Retornando valores zerados com saldo inicial.");
-      await AtualizaSaldoAtual(SALDO_INICIAL); // Atualiza o saldo atual com o saldo inicial
-      setResumoFinanceiro([{
-        tipos: {}, // Retorna objeto vazio para tipos
-        movements: [] // Array vazio para movimentos
-      }]);
-      return; // Sai da função se não houver registros
-    }
-
-    // Itera sobre cada documento retornado
     querySnapshot.forEach((doc) => {
-      const data = doc.data(); // Obtém os dados do documento
+      const data = doc.data();
 
-      const dataTimestamp = data.dataDoc; // Obtém a data do registro
-      const valor = data.valor || 0; // Obtém o valor do registro, default 0
-      const movimentacao = data.movimentacao; // Obtém o tipo de movimentação ('receita' ou 'despesa')
+      const dataTimestamp = data.dataDoc;
+      const valor = data.valor || 0;
+      const movimentacao = data.movimentacao;
       const detalhamento = data.detalhamento || '';
       const dataDoc = data.dataDoc;
-      const tipo = data.tipo || 'Sem Tipo'; // Obtém o tipo da movimentação
-      const ministerio = data.ministerio?.label ? data.ministerio?.label?.trim() : 'Sem Ministério'; // Obtém o ministério associado ao registro, normalizado
+      const tipo = data.tipo || 'Sem Tipo';
+      const ministerio = data.ministerio?.label ? data.ministerio?.label?.trim() : 'Sem Ministério';
 
-
-      // Converte o timestamp para Date
       let date;
       try {
         date = dataTimestamp?.toDate ? dataTimestamp.toDate() : new Date(dataTimestamp);
@@ -200,13 +230,12 @@ export function AppProvider({ children }) {
 
     // Converte o objeto de resultados em um array para facilitar o uso
     const resumo = [];
-    let saldoAnterior = SALDO_INICIAL; // Inicializa saldoAnterior com o saldo inicial de 5.000
 
     // Itera sobre os anos e meses para calcular o saldo
     for (const ano in resultadosMap) {
       for (const mes in resultadosMap[ano]) {
         const mesData = resultadosMap[ano][mes]; // Obtém os dados do mês
-        const saldo = mesData.receita - mesData.despesa + saldoAnterior; // Calcula o saldo com saldoAnterior
+        const saldo = mesData.receita - mesData.despesa; // Calcula o saldo com saldoAnterior
 
         // Adiciona ao array de resultados se houver receitas ou saídas
         if (mesData.receita > 0 || mesData.despesa > 0) {
@@ -222,30 +251,131 @@ export function AppProvider({ children }) {
           });
         }
 
-        saldoAnterior = saldo; // Atualiza o saldo anterior para o próximo mês
       }
     }
 
     // Atualiza o saldo final
     const saldoFinal = resumo.length > 0
-      ? resumo[resumo.length - 1].saldo // Obtém o saldo do último mês
-      : SALDO_INICIAL; // Usa o saldo inicial se não houver registros
+      && resumo[resumo.length - 1].saldo; // Usa o saldo inicial se não houver registros
     await AtualizaSaldoAtual(saldoFinal); // Atualiza o saldo atual no sistema
 
     setResumoFinanceiro(resumo); // Atualiza o estado com os resultados calculados
   }
 
+
+
+
   async function AtualizaSaldoAtual(res) {
-    const docRef = doc(db, "saldoAtual", "1");
+    const saldoDoc = doc(db, "saldo", usuarioDoAS.usuarioId);
 
     try {
-      await updateDoc(docRef, {
-        saldo: res
+      await setDoc(saldoDoc, {
+        atual: res,
       });
     } catch (e) {
-      console.error("Erro ao atualizar documento1: ", e);
+      console.error("Erro ao criar/atualizar documento na coleção 'saldo': ", e);
     }
   }
+
+  async function ExcluiRegistro(item) {
+    const docRegistrosFinanceiros = doc(db, item.recorrencia ? 'futuro' : 'registros', item.id);
+    const imageUrl = item.imageUrl;
+    const storage = getStorage();
+
+
+    try {
+      if (imageUrl) {
+        try {
+          const imageRef = ref(storage, imageUrl);
+          await deleteObject(imageRef);
+          console.log('Imagem excluída com sucesso');
+        } catch (imageError) {
+          if (imageError.code === 'storage/object-not-found') {
+            console.log('Imagem já não existe no Storage, continuando...');
+          } else {
+            throw imageError;
+          }
+        }
+      }
+
+      await deleteDoc(docRegistrosFinanceiros);
+
+    } catch (e) {
+      alert('Ocorreu um erro durante a exclusão');
+
+    } finally {
+      await ResumoFinanceiro();
+      await HistoricoMovimentos();
+      setIsSwiped(false);
+      setSwipedItemId(null); // Reseta o item deslocado globalmente
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }
+
+  async function RegistrarPagamentoParcela(dataDoc, item) {
+
+    if (item.pago) {
+      return;
+    }
+
+    try {
+      const docRef = doc(db, 'futuro', item.id);
+      const docSnapshot = await getDoc(docRef);
+      const docData = docSnapshot.data();
+      const parcelas = docData.parcelas || [];
+
+      if (!docSnapshot.exists()) {
+        throw new Error('Documento não encontrado');
+      }
+
+      await addDoc(collection(db, 'registros'), {
+        idUsuario: usuarioDoAS.usuarioId,
+        reg: item.dataDoc,
+        dataDoc: new Date(dataDoc).getTime(),
+        tipo: item.tipo,
+        valor: item.valor,
+        movimentacao: item.movimentacao,
+        ministerio: item.ministerio || '',
+        imageUrl: item.imageUrl || '',
+        detalhamento: item.detalhamento,
+        pago: true,
+        parcelaQuit: String(item.parcela + '/' + item.recorrencia)
+      });
+
+      const novasParcelas = parcelas.filter((p) => p.parcela !== item.parcela);
+
+      if (novasParcelas.length > 0) {
+        await updateDoc(docRef, {
+          parcelas: novasParcelas,
+        });
+      } else {
+        await deleteDoc(docRef);
+      }
+
+    } catch (e) {
+      console.error('Erro ao registrar pagamento da parcela:', e);
+      throw e;
+    } finally {
+      
+      await BuscarRegistrosFuturos()
+      await ResumoFinanceiro();
+      await HistoricoMovimentos();
+      setIsSwiped(false);
+      setSwipedItemId(null);
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+
+    }
+  }
+
+
 
   const formatoMoeda = new Intl.NumberFormat('pt-BR', {
     style: 'decimal', // Muda o estilo para decimal
@@ -255,19 +385,25 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
-      BuscarRegistrosFinanceiros,
+      HistoricoMovimentos,
       dadosFinancas,
       formatoMoeda,
       AtualizaSaldoAtual,
       ResumoFinanceiro,
       resumoFinanceiro,
       BuscarSaldo,
-      saldoAtual,
+      saldo,
       obterNomeMes,
       futurosTotal,
       dadosParcelas,
       loadSaldo,
-      swipedItemId, setSwipedItemId
+      swipedItemId, setSwipedItemId,
+      setUsuarioDoAS,
+      usuarioDoAS,
+      ExcluiRegistro,
+      RegistrarPagamentoParcela,
+      BuscarRegistrosFuturos,
+      BuscarSaldo
     }}>
       {children}
     </AppContext.Provider>

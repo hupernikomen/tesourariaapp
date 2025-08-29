@@ -3,7 +3,12 @@ import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet } from 'rea
 import Input from '../Input';
 import Botao from '../Botao';
 
-const CustomPickerModal = ({ itens, selectedValue, setSelectedValue, titulo }) => {
+const CustomPickerModal = ({ mostrar=true, itens, selectedValue, setSelectedValue, titulo }) => {
+
+  if (!mostrar) {
+    return
+  }
+
   const [modalVisible, setModalVisible] = useState(false);
 
 // Ordenar categorias: receitas primeiro, depois despesas, e alfabeticamente por label, ignorando "Min. "

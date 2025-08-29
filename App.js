@@ -3,14 +3,15 @@ import * as Font from 'expo-font';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useEffect, useState } from 'react';
-
+import { useContext, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Home from './src/pages/home';
 import Registro from './src/pages/registro';
 import Futuro from './src/pages/futuro';
 import Relatorio from './src/pages/relatorio';
-import { AppProvider } from './src/context/appContext';
+import { AppContext, AppProvider } from './src/context/appContext';
 import Icone from './src/componentes/Icone';
+import LoginScreen from './src/pages/login';
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -26,38 +27,32 @@ const Theme = {
     despesa: '#db5e5eff',
     alerta: '#E39B0E',
   },
+  font:{
+    padrao: 'Roboto-Regular',
+    fina: 'Roboto-Light',
+    bold: 'Roboto-Medium'
+  }
 };
 
 function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarScrollEnabled: false,
+        tabBarItemStyle: { width: 110,height:70 },
+        tabBarScrollEnabled: true,
+        tabBarIndicatorStyle: { backgroundColor: Theme.colors.background, height: 6 },
         tabBarActiveTintColor: Theme.colors.contra_theme,
         tabBarInactiveTintColor: '#ddd',
-        tabBarStyle: { backgroundColor: Theme.colors.theme },
+        tabBarStyle: { backgroundColor: Theme.colors.theme},
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontFamily:Theme.font.bold
         },
       }}
     >
-      <Tab.Screen name="Home" component={Home} options={{
-        
-              title:'FEED'
-      }} />
-      <Tab.Screen name="Futuro" component={Futuro} options={{
-        title:'FUTURO'
-      }} />
-      <Tab.Screen name="Registro" component={Registro} options={{
-        title:'REGISTRAR'
-      }} />
-      {/* <Tab.Screen
-        name="Relatorio"
-        component={Relatorio}
-        options={{
-          title:'RELATÓRIO'
-        }}
-      /> */}
+      <Tab.Screen name="Home" component={Home} options={{ title: 'FEED' }} />
+      <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO' }} />
+      <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
+      <Tab.Screen name="Relatorio" component={Relatorio} options={{ title: 'RELATÓRIO' }} />
     </Tab.Navigator>
   );
 }
@@ -84,6 +79,8 @@ export default function App() {
     loadFonts();
   }, []);
 
+
+
   if (!fontsLoaded) {
     return null; // Ou um componente de loading
   }
@@ -93,51 +90,34 @@ export default function App() {
       <StatusBar backgroundColor={Theme.colors.theme} barStyle={'dark-content'} />
       <AppProvider>
         <Stack.Navigator
-          initialRouteName="Main"
+          initialRouteName="LoginScreen"
           screenOptions={({ navigation, route }) => ({
             headerStyle: {
               backgroundColor: Theme.colors.theme,
             },
             headerTitleStyle: {
-              fontFamily: 'Roboto-Bold',
-              fontSize: 18
+              fontFamily: 'Roboto-Medium',
+              fontSize: 18,
             },
             headerTintColor: Theme.colors.contra_theme,
-
           })}
         >
           <Stack.Screen
             name="Main"
             component={TabNavigator}
-            options={({ navigation }) => ({
-              title: 'Tesouraria PSH', headerShadowVisible: false,
-              headerLeft: () => {
-                return (
-                  <View style={{ paddingHorizontal: 7 }}>
-                    <Icone nome={'leaf'} color={Theme.colors.receita} />
-                  </View>
-                )
-              },
-              headerRight: () => {
-                return (
-                  <TouchableOpacity onPress={() => navigation.navigate('Relatorio')} style={{ paddingHorizontal: 7 }}>
-                    <Icone nome={'clipboard-outline'} size={22} />
-                  </TouchableOpacity>
-                )
-              }
-            })}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="Registro"
             component={Registro}
             options={{ title: 'Criar Registro', headerShadowVisible: false }}
           />
-          <Stack.Screen
-            name="Relatorio"
-            component={Relatorio}
-            options={{ title: 'Relatório Financeiro', headerShadowVisible: false }}
-          />
 
+          <Stack.Screen
+            name="LoginScreen"
+            component={LoginScreen}
+            options={{ title: '', headerShown: false }}
+          />
         </Stack.Navigator>
       </AppProvider>
     </NavigationContainer>

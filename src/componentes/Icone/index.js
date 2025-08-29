@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 
-export default function Icone({ nome, size = 24, color = 'black', ...props }) {
+export default function Icone({ estilo,nome, size = 24, color = 'black', ...props }) {
   // Lista de ícones disponíveis (opcional, para verificação manual, se necessário)
   const ioniconsIcons = Ionicons.getRawGlyphMap(); // Obtém o mapa de ícones do Ionicons
   const antDesignIcons = AntDesign.getRawGlyphMap(); // Obtém o mapa de ícones do AntDesign
@@ -11,7 +11,7 @@ export default function Icone({ nome, size = 24, color = 'black', ...props }) {
   const isAntDesignIcon = nome && antDesignIcons[nome];
 
   return (
-    <View style={{ marginLeft: -3, alignSelf: 'center' }}>
+    <View style={[{ marginLeft: -3, alignSelf: 'center' }, estilo]}>
       {isIoniconsIcon ? (
         <Ionicons name={nome} size={size} color={color} {...props} />
       ) : isAntDesignIcon ? (

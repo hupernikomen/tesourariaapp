@@ -6,8 +6,8 @@ export default function Load() {
   const {colors} = useTheme()
 
  return (
-   <View>
-    <ActivityIndicator size={60} color={colors.receita}/>
+   <View style={{flex:1, alignItems:'center', justifyContent:'center'}}>
+    <ActivityIndicator size={80} color={colors.receita}/>
    </View>
   );
 }

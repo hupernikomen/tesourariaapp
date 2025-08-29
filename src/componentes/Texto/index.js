@@ -1,14 +1,15 @@
-import { View, Text } from 'react-native';
+import { useTheme } from '@react-navigation/native';
+import { Text } from 'react-native';
 
 export default function Texto({ texto, wheight, size, linhas = 0, estilo }) {
-  return (
-<View>
+  const { font, colors } = useTheme();
 
-      <Text numberOfLines={linhas} style={[{
-        fontWeight: wheight,
-        fontSize: size,
-        
-      }, estilo]}>{texto}</Text>
-      </View>
+  return (
+    <Text
+      numberOfLines={linhas}
+      style={[{ color: colors.contra_theme, fontSize: size, fontFamily: font[wheight] || 'Roboto-Regular' }, estilo]}
+    >
+      {texto}
+    </Text>
   );
 }
