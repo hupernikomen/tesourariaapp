@@ -91,13 +91,13 @@ export default function App() {
           initialRouteName="LoginScreen"
           screenOptions={({ navigation, route }) => ({
             headerStyle: {
-              backgroundColor: Theme.colors.theme,
+              backgroundColor: Theme.colors.receita,
             },
             headerTitleStyle: {
               fontFamily: 'Roboto-Medium',
               fontSize: 18,
             },
-            headerTintColor: Theme.colors.contra_theme,
+            headerTintColor: Theme.colors.botao,
           })}
         >
           <Stack.Screen
@@ -113,7 +113,7 @@ export default function App() {
           <Stack.Screen
             name="Pagamento"
             component={Pagamento}
-            options={{ title: 'Criar Registro', headerShadowVisible: false }}
+            options={{ title: 'Pagamento', headerShadowVisible: false }}
           />
 
           <Stack.Screen

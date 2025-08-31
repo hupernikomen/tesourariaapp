@@ -39,7 +39,7 @@ export default function Relatorio() {
   const generatePDF = async (mesData) => {
 
 
-    
+
     try {
       // Agrupa receitas por tipo, somando totais
       const receitasAgrupadas = Object.keys(mesData.tipos).reduce((acc, key) => {
@@ -346,12 +346,12 @@ export default function Relatorio() {
               <div class="detail-column">
                 <h3 class="section-title">Movimentações</h3>
                 ${detalhamento.length > 0 ? detalhamento.map(det => {
-                  // Verifica se dataDoc é um número válido
-                  const date = Number.isFinite(det.dataDoc) ? new Date(det.dataDoc) : null;
-                  const formattedDate = date && !isNaN(date.getTime()) 
-                    ? date.getDate().toString().padStart(2, '0') 
-                    : 'Data Inválida';
-                  return `
+        // Verifica se dataDoc é um número válido
+        const date = Number.isFinite(det.dataDoc) ? new Date(det.dataDoc) : null;
+        const formattedDate = date && !isNaN(date.getTime())
+          ? date.getDate().toString().padStart(2, '0')
+          : 'Data Inválida';
+        return `
                   <div class="detail-row">
                     <span class="detail-label">${formattedDate} - ${det.tipo === 'Dízimos' ? '********' : det.detalhamento}</span>
                     <span class="detail-value ${det.movimentacao === 'receita' ? 'positive' : 'negative'}">
@@ -359,7 +359,7 @@ export default function Relatorio() {
                     </span>
                   </div>
                 `;
-                }).join('') : '<p>Nenhum registro detalhado disponível.</p>'}
+      }).join('') : '<p>Nenhum registro detalhado disponível.</p>'}
               </div>
             </div>
           </div>
@@ -373,7 +373,7 @@ export default function Relatorio() {
     } catch (error) {
       console.log('Erro ao gerar ou compartilhar o PDF:', error);
     }
-};
+  };
 
   const MesScreen = ({ mesData }) => {
     const [isReceitasExpanded, setIsReceitasExpanded] = useState(false);
@@ -529,8 +529,9 @@ export default function Relatorio() {
           </View>
           {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
           <Botao texto={'Gerar e Compartilhar PDF'} icone={'share-social-outline'} acao={() => {
-            
-            generatePDF(mesData)}} corBotao={colors.receita} />
+
+            generatePDF(mesData)
+          }} corBotao={colors.receita} />
         </ScrollView>
       </View>
     );
@@ -552,7 +553,7 @@ export default function Relatorio() {
         tabBarItemStyle: { width: width },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#ddd',
-        tabBarLabelStyle: { fontFamily:'Raleway-Bold', color:colors.contra_theme, fontSize:20 },
+        tabBarLabelStyle: { fontFamily: 'Raleway-Bold', color: colors.contra_theme, fontSize: 20 },
         tabBarStyle: {
           height: 70,
           justifyContent: 'center',
@@ -668,15 +669,15 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   emptyContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding:14,
+    marginVertical:14
   },
   emptyText: {
-    fontSize: 16,
-    fontWeight: '300',
     color: '#000',
-    paddingHorizontal: 42,
+    fontFamily:'Roboto-Light',
     textAlign: 'center',
+
   },
 });

@@ -15,7 +15,7 @@ export function AppProvider({ children }) {
   const [loadSaldo, setLoadSaldo] = useState(true);
   const [swipedItemId, setSwipedItemId] = useState(null);
   const [usuarioDoAS, setUsuarioDoAS] = useState('')
-
+  const [notificacao, setNotificacao] = useState('')
 
   useEffect(() => {
     BuscarUsuarioAsyncStorage()
@@ -357,6 +357,7 @@ export function AppProvider({ children }) {
       }
 
       await deleteDoc(docRegistrosFinanceiros);
+      setNotificacao('REGISTRO EXCLUIDO')
 
     } catch (e) {
       alert('Ocorreu um erro durante a exclusão');
@@ -414,6 +415,8 @@ export function AppProvider({ children }) {
         await deleteDoc(docRef);
       }
 
+      setNotificacao('PAGAMENTO REGISTRADO')
+
     } catch (e) {
       console.error('Erro ao registrar pagamento da parcela:', e);
       throw e;
@@ -462,7 +465,8 @@ export function AppProvider({ children }) {
       RegistrarPagamentoParcela,
       BuscarRegistrosFuturos,
       BuscarSaldo,
-      calcularMediaGastos
+      calcularMediaGastos,
+      notificacao, setNotificacao
     }}>
       {children}
     </AppContext.Provider>

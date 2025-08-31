@@ -1,19 +1,17 @@
 import { useState, useContext, useEffect } from 'react';
-import { View, TouchableOpacity, Modal, StyleSheet, Image, Animated } from 'react-native';
+import { View, TouchableOpacity, Modal, StyleSheet, Image, Animated, Text } from 'react-native';
 import Texto from '../Texto';
 import { AppContext } from '../../context/appContext';
 import { useNavigation, useTheme } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import Icone from '../Icone';
 
 export default function Item({ item }) {
-  const { formatoMoeda, swipedItemId, setSwipedItemId, RegistrarPagamentoParcela, ExcluiRegistro } = useContext(AppContext);
+  const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro } = useContext(AppContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [imagemSelecionada, setImagemSelecionada] = useState(null);
   const [isSwiped, setIsSwiped] = useState(false);
   const translateX = useState(new Animated.Value(0))[0];
   const { colors } = useTheme();
-  const [show, setShow] = useState(false);
   const navigation = useNavigation()
 
   useEffect(() => {
@@ -55,22 +53,26 @@ export default function Item({ item }) {
     }).start();
   };
 
-  const handleLongPress = () => {
-    const dataAtual = new Date();
-    const anoAtual = dataAtual.getFullYear();
-    const mesAtual = dataAtual.getMonth();
-    const primeiroDiaMesAtual = new Date(anoAtual, mesAtual, 1).getTime();
-    const ultimoDiaMesAnterior = primeiroDiaMesAtual - 1;
+  const dataAtual = new Date();
+  const anoAtual = dataAtual.getFullYear();
+  const mesAtual = dataAtual.getMonth();
+  const primeiroDiaMesAtual = new Date(anoAtual, mesAtual, 1).getTime();
+  const ultimoDiaMesAnterior = primeiroDiaMesAtual - 1;
 
-    const dataItem = new Date(item.dataDoc);
-    const dataLimite = new Date(ultimoDiaMesAnterior);
-    const dataItemFormatada = new Date(dataItem.getFullYear(), dataItem.getMonth(), dataItem.getDate()).getTime();
-    const dataLimiteFormatada = new Date(dataLimite.getFullYear(), dataLimite.getMonth(), dataLimite.getDate()).getTime();
+  const dataItem = new Date(item.reg);
+  const dataLimite = new Date(ultimoDiaMesAnterior);
+  const dataItemFormatada = new Date(dataItem.getFullYear(), dataItem.getMonth(), dataItem.getDate()).getTime();
+  const dataLimiteFormatada = new Date(dataLimite.getFullYear(), dataLimite.getMonth(), dataLimite.getDate()).getTime();
+
+  const twentyFourHoursInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  const timeDifference = dataAtual.getTime() - dataItem.getTime();
+
+  const handleLongPress = () => {
+
 
     // Check if item is paid and within 24 hours
     if (item.pago) {
-      const twentyFourHoursInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-      const timeDifference = dataAtual.getTime() - dataItem.getTime();
+
       if (timeDifference > twentyFourHoursInMs) {
         return; // Block long press if item is paid and older than 24 hours
       }
@@ -98,32 +100,11 @@ export default function Item({ item }) {
     timeZone: 'America/Sao_Paulo',
   };
 
-  const onChange = (event, selectedDate) => {
-    if (event.type === 'dismissed') {
-      setShow(false);
-      setSwipedItemId(null);
-      return;
-    }
 
-    const currentDate = selectedDate;
-    setShow(false);
-    if (currentDate instanceof Date && !isNaN(currentDate)) {
-      RegistrarPagamentoParcela(currentDate, item);
-    } else {
-      console.log('Data inválida selecionada:', currentDate);
-    }
-  };
 
   return (
     <>
-      {show && (
-        <DateTimePicker
-          value={new Date()}
-          mode="date"
-          display="calendar"
-          onChange={onChange}
-        />
-      )}
+
       <View style={styles.container}>
         <Animated.View style={[styles.animatedContainer, { transform: [{ translateX }] }]}>
           <TouchableOpacity
@@ -132,13 +113,7 @@ export default function Item({ item }) {
             onLongPress={handleLongPress}
             style={[styles.itemContainer, { backgroundColor: colors.botao }]}
           >
-            {!!item.imageUrl && (
-              <View style={[styles.imageIndicator, { backgroundColor: colors.alerta }]}>
-                <View style={styles.imageIconContainer}>
-                  <Icone size={16} nome="attach" color='#fff' />
-                </View>
-              </View>
-            )}
+
             <View style={styles.itemContent}>
               <View
                 style={[
@@ -171,24 +146,26 @@ export default function Item({ item }) {
               estilo={styles.detailText}
             />
 
-            {item.ministerio ? (
-              <View style={styles.ministryContainer}>
-                <Texto texto={item.ministerio?.label?.replace('Min. ', '')} size={13} wheight={'fina'} />
-              </View>
-            ) : null}
+            <View style={{ alignSelf: 'flex-end', marginTop: 7, marginLeft: 3, flexDirection: 'row', gap: 14 }}>
+
+              {timeDifference < twentyFourHoursInMs || !item.pago ? (
+                <Icone size={14} nome="lock-open-outline" color='#000' />
+              ) : (
+                <Icone size={14} nome="lock-closed-outline" color='#000' />
+              )}
+
+              {!!item.imageUrl && (
+                <Icone size={14} nome="paperclip" color='#000' />
+              )}
+            </View>
           </TouchableOpacity>
+
+
         </Animated.View>
 
         {isSwiped && (
           <View style={styles.swipeActions}>
-            {/* {!item.pago ? (
-              <TouchableOpacity
-                style={[styles.actionButton, { backgroundColor: colors.receita }]}
-                onPress={() => setShow(true)}
-              >
-                <Icone nome="checkmark-done" size={24} color="#fff" />
-              </TouchableOpacity>
-            ) : null} */}
+
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.despesa }]}
               onPress={() => ExcluiRegistro(item)}
@@ -242,22 +219,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     marginHorizontal: 14,
   },
-  imageIndicator: {
-    position: 'absolute',
-    width: 50,
-    aspectRatio: 1,
-    zIndex: 99,
-    right: -25,
-    top: -25,
-    transform: [{ rotate: '45deg' }],
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    borderRadius: 14,
-  },
-  imageIconContainer: {
-    transform: [{ rotate: '-45deg' }],
-    padding: 2,
-  },
+
   itemContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -265,8 +227,7 @@ const styles = StyleSheet.create({
   },
   dateTypeContainer: {
     flexDirection: 'row',
-    borderTopLeftRadius: 7,
-    borderBottomLeftRadius: 7,
+    borderRadius: 14,
     alignItems: 'center',
   },
   dateText: {

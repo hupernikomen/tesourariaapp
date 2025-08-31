@@ -9,7 +9,7 @@ import { AppContext } from '../../context/appContext';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const { setUsuarioDoAS } = useContext(AppContext); 
+  const { setUsuarioDoAS, setNotificacao } = useContext(AppContext); 
   const [selectedLetters, setSelectedLetters] = useState([]);
   const [currentLetters, setCurrentLetters] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -105,6 +105,7 @@ const LoginScreen = () => {
 
           await AsyncStorage.setItem('usuarioAsyncStorage', JSON.stringify(usuario));
           setUsuarioDoAS(usuario); 
+            setNotificacao(`Você está logado em: ${usuario?.nome}`)
           navigation.reset({
             index: 0,
             routes: [{ name: 'Main' }],

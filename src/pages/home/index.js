@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useRef } from 'react';
+import { useContext, useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { View, FlatList, RefreshControl, Text, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { AppContext } from '../../context/appContext';
@@ -7,16 +7,17 @@ import Item from '../../componentes/Item';
 import Load from '../../componentes/load';
 
 export default function Home() {
-  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, loadSaldo, HistoricoMovimentos, usuarioDoAS, BuscarRegistrosFuturos, BuscarSaldo } = useContext(AppContext);
+  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, loadSaldo, HistoricoMovimentos, usuarioDoAS, notificacao, setNotificacao, BuscarRegistrosFuturos, BuscarSaldo } = useContext(AppContext);
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
-  const [isUserViewVisible, setIsUserViewVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
+
+
   useEffect(() => {
-    onRefresh();
+
+
     const delayTimeout = setTimeout(() => {
-      setIsUserViewVisible(true);
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 1000,
@@ -29,7 +30,6 @@ export default function Home() {
           duration: 1000,
           useNativeDriver: true,
         }).start(() => {
-          setIsUserViewVisible(false);
         });
       }, 7000);
 
@@ -37,9 +37,10 @@ export default function Home() {
     }, 5000);
 
     return () => clearTimeout(delayTimeout);
-  }, []);
+  }, [notificacao]);
 
   const onRefresh = async () => {
+    setNotificacao('')
     setRefreshing(true);
     await HistoricoMovimentos();
     await BuscarRegistrosFuturos();
@@ -49,10 +50,10 @@ export default function Home() {
 
   const sortedRegistros = dadosFinancas
     ? dadosFinancas.sort((a, b) => {
-        const dateA = new Date(a.dataDoc);
-        const dateB = new Date(b.dataDoc);
-        return dateB - dateA;
-      })
+      const dateA = new Date(a.dataDoc);
+      const dateB = new Date(b.dataDoc);
+      return dateB - dateA;
+    })
     : [];
 
   if (loadSaldo) return <Load />;
@@ -72,16 +73,16 @@ export default function Home() {
           <View style={styles.headerContainer}>
             <Bxsaldo dados={{ futurosTotal, saldo, dadosParcelas }} />
             <View style={styles.notificationContainer}>
-              {isUserViewVisible && (
-                <Animated.View style={[styles.notification, { transform: [{ translateY: slideAnim }] }]}>
-                  <Text style={[styles.notificationText, { backgroundColor: colors.alerta, color: '#fff' }]}>
-                    Você está logado em: {usuarioDoAS?.nome}
-                  </Text>
-                </Animated.View>
-              )}
+               {notificacao && (
+              <Animated.View style={[styles.notification, { transform: [{ translateY: slideAnim }] }]}>
+                <Text style={[styles.notificationText, { backgroundColor: colors.alerta, color: '#fff' }]}>
+                  {notificacao}
+                </Text>
+              </Animated.View>
+             )} 
             </View>
             <View style={[styles.sectionDivider, { borderBottomColor: '#e0e0e0' }]}>
-              <Text style={[styles.sectionTitle, {backgroundColor:colors.background}]}>ÚLTIMOS REGISTROS</Text>
+              <Text style={[styles.sectionTitle, { backgroundColor: colors.background }]}>ÚLTIMOS REGISTROS</Text>
             </View>
           </View>
         }
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
   },
   emptyListText: {
     fontFamily: 'Roboto-Light',
+    marginVertical:14
   },
   footer: {
     height: 21,
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
   },
   notificationContainer: {
     overflow: 'hidden',
-    height: 50,
+    height: 40,
     alignItems: 'center',
   },
   notification: {
@@ -147,6 +149,6 @@ const styles = StyleSheet.create({
     top: -9,
     paddingHorizontal: 14,
     alignSelf: 'center',
-    fontSize: 12,
+    fontSize: 13,
   },
 });

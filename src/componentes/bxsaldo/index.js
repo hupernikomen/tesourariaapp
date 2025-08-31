@@ -23,8 +23,13 @@ export default function Bxsaldo({ dados }) {
           useNativeDriver: true,
         }),
         Animated.timing(fadeAnim, {
-          toValue: 0.4,
+          toValue: 1,
           duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
           useNativeDriver: true,
         }),
       ])
@@ -101,12 +106,7 @@ export default function Bxsaldo({ dados }) {
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('Futuro')} style={styles.balanceContainer}>
-            {isVencido ? (
-              <Animated.View
-                style={[styles.alertDot, { backgroundColor: colors.alerta, opacity: fadeAnim }]}
-              />
-            ) : null}
-            <Text style={[styles.monthText, { color: colors.contra_theme }]}>FUTURO</Text>
+            <Animated.Text style={[styles.monthText, { color: colors.contra_theme, opacity: isVencido ? fadeAnim : 1}]}>FUTURO</Animated.Text>
             <Text style={[styles.balanceText, { color: colors.contra_theme }]}>
               {formatoMoeda.format(-dados.futurosTotal + dados.saldo)}
             </Text>

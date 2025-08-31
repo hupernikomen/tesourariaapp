@@ -13,7 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomPickerModal from '../../componentes/picker';
 
 export default function AddRegistros() {
-  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS } = useContext(AppContext);
+  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, setNotificacao } = useContext(AppContext);
   const navigation = useNavigation();
   const { colors } = useTheme();
 
@@ -143,11 +143,12 @@ export default function AddRegistros() {
           detalhamento,
           pago: true,
         });
+
       } else {
         const parcelas = [];
         const initialTimestamp = data.getTime();
         const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
-
+        
         for (let i = 0; i < parseInt(recorrencia); i++) {
           const nextPaymentDate = new Date(initialTimestamp);
           nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
@@ -158,7 +159,7 @@ export default function AddRegistros() {
             pago: false,
           });
         }
-
+        
         await addDoc(collection(db, 'futuro'), {
           idUsuario: usuarioDoAS.usuarioId,
           reg: Date.now(),
@@ -171,11 +172,12 @@ export default function AddRegistros() {
           valorTotal: parseFloat(valor),
           parcelas,
         });
-
+        
       }
     } catch (e) {
       console.log('Erro ao adicionar documento:', e);
     } finally {
+      setNotificacao(`SOLICITAÇÃO REGISTRADA`)
       setLoad(false);
       setTipoSelecionado(null);
       setData(new Date());

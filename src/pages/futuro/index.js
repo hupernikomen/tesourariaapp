@@ -64,5 +64,6 @@ const styles = StyleSheet.create({
   },
   emptyListText: {
     fontFamily: 'Roboto-Light',
+    marginVertical:14
   },
 });
