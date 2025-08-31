@@ -1,6 +1,5 @@
-import { useContext, useEffect } from 'react';
-import { View, FlatList, Text } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
+import { useContext } from 'react';
+import { View, FlatList, Text, StyleSheet } from 'react-native';
 import { AppContext } from '../../context/appContext';
 import Item from '../../componentes/Item';
 
@@ -11,29 +10,33 @@ export default function Futuro() {
     ? dadosParcelas
       .flatMap((doc) =>
         doc.parcelas.map((parcela) => ({
-          id: doc.id, // ID do documento
-          dataDoc: parcela.dataDoc, // Data da parcela
-          valor: parcela.valor, // Valor da parcela
-          parcela: parcela.parcela, // Número da parcela
-          recorrencia: doc.recorrencia, // Total de parcelas
-          tipo: doc.tipo, // Tipo (ex.: "Compras Parceladas")
-          movimentacao: doc.movimentacao, // Tipo de movimentação (ex.: "despesa")
-          ministerio: doc.ministerio, // Ministério (se aplicável)
-          imageUrl: doc.imageUrl, // URL da imagem (se aplicável)
-          detalhamento: doc.detalhamento, // Detalhamento do documento
+          id: doc.id,
+          dataDoc: parcela.dataDoc,
+          valor: parcela.valor,
+          parcela: parcela.parcela,
+          recorrencia: doc.recorrencia,
+          tipo: doc.tipo,
+          movimentacao: doc.movimentacao,
+          ministerio: doc.ministerio,
+          imageUrl: doc.imageUrl,
+          detalhamento: doc.detalhamento,
         }))
       )
-      .sort((a, b) => new Date(a.dataDoc) - new Date(b.dataDoc)) // Ordena por data (ascendente)
+      .sort((a, b) => new Date(a.dataDoc) - new Date(b.dataDoc))
     : [];
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <FlatList
-        contentContainerStyle={{ paddingVertical: 14 }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={<View style={{ marginVertical: 3.5 }} />}
-        ListFooterComponent={<View style={{ marginVertical: 4 }} />}
-        ListEmptyComponent={<View style={{ alignItems: 'center', justifyContent: "center" }}><Text style={{fontFamily:'Roboto-Light'}}>Nenhum registro até o momento.</Text></View>}
+        ItemSeparatorComponent={<View style={styles.itemSeparator} />}
+        ListFooterComponent={<View style={styles.footer} />}
+        ListEmptyComponent={
+          <View style={styles.emptyListContainer}>
+            <Text style={styles.emptyListText}>Nenhum registro até o momento.</Text>
+          </View>
+        }
         data={sortedParcelas}
         renderItem={({ item }) => <Item item={item} />}
         keyExtractor={(item, index) => `${item.id}-${item.parcela}-${index}`}
@@ -41,3 +44,25 @@ export default function Futuro() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  listContent: {
+    paddingVertical: 14,
+  },
+  itemSeparator: {
+    marginVertical: 3.5,
+  },
+  footer: {
+    marginVertical: 4,
+  },
+  emptyListContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyListText: {
+    fontFamily: 'Roboto-Light',
+  },
+});

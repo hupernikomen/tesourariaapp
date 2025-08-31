@@ -21,6 +21,7 @@ export function AppProvider({ children }) {
     BuscarUsuarioAsyncStorage()
     HistoricoMovimentos();
 
+
   }, []);
 
 
@@ -81,6 +82,63 @@ export function AppProvider({ children }) {
     }
   }
 
+  function calcularMediaGastos(ministerio, transacoes) {
+
+    if (!transacoes || !Array.isArray(transacoes)) {
+      console.warn('transacoes inválido:', transacoes);
+      return { mediaSemanal: 0, mediaMensal: 0 };
+    }
+
+    const despesas = transacoes.filter(
+      (transacao) =>
+        transacao.movimentacao === 'despesa' &&
+        transacao.ministerio?.label?.toLowerCase() === ministerio.toLowerCase()
+    );
+
+    if (despesas.length === 0) {
+      return { mediaSemanal: 0, mediaMensal: 0 };
+    }
+
+    const totalGastos = despesas.reduce((sum, transacao) => sum + transacao.valor, 0);
+
+    const timestamps = transacoes
+      .filter((t) => Number.isFinite(t.dataDoc))
+      .map((t) => t.dataDoc);
+    if (timestamps.length === 0) {
+      return { mediaSemanal: 0, mediaMensal: 0 };
+    }
+
+    const dataMin = Math.min(...timestamps);
+    const dataMax = Math.max(...timestamps);
+
+    const dataMinDate = new Date(dataMin);
+    const diaDaSemanaMin = dataMinDate.getDay();
+    const diasAteDomingo = diaDaSemanaMin;
+    const inicioSemana = new Date(dataMinDate);
+    inicioSemana.setDate(dataMinDate.getDate() - diasAteDomingo);
+
+    const dataMaxDate = new Date(dataMax);
+    const diaDaSemanaMax = dataMaxDate.getDay();
+    const diasAteSabado = 6 - diaDaSemanaMax;
+    const fimSemana = new Date(dataMaxDate);
+    fimSemana.setDate(dataMaxDate.getDate() + diasAteSabado);
+
+    const intervaloDias = (fimSemana - inicioSemana) / (1000 * 60 * 60 * 24);
+
+    const semanas = Math.ceil(intervaloDias / 7);
+    const meses = intervaloDias / 30;
+
+    const mediaSemanal = semanas > 0 ? totalGastos / semanas : totalGastos;
+    const mediaMensal = meses > 0 ? totalGastos / meses : totalGastos;
+
+    const resultado = {
+      mediaSemanal: parseFloat(mediaSemanal.toFixed(2)),
+      mediaMensal: parseFloat(mediaMensal.toFixed(2)),
+    };
+
+    return resultado;
+  }
+
   async function HistoricoMovimentos() {
 
     setLoadSaldo(true);
@@ -101,6 +159,7 @@ export function AppProvider({ children }) {
       }));
 
       setDadosFinanceiros(registros);
+
     } catch (e) {
       console.log("Erro ao buscar documentos ou AsyncStorage: ", e);
     } finally {
@@ -143,125 +202,124 @@ export function AppProvider({ children }) {
   }
 
   async function ResumoFinanceiro() {
-    const ref = collection(db, "registros");
+    try {
+      if (!usuarioDoAS?.usuarioId) {
+        console.warn('ID do usuário não fornecido');
+        setResumoFinanceiro([]);
+        await AtualizaSaldoAtual(0);
+        return [];
+      }
 
-    const refs = query(ref, where("idUsuario", "==", usuarioDoAS.usuarioId), orderBy("dataDoc", "desc"));
+      const ref = collection(db, 'registros');
+      const refs = query(ref, where('idUsuario', '==', usuarioDoAS.usuarioId), orderBy('dataDoc', 'asc'));
+      const resultadosMap = {};
+      const querySnapshot = await getDocs(refs);
 
-    const resultadosMap = {};
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const dataTimestamp = data.dataDoc;
+        const valor = data.valor || 0;
+        const movimentacao = data.movimentacao;
+        const detalhamento = data.detalhamento || '';
+        const dataDoc = data.dataDoc;
+        const tipo = data.tipo || 'Sem Tipo';
+        const ministerio = data.ministerio?.label ? data.ministerio.label.trim() : 'Sem Ministério';
 
-    const querySnapshot = await getDocs(refs);
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-
-      const dataTimestamp = data.dataDoc;
-      const valor = data.valor || 0;
-      const movimentacao = data.movimentacao;
-      const detalhamento = data.detalhamento || '';
-      const dataDoc = data.dataDoc;
-      const tipo = data.tipo || 'Sem Tipo';
-      const ministerio = data.ministerio?.label ? data.ministerio?.label?.trim() : 'Sem Ministério';
-
-      let date;
-      try {
-        date = dataTimestamp?.toDate ? dataTimestamp.toDate() : new Date(dataTimestamp);
-        if (isNaN(date.getTime())) {
-          console.warn(`Data inválida para documento ${doc.id}:`, dataTimestamp);
-          date = new Date(0); // Data padrão para 1970-01-01
+        let date;
+        try {
+          date = dataTimestamp?.toDate ? dataTimestamp.toDate() : new Date(dataTimestamp);
+          if (isNaN(date.getTime())) {
+            console.warn(`Data inválida para documento ${doc.id}:`, dataTimestamp);
+            date = new Date(0);
+          }
+        } catch (error) {
+          console.warn(`Erro ao converter dataDoc para documento ${doc.id}:`, error);
+          date = new Date(0);
         }
-      } catch (error) {
-        console.warn(`Erro ao converter dataDoc para documento ${doc.id}:`, error);
-        date = new Date(0); // Data padrão para 1970-01-01
-      }
 
-      const ano = date.getFullYear(); // Obtém o ano da data
-      const mes = date.getMonth(); // Obtém o mês da data (0-11)
+        const ano = date.getFullYear();
+        const mes = date.getMonth();
 
-      // Agrupa os resultados por ano e mês
-      if (!resultadosMap[ano]) resultadosMap[ano] = {}; // Inicializa o ano se não existir
-      if (!resultadosMap[ano][mes]) {
-        // Inicializa o mês se não existir
-        resultadosMap[ano][mes] = {
-          nomeMes: obterNomeMes(mes), // Obtém o nome do mês
-          receita: 0, // Inicializa a receita
-          despesa: 0, // Inicializa a saída
-          saldo: 0, // Inicializa o saldo
-          tipos: {}, // Inicializa o objeto tipos
-          movements: [] // Array para todos os movimentos individuais
-        };
-      }
+        if (!resultadosMap[ano]) resultadosMap[ano] = {};
+        if (!resultadosMap[ano][mes]) {
+          resultadosMap[ano][mes] = {
+            nomeMes: obterNomeMes(mes),
+            receita: 0,
+            despesa: 0,
+            movimentos: [],
+            tipos: {},
+          };
+        }
 
-      // Atualiza os valores de receita e saída com base no tipo de movimentação
-      if (movimentacao === 'receita') {
-        resultadosMap[ano][mes].receita += valor; // Adiciona ao total de receitas
-      } else if (movimentacao === "despesa") {
-        resultadosMap[ano][mes].despesa += valor; // Adiciona ao total de saídas
-      }
+        if (movimentacao === 'receita') {
+          resultadosMap[ano][mes].receita += valor;
+        } else if (movimentacao === 'despesa') {
+          resultadosMap[ano][mes].despesa += valor;
+        }
 
-      // Adiciona o movimento individual ao array movements
-      resultadosMap[ano][mes].movements.push({
-        detalhamento: detalhamento,
-        valor: valor,
-        movimentacao: movimentacao,
-        tipo: tipo,
-        dataDoc: dataDoc, // Usa o valor convertido
-        ministerio: ministerio
+        resultadosMap[ano][mes].movimentos.push({
+          detalhamento,
+          valor,
+          movimentacao,
+          tipo,
+          dataDoc,
+          ministerio,
+        });
+
+        const chaveUnica = `${tipo}_${ministerio}`;
+        if (!resultadosMap[ano][mes].tipos[chaveUnica]) {
+          resultadosMap[ano][mes].tipos[chaveUnica] = {
+            total: 0,
+            movimentacao,
+            ministerio,
+            detalhamento,
+            valor,
+            dataDoc,
+            tipo,
+            mes,
+          };
+        }
+        resultadosMap[ano][mes].tipos[chaveUnica].total += valor;
       });
 
-      // Cria uma chave única combinando tipo e ministerio para evitar sobrescrita
-      const chaveUnica = `${tipo}_${ministerio}`;
+      const resumo = [];
+      let saldoAcumulado = 0;
 
-      // Agrupa por chave única
-      if (!resultadosMap[ano][mes].tipos[chaveUnica]) {
-        // Inicializa a chave única se não existir
-        resultadosMap[ano][mes].tipos[chaveUnica] = {
-          total: 0, // Inicializa o total para a combinação
-          movimentacao: movimentacao, // Armazena o tipo de movimentação
-          ministerio: ministerio, // Armazena o ministério
-          detalhamento: detalhamento,
-          valor: valor,
-          dataDoc: dataDoc, // Usa o mesmo valor convertido
-          tipo: tipo, // Armazena o tipo original
-          mes: mes // Armazena o mês
-        };
-      }
-      resultadosMap[ano][mes].tipos[chaveUnica].total += valor; // Adiciona o valor ao total da combinação
-    });
+      const anos = Object.keys(resultadosMap).map(Number).sort((a, b) => a - b);
+      for (const ano of anos) {
+        const meses = Object.keys(resultadosMap[ano]).map(Number).sort((a, b) => a - b);
+        for (const mes of meses) {
+          const mesData = resultadosMap[ano][mes];
+          const saldoMes = mesData.receita - mesData.despesa;
+          saldoAcumulado += saldoMes;
 
-    // Converte o objeto de resultados em um array para facilitar o uso
-    const resumo = [];
-
-    // Itera sobre os anos e meses para calcular o saldo
-    for (const ano in resultadosMap) {
-      for (const mes in resultadosMap[ano]) {
-        const mesData = resultadosMap[ano][mes]; // Obtém os dados do mês
-        const saldo = mesData.receita - mesData.despesa; // Calcula o saldo com saldoAnterior
-
-        // Adiciona ao array de resultados se houver receitas ou saídas
-        if (mesData.receita > 0 || mesData.despesa > 0) {
-          resumo.push({
-            ano: parseInt(ano), // Adiciona o ano
-            mes: parseInt(mes), // Adiciona o mês
-            nomeMes: mesData.nomeMes, // Adiciona o nome do mês
-            receita: mesData.receita, // Adiciona o total de receitas
-            despesa: mesData.despesa, // Adiciona o total de saídas
-            saldo: saldo, // Adiciona o saldo calculado
-            tipos: mesData.tipos, // Adiciona o objeto tipos
-            movements: mesData.movements // Inclui todos os movimentos individuais
-          });
+          if (mesData.receita > 0 || mesData.despesa > 0) {
+            resumo.push({
+              ano,
+              mes: mes + 1, // Ajusta para 1-12
+              nomeMes: mesData.nomeMes,
+              receita: mesData.receita,
+              despesa: mesData.despesa,
+              saldo: saldoAcumulado,
+              tipos: mesData.tipos,
+              movimentos: mesData.movimentos,
+            });
+          }
         }
-
       }
+
+      const saldoFinal = resumo.length > 0 ? resumo[resumo.length - 1].saldo : 0;
+      await AtualizaSaldoAtual(saldoFinal);
+      setResumoFinanceiro(resumo);
+
+      return resumo;
+    } catch (error) {
+      console.error('Erro ao calcular resumo financeiro:', error);
+      setResumoFinanceiro([]);
+      await AtualizaSaldoAtual(0);
+      return [];
     }
-
-    // Atualiza o saldo final
-    const saldoFinal = resumo.length > 0
-      && resumo[resumo.length - 1].saldo; // Usa o saldo inicial se não houver registros
-    await AtualizaSaldoAtual(saldoFinal); // Atualiza o saldo atual no sistema
-
-    setResumoFinanceiro(resumo); // Atualiza o estado com os resultados calculados
   }
-
 
 
 
@@ -360,7 +418,7 @@ export function AppProvider({ children }) {
       console.error('Erro ao registrar pagamento da parcela:', e);
       throw e;
     } finally {
-      
+
       await BuscarRegistrosFuturos()
       await ResumoFinanceiro();
       await HistoricoMovimentos();
@@ -403,7 +461,8 @@ export function AppProvider({ children }) {
       ExcluiRegistro,
       RegistrarPagamentoParcela,
       BuscarRegistrosFuturos,
-      BuscarSaldo
+      BuscarSaldo,
+      calcularMediaGastos
     }}>
       {children}
     </AppContext.Provider>

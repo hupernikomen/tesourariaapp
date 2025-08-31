@@ -1,17 +1,16 @@
-import { StatusBar, TouchableOpacity, View, Text } from 'react-native';
+import { StatusBar } from 'react-native';
 import * as Font from 'expo-font';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 import Home from './src/pages/home';
 import Registro from './src/pages/registro';
 import Futuro from './src/pages/futuro';
 import Relatorio from './src/pages/relatorio';
-import { AppContext, AppProvider } from './src/context/appContext';
-import Icone from './src/componentes/Icone';
+import { AppProvider } from './src/context/appContext';
 import LoginScreen from './src/pages/login';
+import Pagamento from './src/pages/pagamento';
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -41,9 +40,9 @@ function TabNavigator() {
         tabBarItemStyle: { width: 110,height:70 },
         tabBarScrollEnabled: true,
         tabBarIndicatorStyle: { backgroundColor: Theme.colors.background, height: 6 },
-        tabBarActiveTintColor: Theme.colors.contra_theme,
-        tabBarInactiveTintColor: '#ddd',
-        tabBarStyle: { backgroundColor: Theme.colors.theme},
+        tabBarActiveTintColor: Theme.colors.theme,
+        tabBarInactiveTintColor: '#8ab6b1ff',
+        tabBarStyle: { backgroundColor: Theme.colors.receita},
         tabBarLabelStyle: {
           fontFamily:Theme.font.bold
         },
@@ -60,7 +59,6 @@ function TabNavigator() {
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  // Carrega a fonte personalizada
   useEffect(() => {
     async function loadFonts() {
       await Font.loadAsync({
@@ -82,12 +80,12 @@ export default function App() {
 
 
   if (!fontsLoaded) {
-    return null; // Ou um componente de loading
+    return null; 
   }
 
   return (
     <NavigationContainer theme={Theme}>
-      <StatusBar backgroundColor={Theme.colors.theme} barStyle={'dark-content'} />
+      <StatusBar backgroundColor={Theme.colors.receita} barStyle={'light-content'} />
       <AppProvider>
         <Stack.Navigator
           initialRouteName="LoginScreen"
@@ -110,6 +108,11 @@ export default function App() {
           <Stack.Screen
             name="Registro"
             component={Registro}
+            options={{ title: 'Criar Registro', headerShadowVisible: false }}
+          />
+          <Stack.Screen
+            name="Pagamento"
+            component={Pagamento}
             options={{ title: 'Criar Registro', headerShadowVisible: false }}
           />
 

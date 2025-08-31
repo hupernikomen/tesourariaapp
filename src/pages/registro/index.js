@@ -112,7 +112,7 @@ export default function AddRegistros() {
     const isValidString = (str) => {
       if (typeof str !== 'string' || str.trim() === '') return false;
       const validPattern = /^[A-Za-zÀ-ÿ0-9\s.,;!?()-]+$/;
-      return validPattern.test(str) && str.trim().length >= 3;
+      return validPattern.test(str) && str.trim().length >= 1;
     };
 
     if (!tipoSelecionado || !valor || !isValidString(detalhamento) || load) {
@@ -235,7 +235,7 @@ export default function AddRegistros() {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const sevenDaysBeforeFirst = new Date(firstDayOfMonth);
-    sevenDaysBeforeFirst.setDate(firstDayOfMonth.getDate() - 3);
+    sevenDaysBeforeFirst.setDate(firstDayOfMonth.getDate() - 1);
     const today = new Date(now);
     return { minimumDate: sevenDaysBeforeFirst, maximumDate: today };
   };

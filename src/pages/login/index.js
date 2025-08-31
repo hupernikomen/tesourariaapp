@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icone from '../../componentes/Icone';
@@ -9,7 +9,7 @@ import { AppContext } from '../../context/appContext';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const { setUsuarioDoAS } = useContext(AppContext); // Access setIdUsuario from AppContext
+  const { setUsuarioDoAS } = useContext(AppContext); 
   const [selectedLetters, setSelectedLetters] = useState([]);
   const [currentLetters, setCurrentLetters] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -17,14 +17,13 @@ const LoginScreen = () => {
   const [targetWords, setTargetWords] = useState([]);
   const [filteredWords, setFilteredWords] = useState([]);
   const [fetchError, setFetchError] = useState(null);
-  const [ids, setIds] = useState({}); // Store chave-to-{usuarioId, nome} mapping
+  const [ids, setIds] = useState({}); 
 
   const [load, setLoad] = useState(true)
 
   const { colors } = useTheme();
   const NUMLETRAS = 5;
 
-  // Fetch all chave words and their corresponding user IDs and names from Firestore
   useEffect(() => {
     setLoad(true)
     const fetchTargetWords = async () => {
@@ -41,7 +40,7 @@ const LoginScreen = () => {
             if (chave && chave.trim() !== '') {
               const lowerChave = chave.toLowerCase();
               chaves.push(lowerChave);
-              ids[lowerChave] = { usuarioId: doc.id, nome }; // Map chave to {usuarioId, nome}
+              ids[lowerChave] = { usuarioId: doc.id, nome }; 
             }
           });
 
@@ -52,7 +51,6 @@ const LoginScreen = () => {
           setFetchError('No user documents with valid chave found.');
         }
       } catch (error) {
-        console.error('Error fetching chaves from Firestore:', error);
         setFetchError('Failed to load passwords from database.');
       } finally {
         setLoad(false)
@@ -62,12 +60,10 @@ const LoginScreen = () => {
     fetchTargetWords();
   }, []);
 
-  // Generate random letters including the first letters of remaining filtered words
   const generateRandomLetters = (requiredLetters) => {
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-    let letters = [...new Set(requiredLetters)]; // Unique required letters
+    let letters = [...new Set(requiredLetters)]; 
 
-    // Generate additional random letters to reach 9
     while (letters.length < 9) {
       const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
       if (!letters.includes(randomLetter)) {
@@ -75,11 +71,9 @@ const LoginScreen = () => {
       }
     }
 
-    // Shuffle the letters
     return letters.sort(() => Math.random() - 0.5);
   };
 
-  // Update current letters based on current step and filtered words
   useEffect(() => {
     if (filteredWords.length > 0 && currentStep < NUMLETRAS) {
       const requiredLetters = filteredWords
@@ -87,37 +81,30 @@ const LoginScreen = () => {
         .map(word => word[currentStep]);
       setCurrentLetters(generateRandomLetters(requiredLetters));
     } else if (currentStep < NUMLETRAS) {
-      // If no filtered words remain, generate 9 random letters
       setCurrentLetters(generateRandomLetters([]));
     }
   }, [currentStep, filteredWords]);
 
-  // Handle letter selection
   const handleLetterPress = async (letter) => {
-    if (targetWords.length === 0) return; // Prevent interaction if no valid words
+    if (targetWords.length === 0) return;
 
     const newSelectedLetters = [...selectedLetters, letter];
     setSelectedLetters(newSelectedLetters);
 
-    // Filter words based on the selected letter (for display purposes)
     const newFilteredWords = filteredWords.filter(
       word => word.length > currentStep && word[currentStep] === letter
     );
 
-    // If no words match the selection, still allow progression
     setFilteredWords(newFilteredWords.length > 0 ? newFilteredWords : filteredWords);
 
     if (newSelectedLetters.length === NUMLETRAS) {
-      // Check if selected word is valid after 5 letters
       const selectedWord = newSelectedLetters.join('');
       if (targetWords.includes(selectedWord)) {
-        // Store usuarioId and nome as a JSON object in AsyncStorage and set usuarioId in AppContext
         try {
           const usuario = ids[selectedWord];
 
           await AsyncStorage.setItem('usuarioAsyncStorage', JSON.stringify(usuario));
-          setUsuarioDoAS(usuario); // Set usuarioId in AppContext
-          // Reset navigation stack to Main
+          setUsuarioDoAS(usuario); 
           navigation.reset({
             index: 0,
             routes: [{ name: 'Main' }],
@@ -130,41 +117,36 @@ const LoginScreen = () => {
         setShowError(true);
       }
     } else {
-      // Move to next step
       setCurrentStep(currentStep + 1);
     }
   };
 
-  // Handle try again
   const handleTryAgain = () => {
     setSelectedLetters([]);
     setCurrentStep(0);
     setShowError(false);
-    setFilteredWords(targetWords); // Reset filtered words
+    setFilteredWords(targetWords);
   };
 
-  // Handle clear password
   const handleClearPassword = () => {
     setSelectedLetters([]);
     setCurrentStep(0);
-    setFilteredWords(targetWords); // Reset filtered words
+    setFilteredWords(targetWords);
   };
 
-  // Render Icone components for selected letters
   const renderIcones = () => {
-    if (targetWords.length === 0) return null; // Don't render if no target words
+    if (targetWords.length === 0) return null; 
 
-    const totalLength = NUMLETRAS; // Fixed to 5 letters
+    const totalLength = NUMLETRAS;
     const selectedCount = selectedLetters.length;
     const icons = [];
 
-    // Add medical-sharp for selected letters
     for (let i = 0; i < selectedCount; i++) {
-      icons.push(<Icone key={`sharp-${i}`} nome="medical-sharp" size={26} color={colors.receita} />);
+      icons.push(<Icone key={`sharp-${i}`} nome="medical-sharp" size={32} color={colors.receita} />);
     }
-    // Add medical-outline for remaining letters
+
     for (let i = selectedCount; i < totalLength; i++) {
-      icons.push(<Icone key={`outline-${i}`} nome="medical-outline" size={26} />);
+      icons.push(<Icone key={`outline-${i}`} nome="medical-outline" size={32} />);
     }
 
     return (
@@ -172,9 +154,9 @@ const LoginScreen = () => {
         {icons}
         <TouchableOpacity style={styles.clearButton} onPress={handleClearPassword}>
           {selectedLetters.length > 0 && !showError ? (
-            <Icone nome="close-circle-outline" size={32} color="#333" />
+            <Icone nome="close-circle-outline" size={35} color="#333" />
           ) : (
-            <Icone nome="close-circle-outline" size={32} color="#eee" />
+            <Icone nome="close-circle-outline" size={35} color="#eee" />
           )}
         </TouchableOpacity>
       </View>
@@ -245,10 +227,10 @@ const styles = StyleSheet.create({
     width: 250,
   },
   letterButton: {
-    width: 70,
-    height: 70,
-    margin: 3.5,
-    borderRadius: 21,
+    width: 80,
+    height: 100,
+    margin: 1,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -256,7 +238,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#333',
     fontWeight: '500',
-    fontFamily:'Raleway-Bold'
+    fontFamily:'Roboto-Bold'
   },
   errorContainer: {
     alignItems: 'center',

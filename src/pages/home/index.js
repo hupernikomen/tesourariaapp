@@ -1,10 +1,9 @@
 import { useContext, useEffect, useState, useRef } from 'react';
-import { View, FlatList, RefreshControl, Text, Animated } from 'react-native';
+import { View, FlatList, RefreshControl, Text, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { AppContext } from '../../context/appContext';
 import Bxsaldo from '../../componentes/bxsaldo';
 import Item from '../../componentes/Item';
-import Icone from '../../componentes/Icone';
 import Load from '../../componentes/load';
 
 export default function Home() {
@@ -12,89 +11,78 @@ export default function Home() {
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [isUserViewVisible, setIsUserViewVisible] = useState(false);
-  const slideAnim = useRef(new Animated.Value(-50)).current; // Inicia fora da tela (acima)
+  const slideAnim = useRef(new Animated.Value(-100)).current;
 
-  // Animação com atraso de 3 segundos
   useEffect(() => {
     onRefresh();
     const delayTimeout = setTimeout(() => {
       setIsUserViewVisible(true);
       Animated.timing(slideAnim, {
-        toValue: 0, // Slide de cima para baixo
+        toValue: 0,
         duration: 1000,
         useNativeDriver: true,
       }).start();
 
       const hideTimeout = setTimeout(() => {
         Animated.timing(slideAnim, {
-          toValue: -50, // Slide de volta para cima
+          toValue: -100,
           duration: 1000,
           useNativeDriver: true,
         }).start(() => {
           setIsUserViewVisible(false);
         });
-      }, 5000); // 5 segundos de visibilidade
+      }, 7000);
 
       return () => clearTimeout(hideTimeout);
-    }, 5000); // 3 segundos de atraso
+    }, 5000);
 
     return () => clearTimeout(delayTimeout);
-  }, []); // Dependência vazia para rodar apenas no mount
+  }, []);
 
-  // Função de refresh
   const onRefresh = async () => {
     setRefreshing(true);
     await HistoricoMovimentos();
-    await BuscarRegistrosFuturos()
-    await BuscarSaldo()
+    await BuscarRegistrosFuturos();
+    await BuscarSaldo();
     setRefreshing(false);
   };
 
   const sortedRegistros = dadosFinancas
     ? dadosFinancas.sort((a, b) => {
-      const dateA = new Date(a.dataDoc);
-      const dateB = new Date(b.dataDoc);
-      return dateB - dateA;
-    })
+        const dateA = new Date(a.dataDoc);
+        const dateB = new Date(b.dataDoc);
+        return dateB - dateA;
+      })
     : [];
 
   if (loadSaldo) return <Load />;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <FlatList
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={<View style={{ marginVertical: 3.5 }} />}
-        ListEmptyComponent={<View style={{ alignItems: 'center', justifyContent: "center" }}><Text style={{ fontFamily: 'Roboto-Light' }}>Nenhum registro até o momento.</Text></View>}
-        ListFooterComponent={<View style={{ height: 21 }} />}
+        ItemSeparatorComponent={<View style={styles.itemSeparator} />}
+        ListEmptyComponent={
+          <View style={styles.emptyListContainer}>
+            <Text style={styles.emptyListText}>Nenhum registro até o momento.</Text>
+          </View>
+        }
+        ListFooterComponent={<View style={styles.footer} />}
         ListHeaderComponent={
-          <View style={{ gap: 7, position: 'static' }}>
-            {isUserViewVisible && (
-              <Animated.View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 7,
-                  paddingVertical: 7,
-                  backgroundColor: colors.contra_theme,
-                  transform: [{ translateY: slideAnim }],
-                }}
-              >
-                <Icone nome={'user'} size={16} color='#fff' />
-                <Text style={{ fontFamily: 'Roboto-Medium', fontSize: 11, textTransform: 'uppercase', color: '#fff' }}>
-                  Você está logado em: {usuarioDoAS?.nome}
-                </Text>
-              </Animated.View>
-            )}
+          <View style={styles.headerContainer}>
             <Bxsaldo dados={{ futurosTotal, saldo, dadosParcelas }} />
-            <View
-              style={{
-                borderBottomWidth: 1,
-                borderBottomColor: '#e0e0e0',
-                marginVertical: 14,
-              }}
-            />
+            <View style={styles.notificationContainer}>
+              {isUserViewVisible && (
+                <Animated.View style={[styles.notification, { transform: [{ translateY: slideAnim }] }]}>
+                  <Text style={[styles.notificationText, { backgroundColor: colors.alerta, color: '#fff' }]}>
+                    Você está logado em: {usuarioDoAS?.nome}
+                  </Text>
+                </Animated.View>
+              )}
+            </View>
+            <View style={[styles.sectionDivider, { borderBottomColor: '#e0e0e0' }]}>
+              <Text style={[styles.sectionTitle, {backgroundColor:colors.background}]}>ÚLTIMOS REGISTROS</Text>
+            </View>
           </View>
         }
         data={sortedRegistros}
@@ -111,3 +99,54 @@ export default function Home() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  itemSeparator: {
+    marginVertical: 3.5,
+  },
+  emptyListContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyListText: {
+    fontFamily: 'Roboto-Light',
+  },
+  footer: {
+    height: 21,
+  },
+  headerContainer: {
+    gap: 7,
+    position: 'static',
+  },
+  notificationContainer: {
+    overflow: 'hidden',
+    height: 50,
+    alignItems: 'center',
+  },
+  notification: {
+    alignSelf: 'center',
+    alignItems: 'center',
+  },
+  notificationText: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    padding: 6,
+    borderRadius: 6,
+  },
+  sectionDivider: {
+    borderBottomWidth: 1,
+    marginVertical: 21,
+    marginTop: 14,
+    marginHorizontal: 14,
+  },
+  sectionTitle: {
+    position: 'absolute',
+    top: -9,
+    paddingHorizontal: 14,
+    alignSelf: 'center',
+    fontSize: 12,
+  },
+});

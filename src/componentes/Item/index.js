@@ -2,32 +2,31 @@ import { useState, useContext, useEffect } from 'react';
 import { View, TouchableOpacity, Modal, StyleSheet, Image, Animated } from 'react-native';
 import Texto from '../Texto';
 import { AppContext } from '../../context/appContext';
-import {  useTheme } from '@react-navigation/native';
+import { useNavigation, useTheme } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icone from '../Icone';
 
-export default function Item({ item, vencido }) {
+export default function Item({ item }) {
   const { formatoMoeda, swipedItemId, setSwipedItemId, RegistrarPagamentoParcela, ExcluiRegistro } = useContext(AppContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [imagemSelecionada, setImagemSelecionada] = useState(null);
   const [isSwiped, setIsSwiped] = useState(false);
-  const translateX = useState(new Animated.Value(0))[0]; // Animação para deslocamento
-  const { colors, font } = useTheme()
-
-  const [show, setShow] = useState(false)
+  const translateX = useState(new Animated.Value(0))[0];
+  const { colors } = useTheme();
+  const [show, setShow] = useState(false);
+  const navigation = useNavigation()
 
   useEffect(() => {
-    setIsSwiped(false)
+    setIsSwiped(false);
     setSwipedItemId(null);
     Animated.timing(translateX, {
       toValue: 0,
       duration: 200,
       useNativeDriver: true,
     }).start();
-  }, [])
+  }, []);
 
   useEffect(() => {
-    // Reseta o deslocamento se este item não for o item atualmente deslocado
     if (swipedItemId !== item.id) {
       setIsSwiped(false);
       Animated.timing(translateX, {
@@ -39,39 +38,59 @@ export default function Item({ item, vencido }) {
   }, [swipedItemId]);
 
   const toqueItem = () => {
-    if (isSwiped) {
-      // Se está deslocado, retorna à posição original
-      setIsSwiped(false);
-      setSwipedItemId(null);
-      Animated.timing(translateX, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }).start();
-    } else if (item.imageUrl) {
-      // Abre o modal de imagem se não está deslocado e tem imageUrl
+
+    if (item.pago && !!item.imageUrl && !isSwiped) {
       setImagemSelecionada(item.imageUrl);
       setModalVisible(true);
+
+    } else if (!item.pago && !isSwiped) {
+      navigation.navigate('Pagamento', item)
     }
+    setIsSwiped(false);
+    setSwipedItemId(null);
+    Animated.timing(translateX, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleLongPress = () => {
+    const dataAtual = new Date();
+    const anoAtual = dataAtual.getFullYear();
+    const mesAtual = dataAtual.getMonth();
+    const primeiroDiaMesAtual = new Date(anoAtual, mesAtual, 1).getTime();
+    const ultimoDiaMesAnterior = primeiroDiaMesAtual - 1;
+
+    const dataItem = new Date(item.dataDoc);
+    const dataLimite = new Date(ultimoDiaMesAnterior);
+    const dataItemFormatada = new Date(dataItem.getFullYear(), dataItem.getMonth(), dataItem.getDate()).getTime();
+    const dataLimiteFormatada = new Date(dataLimite.getFullYear(), dataLimite.getMonth(), dataLimite.getDate()).getTime();
+
+    // Check if item is paid and within 24 hours
+    if (item.pago) {
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      const timeDifference = dataAtual.getTime() - dataItem.getTime();
+      if (timeDifference > twentyFourHoursInMs) {
+        return; // Block long press if item is paid and older than 24 hours
+      }
+    }
+
+    // Existing condition for unpaid items or paid items within 24 hours
+    if (dataItemFormatada < dataLimiteFormatada) {
+      return;
+    }
+
     if (!isSwiped) {
-      // Ativa o deslocamento e notifica outros itens
       setSwipedItemId(item.id);
       setIsSwiped(true);
       Animated.timing(translateX, {
-        toValue: -141, // Desloca 120 pixels para acomodar dois botões
+        toValue: -70,
         duration: 200,
         useNativeDriver: true,
       }).start();
     }
   };
-
-
- 
-
-
 
   const options = {
     month: '2-digit',
@@ -83,7 +102,7 @@ export default function Item({ item, vencido }) {
     if (event.type === 'dismissed') {
       setShow(false);
       setSwipedItemId(null);
-      return; // Interrompe a função imediatamente
+      return;
     }
 
     const currentDate = selectedDate;
@@ -95,7 +114,6 @@ export default function Item({ item, vencido }) {
     }
   };
 
-
   return (
     <>
       {show && (
@@ -106,70 +124,37 @@ export default function Item({ item, vencido }) {
           onChange={onChange}
         />
       )}
-      <View style={{ position: 'relative' }}>
-        <Animated.View style={{ transform: [{ translateX }] }}>
+      <View style={styles.container}>
+        <Animated.View style={[styles.animatedContainer, { transform: [{ translateX }] }]}>
           <TouchableOpacity
             activeOpacity={1}
             onPress={toqueItem}
             onLongPress={handleLongPress}
-            style={[
-              {
-                overflow: 'hidden',
-                flex: 1,
-                justifyContent: 'center',
-                backgroundColor: colors.botao,
-                padding: 21,
-                borderRadius: 7,
-                marginHorizontal: 14,
-              },
-            ]}
+            style={[styles.itemContainer, { backgroundColor: colors.botao }]}
           >
             {!!item.imageUrl && (
-              <View style={{
-                position: 'absolute', width: 50, aspectRatio: 1, backgroundColor: colors.alerta, zIndex: 99, right: -25, top: -25, transform: [
-                  { rotate: '45deg' }, // Static 45-degree rotation
-                ],
-                alignItems: "center",
-                justifyContent: "flex-end",
-                borderRadius: 14
-              }}>
-
-                <View style={{
-                  transform: [
-                    { rotate: '-45deg' },
-                  ],
-                  padding: 2
-                }}>
+              <View style={[styles.imageIndicator, { backgroundColor: colors.alerta }]}>
+                <View style={styles.imageIconContainer}>
                   <Icone size={16} nome="attach" color='#fff' />
                 </View>
-
               </View>
             )}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={styles.itemContent}>
               <View
-                style={{
-                  flexDirection: 'row',
-                  backgroundColor: item.movimentacao === 'despesa' ? colors.despesa : colors.receita,
-                  borderTopLeftRadius: 7,
-                  borderBottomLeftRadius: 7,
-                  alignItems: 'center',
-                }}
+                style={[
+                  styles.dateTypeContainer,
+                  { backgroundColor: item.movimentacao === 'despesa' ? colors.despesa : colors.receita },
+                ]}
               >
                 <Texto
                   texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`}
                   size={12}
-                  estilo={{
-                    marginLeft: -4,
-                    backgroundColor: colors.botao,
-                    borderRadius: 10,
-                    paddingHorizontal: 6,
-                    paddingVertical: 1,
-                  }}
+                  estilo={[styles.dateText, { backgroundColor: colors.botao }]}
                 />
                 <Texto
                   texto={`${item?.tipo.replace('_', ' ').toUpperCase()} ${item.parcela ? `${item?.parcela}/${item.recorrencia}` : ''}`}
                   size={9}
-                  estilo={{ color: '#fff', paddingHorizontal: 6 }}
+                  estilo={styles.typeText}
                 />
               </View>
               <Texto
@@ -183,46 +168,29 @@ export default function Item({ item, vencido }) {
               wheight={'padrao'}
               texto={item.parcelaQuit ? item.parcelaQuit + ' - ' + item.detalhamento : item.detalhamento}
               size={14}
-              estilo={{ marginRight: 21, marginTop: 7 }}
+              estilo={styles.detailText}
             />
 
-
-            {item.ministerio ? <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Texto texto={item.ministerio?.label?.replace('Min. ', '')} size={13} wheight={'fina'} />
-            </View> : null}
+            {item.ministerio ? (
+              <View style={styles.ministryContainer}>
+                <Texto texto={item.ministerio?.label?.replace('Min. ', '')} size={13} wheight={'fina'} />
+              </View>
+            ) : null}
           </TouchableOpacity>
         </Animated.View>
 
         {isSwiped && (
-          <View
-            style={{
-              position: 'absolute',
-              right: 14,
-              top: 0,
-              bottom: 0,
-              flexDirection: 'row',
-            }}
-          >
-            {!item.pago ? <TouchableOpacity
-              style={{
-                width: 60,
-                backgroundColor: colors.receita,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderRadius: 7,
-              }}
-              onPress={() => setShow(true)}
-            >
-              <Icone nome="checkmark-done" size={24} color="#fff" />
-            </TouchableOpacity> : null}
+          <View style={styles.swipeActions}>
+            {/* {!item.pago ? (
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: colors.receita }]}
+                onPress={() => setShow(true)}
+              >
+                <Icone nome="checkmark-done" size={24} color="#fff" />
+              </TouchableOpacity>
+            ) : null} */}
             <TouchableOpacity
-              style={{
-                width: 60,
-                backgroundColor: colors.despesa,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderRadius: 7,
-              }}
+              style={[styles.actionButton, { backgroundColor: colors.despesa }]}
               onPress={() => ExcluiRegistro(item)}
             >
               <Icone nome="trash-outline" size={24} color="#fff" />
@@ -260,6 +228,79 @@ export default function Item({ item, vencido }) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+  },
+  animatedContainer: {
+    flex: 1,
+  },
+  itemContainer: {
+    overflow: 'hidden',
+    flex: 1,
+    justifyContent: 'center',
+    padding: 21,
+    borderRadius: 7,
+    marginHorizontal: 14,
+  },
+  imageIndicator: {
+    position: 'absolute',
+    width: 50,
+    aspectRatio: 1,
+    zIndex: 99,
+    right: -25,
+    top: -25,
+    transform: [{ rotate: '45deg' }],
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    borderRadius: 14,
+  },
+  imageIconContainer: {
+    transform: [{ rotate: '-45deg' }],
+    padding: 2,
+  },
+  itemContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateTypeContainer: {
+    flexDirection: 'row',
+    borderTopLeftRadius: 7,
+    borderBottomLeftRadius: 7,
+    alignItems: 'center',
+  },
+  dateText: {
+    marginLeft: -4,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  typeText: {
+    color: '#fff',
+    paddingHorizontal: 6,
+  },
+  detailText: {
+    marginRight: 21,
+    marginTop: 7,
+  },
+  ministryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  swipeActions: {
+    position: 'absolute',
+    right: 14,
+    top: 0,
+    bottom: 0,
+    flexDirection: 'row',
+  },
+  actionButton: {
+    width: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 7,
+  },
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

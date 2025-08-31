@@ -24,7 +24,7 @@ export default function Relatorio() {
 
   useEffect(() => {
     const dataAtual = new Date();
-    const umAno = new Date(dataAtual.setMonth(dataAtual.getMonth() - 12));
+    const umAno = new Date(dataAtual.setMonth(dataAtual.getMonth() - 6));
 
     const filtrados = resumoFinanceiro.filter(mesData => {
       const dataMes = new Date(mesData.ano, mesData.mes - 1);
@@ -540,21 +540,25 @@ export default function Relatorio() {
     );
   }
 
+
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarScrollEnabled: true,
-        tabBarItemStyle: { width: (width - 28) / 3 },
+        tabBarItemStyle: { width: width },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#ddd',
-        tabBarLabelStyle: { fontSize: 12 },
+        tabBarLabelStyle: { fontFamily:'Raleway-Bold', color:colors.contra_theme, fontSize:20 },
         tabBarStyle: {
-          height: 50,
+          height: 70,
           justifyContent: 'center',
           backgroundColor: colors.botao,
-          elevation: 0
+          elevation: 0,
         },
       }}
+      initialRouteName={
+        dadosFiltrados.length > 0 ? dadosFiltrados[dadosFiltrados.length - 1].nomeMes.toUpperCase() : undefined
+      }
     >
       {dadosFiltrados.map((mesData) => (
         <Tab.Screen

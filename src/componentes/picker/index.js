@@ -11,20 +11,17 @@ const CustomPickerModal = ({ mostrar=true, itens, selectedValue, setSelectedValu
 
   const [modalVisible, setModalVisible] = useState(false);
 
-// Ordenar categorias: receitas primeiro, depois despesas, e alfabeticamente por label, ignorando "Min. "
   const sortedCategories = itens.sort((a, b) => {
-    // Prioriza receitas antes de despesas
     if (a.type !== b.type) {
       return a.type === 'receita' ? -1 : 1;
     }
-    // Remove prefixos "Min. ", "Min. de ", "Min. da " para ordenação alfabética
     const cleanLabelA = a.label.replace(/^(Min\.(\s|da\s|de\s)?)/i, '').trim();
     const cleanLabelB = b.label.replace(/^(Min\.(\s|da\s|de\s)?)/i, '').trim();
     return cleanLabelA.localeCompare(cleanLabelB, 'pt-BR', { sensitivity: 'base' });
   });
 
   const handleSelectCategory = (category) => {
-    setSelectedValue(category); // Passa o objeto completo da categoria
+    setSelectedValue(category); 
     setModalVisible(false);
   };
 
