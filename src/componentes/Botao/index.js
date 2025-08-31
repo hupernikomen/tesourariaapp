@@ -2,7 +2,6 @@ import { Pressable, View, Text, ActivityIndicator } from 'react-native';
 import Icone from '../Icone';
 
 export default function Botao({ icone, acao, texto, corTexto = '#fff', corBotao = '#659f99ff', altura = 55, reload }) {
-
   return (
     <Pressable style={{
       backgroundColor: corBotao,

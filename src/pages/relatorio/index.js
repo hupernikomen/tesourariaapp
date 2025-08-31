@@ -37,6 +37,9 @@ export default function Relatorio() {
   const Tab = createMaterialTopTabNavigator();
 
   const generatePDF = async (mesData) => {
+
+
+    
     try {
       // Agrupa receitas por tipo, somando totais
       const receitasAgrupadas = Object.keys(mesData.tipos).reduce((acc, key) => {
@@ -73,8 +76,7 @@ export default function Relatorio() {
       }, {});
       const despesas = Object.values(despesasAgrupadas);
 
-      // Detalhamento usando o array movements (todos os movimentos individuais)
-      let detalhamento = mesData.movements.map(move => ({
+      let detalhamento = mesData.movimentos.map(move => ({
         detalhamento: move.detalhamento,
         valor: move.valor,
         movimentacao: move.movimentacao,
@@ -526,7 +528,9 @@ export default function Relatorio() {
             )}
           </View>
           {receitas.length > 0 && despesas.length > 0 && <View style={styles.divider} />}
-          <Botao texto={'Gerar e Compartilhar PDF'} icone={'share-social-outline'} acao={() => generatePDF(mesData)} corBotao={colors.receita} />
+          <Botao texto={'Gerar e Compartilhar PDF'} icone={'share-social-outline'} acao={() => {
+            
+            generatePDF(mesData)}} corBotao={colors.receita} />
         </ScrollView>
       </View>
     );
