@@ -137,7 +137,7 @@ export default function Item({ item }) {
             </View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-              <View style={{ width: '80%' }}>
+              <View style={{ width: '70%' }}>
 
                 <Texto
                   linhas={2}

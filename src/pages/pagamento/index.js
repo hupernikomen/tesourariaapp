@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { View, Text } from 'react-native';
 import { AppContext } from '../../context/appContext';
-import { useNavigation, useRoute, useTheme } from '@react-navigation/native';
+import { useRoute, useTheme } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import Botao from '../../componentes/Botao'
@@ -41,6 +41,17 @@ export default function Pagamento() {
 
   if (load) return <Load/>
 
+    const getCurrentMonthRange = () => {
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const sevenDaysBeforeFirst = new Date(firstDayOfMonth);
+    sevenDaysBeforeFirst.setDate(firstDayOfMonth.getDate() - 1);
+    const today = new Date(now);
+    return { minimumDate: sevenDaysBeforeFirst, maximumDate: today };
+  };
+
+  const { minimumDate, maximumDate } = getCurrentMonthRange();
+
 
   return (
     <View style={{ padding: 14, flex: 1, justifyContent: 'center' }}>
@@ -50,6 +61,7 @@ export default function Pagamento() {
           mode="date"
           display="calendar"
           onChange={onChange}
+          maximumDate={maximumDate}
         />
       )}
 
@@ -65,8 +77,8 @@ export default function Pagamento() {
       </View>
 
 
-      <Botao acao={() => setShow(true)} texto={`Data do Pagamento: ${currentDate.toLocaleDateString('pt-BR')}`} corBotao={colors.botao} corTexto={colors.contra_theme} />
-      <Botao acao={registrarPagamento} texto={`Registrar Pagamento`} />
+      <Botao acao={() => setShow(true)} texto={`Data do Pagamento: ${currentDate.toLocaleDateString('pt-BR')}`} corBotao={colors.contra_theme} corTexto={colors.contra_theme} />
+      <Botao acao={registrarPagamento} texto={`Confirmar Pagamento`} />
     </View>
   );
 }
