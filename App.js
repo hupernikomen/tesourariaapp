@@ -11,6 +11,7 @@ import Relatorio from './src/pages/relatorio';
 import { AppProvider } from './src/context/appContext';
 import LoginScreen from './src/pages/login';
 import Pagamento from './src/pages/pagamento';
+import Lixeira from './src/pages/lixeira';
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -20,9 +21,9 @@ const Theme = {
   colors: {
     theme: '#fefefe',
     botao: '#fbfbfb',
-    contra_theme: '#4c4a60ff',
+    contra_theme: '#4b4a56ff',
     background: '#f5f5f3ff',
-    receita: '#659f99',
+    receita: '#598e88ff',
     despesa: '#db5e5eff',
     alerta: '#E39B0E',
   },
@@ -37,11 +38,11 @@ function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarItemStyle: { width: 110,height:70 },
+        tabBarItemStyle: { width: 120,height:70 },
         tabBarScrollEnabled: true,
         tabBarIndicatorStyle: { backgroundColor: Theme.colors.background, height: 6 },
         tabBarActiveTintColor: Theme.colors.theme,
-        tabBarInactiveTintColor: '#8ab6b1ff',
+        tabBarInactiveTintColor: '#7aa49fff',
         tabBarStyle: { backgroundColor: Theme.colors.receita},
         tabBarLabelStyle: {
           fontFamily:Theme.font.bold
@@ -52,6 +53,7 @@ function TabNavigator() {
       <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO' }} />
       <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
       <Tab.Screen name="Relatorio" component={Relatorio} options={{ title: 'RELATÓRIO' }} />
+      <Tab.Screen name="Lixeira" component={Lixeira} options={{ title: 'LIXEIRA' }} />
     </Tab.Navigator>
   );
 }

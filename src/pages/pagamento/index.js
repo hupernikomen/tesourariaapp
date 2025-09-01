@@ -5,19 +5,18 @@ import { useNavigation, useRoute, useTheme } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import Botao from '../../componentes/Botao'
+import Load from '../../componentes/load';
 
 export default function Pagamento() {
-  const navigation = useNavigation()
   const { colors } = useTheme()
   const route = useRoute()
-  const { RegistrarPagamentoParcela, formatoMoeda } = useContext(AppContext)
+  const { RegistrarPagamentoParcela, formatoMoeda, load } = useContext(AppContext)
   const [currentDate, setCurrentData] = useState(new Date())
 
   const [show, setShow] = useState(false)
 
   const onChange = (event, selectedDate) => {
 
-    const currentDate = selectedDate;
     setShow(false);
     setCurrentData(selectedDate)
 
@@ -26,7 +25,6 @@ export default function Pagamento() {
   const registrarPagamento = () => {
     if (currentDate instanceof Date && !isNaN(currentDate)) {
       RegistrarPagamentoParcela(currentDate, route.params);
-      navigation.navigate('Main')
 
     } else {
       console.log('Data inválida selecionada:', currentDate);
@@ -40,6 +38,8 @@ export default function Pagamento() {
     day: '2-digit',
     timeZone: 'America/Sao_Paulo',
   };
+
+  if (load) return <Load/>
 
 
   return (
@@ -58,7 +58,7 @@ export default function Pagamento() {
 
       <View style={{ alignItems: 'center', marginBottom: 42 }}>
 
-        <Text style={{ textTransform: 'uppercase', fontFamily: 'Roboto-Light', fontSize: 13, color: '#000' }}>ITEM: <Text style={{fontFamily:'Roboto-Medium'}}>{route.params?.detalhamento}</Text></Text>
+        <Text style={{ textTransform: 'uppercase', fontFamily: 'Roboto-Light', fontSize: 13, color: '#000', textAlign:'center' }}>ITEM: <Text style={{fontFamily:'Roboto-Medium'}}>{route.params?.detalhamento}</Text></Text>
         <Text style={{ textTransform: 'uppercase', fontFamily: 'Roboto-Light', fontSize: 13, color: '#000' }}>PARCELA: <Text style={{fontFamily:'Roboto-Medium'}}>{route.params?.parcela}/{route.params?.recorrencia}</Text></Text>
         <Text style={{ textTransform: 'uppercase', fontFamily: 'Roboto-Light', fontSize: 13, color: '#000' }}>VENCIMENTO: <Text style={{fontFamily:'Roboto-Medium'}}>{new Intl.DateTimeFormat('pt-BR', options).format(route.params?.dataDoc)}</Text></Text>
         <Text style={{ textTransform: 'uppercase', fontFamily: 'Roboto-Light', fontSize: 13, color: '#000' }}>VALOR DA PARCELA: <Text style={{fontFamily:'Roboto-Medium'}}>R$ {formatoMoeda.format(route.params?.valor)}</Text></Text>

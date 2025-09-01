@@ -2,9 +2,10 @@ import { useContext } from 'react';
 import { View, FlatList, Text, StyleSheet } from 'react-native';
 import { AppContext } from '../../context/appContext';
 import Item from '../../componentes/Item';
+import Load from '../../componentes/load';
 
 export default function Futuro() {
-  const { dadosParcelas } = useContext(AppContext);
+  const { dadosParcelas, load } = useContext(AppContext);
 
   const sortedParcelas = dadosParcelas
     ? dadosParcelas
@@ -24,6 +25,8 @@ export default function Futuro() {
       )
       .sort((a, b) => new Date(a.dataDoc) - new Date(b.dataDoc))
     : [];
+
+    if (load) return <Load/>
 
   return (
     <View style={styles.container}>

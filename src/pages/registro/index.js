@@ -13,11 +13,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomPickerModal from '../../componentes/picker';
 
 export default function AddRegistros() {
-  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, setNotificacao } = useContext(AppContext);
+  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, setNotificacao, load, setLoad } = useContext(AppContext);
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const [load, setLoad] = useState(false);
   const [data, setData] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
   const [valor, setValor] = useState('');
@@ -109,6 +108,9 @@ export default function AddRegistros() {
 
 
   async function Registrar() {
+
+    setLoad(true)
+
     const isValidString = (str) => {
       if (typeof str !== 'string' || str.trim() === '') return false;
       const validPattern = /^[A-Za-zÀ-ÿ0-9\s.,;!?()-]+$/;
@@ -148,7 +150,7 @@ export default function AddRegistros() {
         const parcelas = [];
         const initialTimestamp = data.getTime();
         const imageUrl = selectedImage ? await uploadImage(selectedImage) : '';
-        
+
         for (let i = 0; i < parseInt(recorrencia); i++) {
           const nextPaymentDate = new Date(initialTimestamp);
           nextPaymentDate.setMonth(nextPaymentDate.getMonth() + i);
@@ -159,7 +161,7 @@ export default function AddRegistros() {
             pago: false,
           });
         }
-        
+
         await addDoc(collection(db, 'futuro'), {
           idUsuario: usuarioDoAS.usuarioId,
           reg: Date.now(),
@@ -172,7 +174,7 @@ export default function AddRegistros() {
           valorTotal: parseFloat(valor),
           parcelas,
         });
-        
+
       }
     } catch (e) {
       console.log('Erro ao adicionar documento:', e);
@@ -188,9 +190,8 @@ export default function AddRegistros() {
       setImagem('');
       setSelectedImage(undefined);
 
-      await ResumoFinanceiro();
+      await Promise.all([ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
 
-      await HistoricoMovimentos();
       navigation.goBack();
 
       setMontaTela([])

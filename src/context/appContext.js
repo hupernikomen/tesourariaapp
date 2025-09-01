@@ -1,8 +1,8 @@
 import { createContext, use, useEffect, useState } from "react";
 import { db } from '../firebaseConnection';
 import { updateDoc, doc, collection, getDocs, query, limit, orderBy, getDoc, addDoc, where, deleteDoc, setDoc, } from "firebase/firestore";
-import { getStorage, ref, deleteObject } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from "@react-navigation/native";
 export const AppContext = createContext({})
 
 
@@ -12,14 +12,16 @@ export function AppProvider({ children }) {
   const [dadosFinancas, setDadosFinanceiros] = useState([]);
   const [futurosTotal, setFuturosTotal] = useState(0);
   const [dadosParcelas, setDadosParcelas] = useState([]);
-  const [loadSaldo, setLoadSaldo] = useState(true);
+  const [load, setLoad] = useState(true);
   const [swipedItemId, setSwipedItemId] = useState(null);
   const [usuarioDoAS, setUsuarioDoAS] = useState('')
   const [notificacao, setNotificacao] = useState('')
+  const [lixo, setLixo] = useState([])
+  const navigation = useNavigation()
 
   useEffect(() => {
-    BuscarUsuarioAsyncStorage()
-    HistoricoMovimentos();
+
+    Promise.all([BuscarUsuarioAsyncStorage(), HistoricoMovimentos()])
 
 
   }, []);
@@ -54,7 +56,7 @@ export function AppProvider({ children }) {
       const registros = collection(db, 'futuro');
       const registrosEncontrados = query(
         registros,
-        where('idUsuario', '==', usuarioDoAS.usuarioId),
+        where('idUsuario', '==', usuarioDoAS?.usuarioId),
         orderBy('reg', 'desc')
       );
       const snapshot = await getDocs(registrosEncontrados);
@@ -141,13 +143,12 @@ export function AppProvider({ children }) {
 
   async function HistoricoMovimentos() {
 
-    setLoadSaldo(true);
     try {
 
       const registrosCollection = collection(db, "registros");
       const registrosQuery = query(
         registrosCollection,
-        where("idUsuario", "==", usuarioDoAS.usuarioId), // Filtra por idUsuario
+        where("idUsuario", "==", usuarioDoAS?.usuarioId), // Filtra por idUsuario
         orderBy("reg", "desc"),
         limit(500)
       );
@@ -163,9 +164,8 @@ export function AppProvider({ children }) {
     } catch (e) {
       console.log("Erro ao buscar documentos ou AsyncStorage: ", e);
     } finally {
-      await BuscarSaldo();
-      await BuscarRegistrosFuturos();
-      setLoadSaldo(false);
+
+      await Promise.all([BuscarSaldo(), BuscarRegistrosFuturos()])
     }
   }
 
@@ -202,16 +202,16 @@ export function AppProvider({ children }) {
   }
 
   async function ResumoFinanceiro() {
+
     try {
       if (!usuarioDoAS?.usuarioId) {
-        console.warn('ID do usuário não fornecido');
         setResumoFinanceiro([]);
         await AtualizaSaldoAtual(0);
         return [];
       }
 
       const ref = collection(db, 'registros');
-      const refs = query(ref, where('idUsuario', '==', usuarioDoAS.usuarioId), orderBy('dataDoc', 'asc'));
+      const refs = query(ref, where('idUsuario', '==', usuarioDoAS?.usuarioId), orderBy('dataDoc', 'asc'));
       const resultadosMap = {};
       const querySnapshot = await getDocs(refs);
 
@@ -311,12 +311,12 @@ export function AppProvider({ children }) {
       const saldoFinal = resumo.length > 0 ? resumo[resumo.length - 1].saldo : 0;
       await AtualizaSaldoAtual(saldoFinal);
       setResumoFinanceiro(resumo);
-
       return resumo;
+
     } catch (error) {
-      console.error('Erro ao calcular resumo financeiro:', error);
-      setResumoFinanceiro([]);
+      console.log('Erro ao calcular resumo financeiro:', error);
       await AtualizaSaldoAtual(0);
+      setResumoFinanceiro([]);
       return [];
     }
   }
@@ -335,36 +335,30 @@ export function AppProvider({ children }) {
     }
   }
 
+
   async function ExcluiRegistro(item) {
     const docRegistrosFinanceiros = doc(db, item.recorrencia ? 'futuro' : 'registros', item.id);
-    const imageUrl = item.imageUrl;
-    const storage = getStorage();
+    const lixeiraDoc = doc(db, 'lixeira', item.id); // Documento na coleção 'lixeira'
 
+    setLoad(true)
 
     try {
-      if (imageUrl) {
-        try {
-          const imageRef = ref(storage, imageUrl);
-          await deleteObject(imageRef);
-          console.log('Imagem excluída com sucesso');
-        } catch (imageError) {
-          if (imageError.code === 'storage/object-not-found') {
-            console.log('Imagem já não existe no Storage, continuando...');
-          } else {
-            throw imageError;
-          }
-        }
-      }
+      const itemParaLixeira = {
+        ...item, // Copia todas as propriedades do item original
+        colecao: item.recorrencia ? 'futuro' : 'registros', // Adiciona o campo 'colecao'
+        dataexclusao: Date.now(), // Adiciona a data de exclusão
+      };
 
+      setNotificacao('REGISTRO MOVIDO PARA A LIXEIRA');
+      await setDoc(lixeiraDoc, itemParaLixeira);
       await deleteDoc(docRegistrosFinanceiros);
-      setNotificacao('REGISTRO EXCLUIDO')
+
+      await Promise.all([BuscarLixeira(), ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
 
     } catch (e) {
-      alert('Ocorreu um erro durante a exclusão');
+      console.log('Erro ao mover o registro para a lixeira:', e);
 
     } finally {
-      await ResumoFinanceiro();
-      await HistoricoMovimentos();
       setIsSwiped(false);
       setSwipedItemId(null); // Reseta o item deslocado globalmente
       Animated.timing(translateX, {
@@ -377,9 +371,9 @@ export function AppProvider({ children }) {
 
   async function RegistrarPagamentoParcela(dataDoc, item) {
 
-    if (item.pago) {
-      return;
-    }
+    if (item.pago) return;
+
+    setLoad(true)
 
     try {
       const docRef = doc(db, 'futuro', item.id);
@@ -417,14 +411,17 @@ export function AppProvider({ children }) {
 
       setNotificacao('PAGAMENTO REGISTRADO')
 
+      await Promise.all([BuscarRegistrosFuturos(), ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
+
+      
     } catch (e) {
       console.error('Erro ao registrar pagamento da parcela:', e);
       throw e;
-    } finally {
 
-      await BuscarRegistrosFuturos()
-      await ResumoFinanceiro();
-      await HistoricoMovimentos();
+    } finally {
+      
+      navigation.navigate('Main')
+
       setIsSwiped(false);
       setSwipedItemId(null);
       Animated.timing(translateX, {
@@ -437,12 +434,41 @@ export function AppProvider({ children }) {
   }
 
 
+  async function BuscarLixeira() {
+
+    try {
+
+      const registrosCollection = collection(db, "lixeira");
+      const registrosQuery = query(
+        registrosCollection,
+        where("idUsuario", "==", usuarioDoAS.usuarioId), // Filtra por idUsuario
+        orderBy("dataexclusao", "desc"),
+      );
+
+      const querySnapshot = await getDocs(registrosQuery);
+      const registros = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      setLixo(registros);
+
+      await Promise.all([BuscarSaldo(), BuscarRegistrosFuturos()])
+
+    } catch (e) {
+      console.log("Erro ao buscar documentos ou AsyncStorage: ", e);
+    }
+  }
+
 
   const formatoMoeda = new Intl.NumberFormat('pt-BR', {
     style: 'decimal', // Muda o estilo para decimal
     minimumFractionDigits: 2, // Define o número mínimo de casas decimais
     maximumFractionDigits: 2, // Define o número máximo de casas decimais
   });
+
+  // if (loadSaldo) return <Load/>
+
 
   return (
     <AppContext.Provider value={{
@@ -457,7 +483,7 @@ export function AppProvider({ children }) {
       obterNomeMes,
       futurosTotal,
       dadosParcelas,
-      loadSaldo,
+      load, setLoad,
       swipedItemId, setSwipedItemId,
       setUsuarioDoAS,
       usuarioDoAS,
@@ -466,7 +492,9 @@ export function AppProvider({ children }) {
       BuscarRegistrosFuturos,
       BuscarSaldo,
       calcularMediaGastos,
-      notificacao, setNotificacao
+      notificacao, setNotificacao,
+      BuscarLixeira,
+      lixo
     }}>
       {children}
     </AppContext.Provider>

@@ -6,7 +6,7 @@ import { useNavigation, useTheme } from '@react-navigation/native';
 import Icone from '../Icone';
 
 export default function Item({ item }) {
-  const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro } = useContext(AppContext);
+  const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro, setNotificacao } = useContext(AppContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [imagemSelecionada, setImagemSelecionada] = useState(null);
   const [isSwiped, setIsSwiped] = useState(false);
@@ -67,15 +67,13 @@ export default function Item({ item }) {
   const twentyFourHoursInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   const timeDifference = dataAtual.getTime() - dataItem.getTime();
 
+
+
   const handleLongPress = () => {
 
-
-    // Check if item is paid and within 24 hours
-    if (item.pago) {
-
-      if (timeDifference > twentyFourHoursInMs) {
-        return; // Block long press if item is paid and older than 24 hours
-      }
+    if (timeDifference > twentyFourHoursInMs || item.parcelaQuit || item.parcela > 1) {
+      setNotificacao('Item invalido para exclusão')
+      return; // Block long press if item is paid and older than 24 hours
     }
 
     // Existing condition for unpaid items or paid items within 24 hours
@@ -137,26 +135,32 @@ export default function Item({ item }) {
                 size={12}
               />
             </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 
-            <Texto
-              linhas={2}
-              wheight={'padrao'}
-              texto={item.parcelaQuit ? item.parcelaQuit + ' - ' + item.detalhamento : item.detalhamento}
-              size={14}
-              estilo={styles.detailText}
-            />
+              <View style={{ width: '80%' }}>
 
-            <View style={{ alignSelf: 'flex-end', marginTop: 7, marginLeft: 3, flexDirection: 'row', gap: 14 }}>
+                <Texto
+                  linhas={2}
+                  wheight={'padrao'}
+                  texto={item.parcelaQuit ? item.parcelaQuit + ' - ' + item.detalhamento : item.detalhamento}
+                  estilo={[styles.detailText]}
+                />
 
-              {timeDifference < twentyFourHoursInMs || !item.pago ? (
-                <Icone size={14} nome="lock-open-outline" color='#000' />
-              ) : (
-                <Icone size={14} nome="lock-closed-outline" color='#000' />
-              )}
+                {!!item.ministerio ? <Texto wheight={'fina'} estilo={{ color: '#838383ff' }} texto={item.ministerio?.label?.replace('Min. ', '')} /> : null}
+              </View>
 
-              {!!item.imageUrl && (
-                <Icone size={14} nome="paperclip" color='#000' />
-              )}
+              <View style={{ alignSelf: 'flex-end', flexDirection: 'row', gap: 14 }}>
+
+                {timeDifference < twentyFourHoursInMs && !item.parcelaQuit || item?.parcela === 1 ? (
+                  <Icone size={14} nome="lock-open-outline" color='#000' />
+                ) : (
+                  <Icone size={14} nome="lock-closed-outline" color='#000' />
+                )}
+
+                {!!item.imageUrl && (
+                  <Icone size={14} nome="paperclip" color='#000' />
+                )}
+              </View>
             </View>
           </TouchableOpacity>
 

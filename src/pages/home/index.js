@@ -7,7 +7,7 @@ import Item from '../../componentes/Item';
 import Load from '../../componentes/load';
 
 export default function Home() {
-  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, loadSaldo, HistoricoMovimentos, usuarioDoAS, notificacao, setNotificacao, BuscarRegistrosFuturos, BuscarSaldo } = useContext(AppContext);
+  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, load, setLoad, HistoricoMovimentos, notificacao, setNotificacao, BuscarRegistrosFuturos, BuscarSaldo } = useContext(AppContext);
   const { colors } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const slideAnim = useRef(new Animated.Value(-100)).current;
@@ -15,7 +15,8 @@ export default function Home() {
 
 
   useEffect(() => {
-
+    setLoad(true)
+    Promise.all([HistoricoMovimentos(), BuscarRegistrosFuturos(), BuscarSaldo()]).finally(() => setLoad(false))
 
     const delayTimeout = setTimeout(() => {
       Animated.timing(slideAnim, {
@@ -42,9 +43,7 @@ export default function Home() {
   const onRefresh = async () => {
     setNotificacao('')
     setRefreshing(true);
-    await HistoricoMovimentos();
-    await BuscarRegistrosFuturos();
-    await BuscarSaldo();
+    await Promise.all([HistoricoMovimentos(), BuscarRegistrosFuturos(), BuscarSaldo()])
     setRefreshing(false);
   };
 
@@ -56,7 +55,7 @@ export default function Home() {
     })
     : [];
 
-  if (loadSaldo) return <Load />;
+  if (load) return <Load />;
 
   return (
     <View style={styles.container}>
@@ -73,17 +72,17 @@ export default function Home() {
           <View style={styles.headerContainer}>
             <Bxsaldo dados={{ futurosTotal, saldo, dadosParcelas }} />
             <View style={styles.notificationContainer}>
-               {notificacao && (
-              <Animated.View style={[styles.notification, { transform: [{ translateY: slideAnim }] }]}>
-                <Text style={[styles.notificationText, { backgroundColor: colors.alerta, color: '#fff' }]}>
-                  {notificacao}
-                </Text>
-              </Animated.View>
-             )} 
+              {notificacao && (
+                <Animated.View style={[styles.notification, { transform: [{ translateY: slideAnim }] }]}>
+                  <Text style={[styles.notificationText, { backgroundColor: colors.contra_theme, color: '#fff' }]}>
+                    {notificacao}
+                  </Text>
+                </Animated.View>
+              )}
             </View>
-            <View style={[styles.sectionDivider, { borderBottomColor: '#e0e0e0' }]}>
+            {sortedRegistros.length > 0 ? <View style={[styles.sectionDivider, { borderBottomColor: '#e0e0e0' }]}>
               <Text style={[styles.sectionTitle, { backgroundColor: colors.background }]}>ÚLTIMOS REGISTROS</Text>
-            </View>
+            </View> : null}
           </View>
         }
         data={sortedRegistros}
@@ -114,7 +113,7 @@ const styles = StyleSheet.create({
   },
   emptyListText: {
     fontFamily: 'Roboto-Light',
-    marginVertical:14
+    marginVertical: 14
   },
   footer: {
     height: 21,
