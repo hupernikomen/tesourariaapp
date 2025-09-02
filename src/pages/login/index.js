@@ -164,6 +164,7 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={{marginVertical:28, fontFamily:'Roboto-Medium', fontSize:20, padding:14, borderRadius:7, backgroundColor:colors.botao}}>PSHT</Text>
       {fetchError ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{fetchError}</Text>
