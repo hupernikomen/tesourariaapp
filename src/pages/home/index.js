@@ -55,7 +55,7 @@ export default function Home() {
     })
     : [];
 
-  if (load) return <Load />;
+  if (load) return <Load />
 
   return (
     <View style={styles.container}>

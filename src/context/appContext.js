@@ -3,6 +3,7 @@ import { db } from '../firebaseConnection';
 import { updateDoc, doc, collection, getDocs, query, limit, orderBy, getDoc, addDoc, where, deleteDoc, setDoc, } from "firebase/firestore";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from "@react-navigation/native";
+import Load from "../componentes/load";
 export const AppContext = createContext({})
 
 
@@ -386,6 +387,7 @@ export function AppProvider({ children }) {
       }
 
       await addDoc(collection(db, 'registros'), {
+        id: item.id,
         idUsuario: usuarioDoAS.usuarioId,
         reg: item.dataDoc,
         dataDoc: new Date(dataDoc).getTime(),
@@ -467,7 +469,6 @@ export function AppProvider({ children }) {
     maximumFractionDigits: 2, // Define o número máximo de casas decimais
   });
 
-  // if (loadSaldo) return <Load/>
 
 
   return (

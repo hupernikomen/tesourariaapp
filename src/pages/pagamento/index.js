@@ -19,7 +19,6 @@ export default function Pagamento() {
 
     setShow(false);
     setCurrentData(selectedDate)
-
   };
 
   const registrarPagamento = () => {

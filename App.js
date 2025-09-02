@@ -35,10 +35,11 @@ const Theme = {
 };
 
 function TabNavigator() {
+  
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarItemStyle: { width: 120,height:70 },
+        tabBarItemStyle: { width: 114,height:70 },
         tabBarScrollEnabled: true,
         tabBarIndicatorStyle: { backgroundColor: Theme.colors.background, height: 6 },
         tabBarActiveTintColor: Theme.colors.theme,

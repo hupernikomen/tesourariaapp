@@ -5,6 +5,9 @@ import { AppContext } from '../../context/appContext';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import Icone from '../Icone';
 
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { db } from '../../firebaseConnection';
+
 export default function Item({ item }) {
   const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro, setNotificacao } = useContext(AppContext);
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,15 +38,56 @@ export default function Item({ item }) {
     }
   }, [swipedItemId]);
 
-  const toqueItem = () => {
+
+
+  async function buscarPrimeiraParcela(docId) {
+    try {
+      const docRef = doc(db, 'futuro', docId);
+      const docSnap = await getDoc(docRef);
+      const data = docSnap.data();
+
+      return data.parcelas[0].parcela;
+
+    } catch (error) {
+      console.log('Erro ao buscar primeira parcela:', error.message);
+    }
+  }
+
+
+  async function verificarRegistroPorId(id) {
+try {
+    // Referência à coleção 'registros'
+    const registrosRef = collection(db, 'registros');
+    
+    // Cria uma consulta para buscar documentos onde o campo 'id' é igual ao valor fornecido
+    const q = query(registrosRef, where("id", "==", id));
+    
+    // Executa a consulta
+    const querySnapshot = await getDocs(q);
+
+    // Retorna true se pelo menos um documento for encontrado, false caso contrário
+    return !querySnapshot.empty;
+  } catch (error) {
+    console.error('Erro ao verificar campo id na coleção registros:', error.message);
+    return false; // Retorna false em caso de erro
+  }
+}
+
+
+
+
+  const toqueItem = async () => {
 
     if (item.pago && !!item.imageUrl && !isSwiped) {
       setImagemSelecionada(item.imageUrl);
       setModalVisible(true);
 
     } else if (!item.pago && !isSwiped) {
+      if (item.parcela > await buscarPrimeiraParcela(item?.id)) return
+
       navigation.navigate('Pagamento', item)
     }
+
     setIsSwiped(false);
     setSwipedItemId(null);
     Animated.timing(translateX, {
@@ -69,10 +113,11 @@ export default function Item({ item }) {
 
 
 
-  const handleLongPress = () => {
+  const handleLongPress = async () => {
+
 
     if (timeDifference > twentyFourHoursInMs || item.parcelaQuit || item.parcela > 1) {
-      setNotificacao('Item invalido para exclusão')
+      // setNotificacao('Item invalido para exclusão')
       return; // Block long press if item is paid and older than 24 hours
     }
 
@@ -146,10 +191,14 @@ export default function Item({ item }) {
                   estilo={[styles.detailText]}
                 />
 
-                {!!item.ministerio ? <Texto wheight={'fina'} estilo={{ color: '#838383ff' }} texto={item.ministerio?.label?.replace('Min. ', '')} /> : null}
+                {/* {!!item.ministerio ? <Texto wheight={'fina'}size={13} texto={item.ministerio?.label?.replace('Min. ', '')} /> : null} */}
               </View>
 
               <View style={{ alignSelf: 'flex-end', flexDirection: 'row', gap: 14 }}>
+
+                {!!item.imageUrl && (
+                  <Icone size={14} nome="paperclip" color='#000' />
+                )}
 
                 {timeDifference < twentyFourHoursInMs && !item.parcelaQuit || item?.parcela === 1 ? (
                   <Icone size={14} nome="lock-open-outline" color='#000' />
@@ -157,9 +206,6 @@ export default function Item({ item }) {
                   <Icone size={14} nome="lock-closed-outline" color='#000' />
                 )}
 
-                {!!item.imageUrl && (
-                  <Icone size={14} nome="paperclip" color='#000' />
-                )}
               </View>
             </View>
           </TouchableOpacity>
@@ -171,7 +217,7 @@ export default function Item({ item }) {
           <View style={styles.swipeActions}>
 
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.despesa }]}
+              style={[styles.actionButton, { backgroundColor: colors.contra_theme }]}
               onPress={() => ExcluiRegistro(item)}
             >
               <Icone nome="trash-outline" size={24} color="#fff" />

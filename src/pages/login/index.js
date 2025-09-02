@@ -6,10 +6,11 @@ import Icone from '../../componentes/Icone';
 import { db } from '../../firebaseConnection';
 import { collection, getDocs } from 'firebase/firestore';
 import { AppContext } from '../../context/appContext';
+import Load from '../../componentes/load';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
-  const { setUsuarioDoAS, setNotificacao } = useContext(AppContext); 
+  const { setUsuarioDoAS, setNotificacao } = useContext(AppContext);
   const [selectedLetters, setSelectedLetters] = useState([]);
   const [currentLetters, setCurrentLetters] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -17,7 +18,7 @@ const LoginScreen = () => {
   const [targetWords, setTargetWords] = useState([]);
   const [filteredWords, setFilteredWords] = useState([]);
   const [fetchError, setFetchError] = useState(null);
-  const [ids, setIds] = useState({}); 
+  const [ids, setIds] = useState({});
 
   const [load, setLoad] = useState(true)
 
@@ -40,7 +41,7 @@ const LoginScreen = () => {
             if (chave && chave.trim() !== '') {
               const lowerChave = chave.toLowerCase();
               chaves.push(lowerChave);
-              ids[lowerChave] = { usuarioId: doc.id, nome }; 
+              ids[lowerChave] = { usuarioId: doc.id, nome };
             }
           });
 
@@ -62,7 +63,7 @@ const LoginScreen = () => {
 
   const generateRandomLetters = (requiredLetters) => {
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-    let letters = [...new Set(requiredLetters)]; 
+    let letters = [...new Set(requiredLetters)];
 
     while (letters.length < 9) {
       const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
@@ -75,6 +76,7 @@ const LoginScreen = () => {
   };
 
   useEffect(() => {
+
     if (filteredWords.length > 0 && currentStep < NUMLETRAS) {
       const requiredLetters = filteredWords
         .filter(word => word.length > currentStep)
@@ -104,8 +106,8 @@ const LoginScreen = () => {
           const usuario = ids[selectedWord];
 
           await AsyncStorage.setItem('usuarioAsyncStorage', JSON.stringify(usuario));
-          setUsuarioDoAS(usuario); 
-            setNotificacao(`Você está logado em: ${usuario?.nome}`)
+          setUsuarioDoAS(usuario);
+          setNotificacao(`Você está logado em: ${usuario?.nome}`)
           navigation.reset({
             index: 0,
             routes: [{ name: 'Main' }],
@@ -136,33 +138,29 @@ const LoginScreen = () => {
   };
 
   const renderIcones = () => {
-    if (targetWords.length === 0) return null; 
+    if (targetWords.length === 0) return null;
 
     const totalLength = NUMLETRAS;
     const selectedCount = selectedLetters.length;
     const icons = [];
 
     for (let i = 0; i < selectedCount; i++) {
-      icons.push(<Icone key={`sharp-${i}`} nome="medical-sharp" size={32} color={colors.receita} />);
+      icons.push(<Icone key={`sharp-${i}`} nome="medical-outline" size={18} color={colors.contra_theme} />);
     }
 
     for (let i = selectedCount; i < totalLength; i++) {
-      icons.push(<Icone key={`outline-${i}`} nome="medical-outline" size={32} />);
+      icons.push(<Icone key={`outline-${i}`} nome="medical-outline" size={18} color={'#ddd'} />);
     }
 
     return (
       <View style={styles.iconeContainer}>
         {icons}
-        <TouchableOpacity style={styles.clearButton} onPress={handleClearPassword}>
-          {selectedLetters.length > 0 && !showError ? (
-            <Icone nome="close-circle-outline" size={35} color="#333" />
-          ) : (
-            <Icone nome="close-circle-outline" size={35} color="#eee" />
-          )}
-        </TouchableOpacity>
+
       </View>
     );
   };
+
+  if (load) return <Load />
 
   return (
     <View style={styles.container}>
@@ -173,6 +171,7 @@ const LoginScreen = () => {
       ) : (
         <>
           {renderIcones()}
+
           {showError ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>Senha Incorreta.</Text>
@@ -199,6 +198,9 @@ const LoginScreen = () => {
                   </TouchableOpacity>
                 )
               })}
+              <TouchableOpacity onPress={handleClearPassword} style={[styles.letterButton, { backgroundColor: colors.botao }]}>
+                <Icone nome="backspace-outline" size={26} color="#333" />
+              </TouchableOpacity>
             </View>
           )}
         </>
@@ -217,29 +219,30 @@ const styles = StyleSheet.create({
   },
   iconeContainer: {
     flexDirection: 'row',
-    marginBottom: 42,
-    height: 100,
+    marginBottom: 24,
+    // height: 60,
     alignItems: 'center',
+    gap: 14
   },
   lettersContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    width: 250,
+    width: 280,
   },
   letterButton: {
     width: 80,
-    height: 100,
-    margin: 1,
+    height: 80,
+    margin: 2,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   letterText: {
-    fontSize: 22,
+    fontSize: 20,
     color: '#333',
     fontWeight: '500',
-    fontFamily:'Roboto-Bold'
+    fontFamily: 'Roboto-Medium'
   },
   errorContainer: {
     alignItems: 'center',
