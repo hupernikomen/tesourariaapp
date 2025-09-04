@@ -11,7 +11,7 @@ import Avisos from '../../componentes/Avisos';
 
 export default function Lixeira() {
   const { cores } = useTheme();
-  const { HistoricoMovimentos, BuscarLixeira, lixo, formatoMoeda, load, setLoad, ResumoFinanceiro, setAvisos, avisos, setAviso,aviso } = useContext(AppContext);
+  const { HistoricoMovimentos, BuscarLixeira, lixo, formatoMoeda, load, setLoad, ResumoFinanceiro, setAviso,aviso } = useContext(AppContext);
 
   const DIASEXCLUSAO = 15;
 
@@ -85,7 +85,7 @@ export default function Lixeira() {
         setLoad(false);
       });
 
-      setAviso({ titulo: 'Sucesso', mensagem: 'Item reestaurado aos itens pagos' })
+      setAviso({ titulo: 'Sucesso', mensagem: 'O item foi reestaurado à página de registros' })
     } catch (e) {
       console.log('Erro ao restaurar o registro:', e.message, e.stack);
     }
@@ -123,7 +123,7 @@ export default function Lixeira() {
 
   return (
     <View style={styles.container}>
-      <Avisos visible={aviso} setAvisos={setAvisos} message={aviso.mensagem} title={aviso.titulo} />
+      <Avisos visible={aviso} setAviso={setAviso} message={aviso.mensagem} title={aviso.titulo} />
       <FlatList
         contentContainerStyle={{ paddingVertical: 14 }}
         showsVerticalScrollIndicator={false}

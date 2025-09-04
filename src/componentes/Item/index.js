@@ -9,7 +9,7 @@ import { doc, getDoc, collection, query, where, getDocs } from "firebase/firesto
 import { db } from '../../firebaseConnection';
 
 export default function Item({ item }) {
-  const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro, setAviso, aviso, setAvisos, avisos } = useContext(AppContext);
+  const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro, setAviso, aviso, avisos } = useContext(AppContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [imagemSelecionada, setImagemSelecionada] = useState(null);
   const [isSwiped, setIsSwiped] = useState(false);
@@ -153,7 +153,7 @@ export default function Item({ item }) {
   return (
     <>
 
-      <Avisos visible={avisos} setAvisos={setAvisos} message={aviso.mensagem} title={aviso.titulo} />
+      <Avisos visible={avisos} setAviso={setAviso} message={aviso.mensagem} title={aviso.titulo} />
 
       <View style={styles.container}>
         <Animated.View style={[styles.animatedContainer, { transform: [{ translateX }] }]}>

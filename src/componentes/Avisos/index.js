@@ -1,27 +1,18 @@
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 
-export default function Avisos({ setAvisos, visible, title, message, okButtonText = 'OK', payButtonText = 'Pagar Agora', onOkPress, onPayPress, onClose }) {
-
+export default function Avisos({ setAviso, visible, title, message }) {
 
   return (
     <Modal
       transparent={true}
-      visible={visible}
+      visible={!!visible?.mensagem}
       animationType="fade"
-      onRequestClose={onClose}
     >
-      <TouchableOpacity onPress={() => setAvisos(false)} style={styles.modalOverlay}>
+      <TouchableOpacity onPress={() => {
+        setAviso({})}} style={styles.modalOverlay}>
         <View style={styles.alertContainer}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
-          <View style={styles.buttonContainer}>
-            {/* <TouchableOpacity onPress={onOkPress} style={[styles.button, styles.cancelButton]}>
-              <Text style={styles.buttonText}>{okButtonText}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onPayPress} style={[styles.button, {backgroundColor:colors.receita}]}>
-              <Text style={styles.buttonText}>{payButtonText}</Text>
-            </TouchableOpacity> */}
-          </View>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -31,7 +22,7 @@ export default function Avisos({ setAvisos, visible, title, message, okButtonTex
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    backgroundColor: 'rgba(70, 70, 70, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -41,6 +32,7 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '80%',
     alignItems: 'center',
+    elevation: 7
   },
   title: {
     fontFamily: 'Roboto-Bold',

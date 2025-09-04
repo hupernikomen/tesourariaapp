@@ -20,8 +20,7 @@ export function AppProvider({ children }) {
   const [lixo, setLixo] = useState([])
   const navigation = useNavigation()
 
-  const [avisos, setAvisos] = useState(false);
-  const [aviso, setAviso] = useState('');
+  const [aviso, setAviso] = useState({});
 
   useEffect(() => {
 
@@ -31,13 +30,6 @@ export function AppProvider({ children }) {
   }, []);
 
 
-
-  useEffect(() => {
-
-    if (!!aviso.mensagem) {
-      setAvisos(true)
-    }
-  }, [aviso])
 
 
   async function BuscarUsuarioAsyncStorage() {
@@ -510,7 +502,6 @@ export function AppProvider({ children }) {
       BuscarLixeira,
       lixo,
       setAviso, aviso,
-      setAvisos, avisos
 
     }}>
       {children}

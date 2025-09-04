@@ -49,10 +49,10 @@ const LoginScreen = () => {
           setFilteredWords(chaves);
           setIds(ids);
         } else {
-          setFetchError('No user documents with valid chave found.');
+          setFetchError('Ops.. ocorreu algum problema');
         }
       } catch (error) {
-        setFetchError('Failed to load passwords from database.');
+        setFetchError('Ops.. ocorreu algum problema');
       } finally {
         setLoad(false)
       }
@@ -145,11 +145,11 @@ const LoginScreen = () => {
     const icons = [];
 
     for (let i = 0; i < selectedCount; i++) {
-      icons.push(<Icone key={`sharp-${i}`} nome="medical-outline" size={18} color={cores.preto} />);
+      icons.push(<Icone key={`sharp-${i}`} nome="lock-open-outline" size={16} color={cores.preto} />);
     }
 
     for (let i = selectedCount; i < totalLength; i++) {
-      icons.push(<Icone key={`outline-${i}`} nome="medical-outline" size={18} color={'#ddd'} />);
+      icons.push(<Icone key={`outline-${i}`} nome="lock-closed-outline" size={16} color={'#ddd'} />);
     }
 
     return (
@@ -170,47 +170,43 @@ const LoginScreen = () => {
         </View>
       ) : (
         <>
-          {renderIcones()}
 
           {showError ? (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>Senha Incorreta.</Text>
-              <TouchableOpacity style={styles.tryAgainButton} onPress={handleTryAgain}>
+              <TouchableOpacity style={[styles.tryAgainButton, { backgroundColor: cores.preto }]} onPress={handleTryAgain}>
                 <Text style={styles.tryAgainText}>Tentar Novamente</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.lettersContainer}>
+            <>
+              {renderIcones()}
+              <View style={styles.lettersContainer}>
 
 
-              {currentLetters.map((letter, index) => {
-                return (
+                {currentLetters.map((letter, index) => {
+                  return (
 
-                  <TouchableOpacity
-                    key={index}
-                    style={[styles.letterButton, { backgroundColor: cores.botao }]}
-                    onPress={() => handleLetterPress(letter)}
-                    disabled={targetWords.length === 0}
-                  >
-                    {load ?
-                      null :
-                      <Text style={styles.letterText}>{letter.toUpperCase()}</Text>
-                    }
-                  </TouchableOpacity>
-                )
-              })}
+                    <TouchableOpacity
+                      key={index}
+                      style={[styles.letterButton, { backgroundColor: cores.botao }]}
+                      onPress={() => handleLetterPress(letter)}
+                      disabled={targetWords.length === 0 || load}
+                    >
+                      {load ?
+                        null :
+                        <Text style={styles.letterText}>{letter.toUpperCase()}</Text>
+                      }
+                    </TouchableOpacity>
+                  )
+                })}
 
-              <TouchableOpacity onPress={handleClearPassword} style={[styles.letterButton, { backgroundColor: cores.botao }]}>
-                <Icone nome="backspace-outline" size={26} color="#333" />
-              </TouchableOpacity>
-              <View style={[styles.letterButton, { backgroundColor: cores.botao }]}>
-                <View>
+                <TouchableOpacity onPress={handleClearPassword} style={[styles.letterButton, { backgroundColor: cores.botao }]}>
+                  <Icone nome="backspace-outline" size={26} color="#333" />
+                </TouchableOpacity>
 
-                  <Text style={{ fontFamily: 'Roboto-Light', fontSize: 12, marginBottom: -4 }}>APP</Text>
-                  <Text style={styles.letterText}>PSHT</Text>
-                </View>
               </View>
-            </View>
+            </>
           )}
         </>
       )}
@@ -238,6 +234,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     width: 280,
+    marginTop:21
   },
   letterButton: {
     width: 80,
@@ -263,7 +260,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   tryAgainButton: {
-    backgroundColor: '#db5e5eff',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,

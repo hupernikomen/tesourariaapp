@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../firebaseConnection';
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { useIsFocused, useNavigation, useTheme } from '@react-navigation/native';
+import { useNavigation, useTheme } from '@react-navigation/native';
 import { AppContext } from '../../context/appContext';
 import Input from '../../componentes/Input';
 import Botao from '../../componentes/Botao';
@@ -13,7 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomPickerModal from '../../componentes/picker';
 
 export default function AddRegistros() {
-  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, setNotificacao, load, setLoad, setAviso, setAvisos } = useContext(AppContext);
+  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, load, setLoad, setAviso, setAvisos } = useContext(AppContext);
   const navigation = useNavigation();
   const { cores } = useTheme();
 
@@ -181,7 +181,6 @@ export default function AddRegistros() {
     } catch (e) {
       console.log('Erro ao adicionar documento:', e);
     } finally {
-      setNotificacao(`SOLICITAÇÃO REGISTRADA`)
       setLoad(false);
       setTipoSelecionado(null);
       setData(new Date());

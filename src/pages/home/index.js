@@ -8,7 +8,7 @@ import Load from '../../componentes/load';
 import Avisos from '../../componentes/Avisos';
 
 export default function Home() {
-  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, load, setLoad, HistoricoMovimentos, notificacao, setNotificacao, BuscarRegistrosFuturos, BuscarSaldo, avisos, setAvisos, aviso, setAviso } = useContext(AppContext);
+  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, load, setLoad, HistoricoMovimentos, notificacao, setNotificacao, BuscarRegistrosFuturos, BuscarSaldo, aviso, setAviso } = useContext(AppContext);
   const { cores } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const slideAnim = useRef(new Animated.Value(-100)).current;
@@ -60,7 +60,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Avisos visible={aviso} setAvisos={setAvisos} message={aviso.mensagem} title={aviso.titulo} />
+      <Avisos visible={aviso} setAviso={setAviso} message={aviso.mensagem} title={aviso.titulo} />
       <FlatList
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={<View style={styles.itemSeparator} />}
