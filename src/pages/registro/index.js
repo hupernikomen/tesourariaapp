@@ -13,9 +13,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomPickerModal from '../../componentes/picker';
 
 export default function AddRegistros() {
-  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, setNotificacao, load, setLoad } = useContext(AppContext);
+  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, setNotificacao, load, setLoad, setAviso, setAvisos } = useContext(AppContext);
   const navigation = useNavigation();
-  const { colors } = useTheme();
+  const { cores } = useTheme();
 
   const [data, setData] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
@@ -109,7 +109,6 @@ export default function AddRegistros() {
 
   async function Registrar() {
 
-    setLoad(true)
 
     const isValidString = (str) => {
       if (typeof str !== 'string' || str.trim() === '') return false;
@@ -145,6 +144,9 @@ export default function AddRegistros() {
           detalhamento,
           pago: true,
         });
+
+        setAvisos(true)
+        setAviso({ titulo: 'Sucesso', mensagem: `Registro do tipo '${tipoSelecionado.label}' realizado` })
 
       } else {
         const parcelas = [];
@@ -270,7 +272,7 @@ export default function AddRegistros() {
       )}
 
       <Input
-        title={'Data'}
+        title={'Data *'}
         editable={false}
         value={data.toLocaleDateString('pt-BR')}
         onpress={() => setShow(true)}
@@ -278,7 +280,7 @@ export default function AddRegistros() {
       />
 
       <CustomPickerModal
-        titulo={'Tipo de Registro'}
+        titulo={'Tipo de Registro *'}
         itens={tipos}
         selectedValue={tipoSelecionado}
         setSelectedValue={setTipoSelecionado}
@@ -286,7 +288,7 @@ export default function AddRegistros() {
 
       <CustomPickerModal
         mostrar={montaTela.includes('Ministerio')}
-        titulo={'Ministério'}
+        titulo={'Ministério *'}
         itens={ministerios}
         selectedValue={ministerioSelecionado}
         setSelectedValue={setMinisterioSelecionado}
@@ -294,7 +296,7 @@ export default function AddRegistros() {
 
       <Input
         mostrar={montaTela.includes('Imagem da Nota')}
-        title={'Imagem da Nota'}
+        title={'Imagem da Nota (opcional)'}
         value={imagem ? 'Imagem Carregada' : ''}
         editable={false}
         iconName={imagem ? 'checkmark-done' : 'attach'}
@@ -303,7 +305,7 @@ export default function AddRegistros() {
 
       <Input
         mostrar={montaTela.includes('Total a pagar') || montaTela.includes('Valor')}
-        title={tipoSelecionado?.parcela ? 'Total a pagar' : 'Valor'}
+        title={tipoSelecionado?.parcela ? 'Total a pagar *' : 'Valor *'}
         value={valor}
         setValue={setValor}
         type="numeric"
@@ -311,7 +313,7 @@ export default function AddRegistros() {
 
       <Input
         mostrar={montaTela.includes('Nº de Prestações')}
-        title={'Nº de Prestações'}
+        title={'Nº de Prestações *'}
         value={recorrencia}
         setValue={setRecorrencia}
         type="numeric"
@@ -320,7 +322,7 @@ export default function AddRegistros() {
 
       <Input
         mostrar={montaTela.includes('Detalhamento')}
-        title={'Detalhamento'}
+        title={'Detalhamento *'}
         value={detalhamento}
         setValue={setDetalhamento}
       />
@@ -330,7 +332,7 @@ export default function AddRegistros() {
         texto={recorrencia ? 'Registro Futuro' : 'Confirmar Registro'}
         reload={load}
         icone={'save-outline'}
-        corBotao={colors.receita}
+        corBotao={cores.receita}
       />
     </ScrollView>
   );

@@ -16,12 +16,12 @@ import Lixeira from './src/pages/lixeira';
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
-const Theme = {
+const Tema = {
   ...DefaultTheme,
-  colors: {
-    theme: '#fefefe',
+  cores: {
+    // tema: '#fefefe',
     botao: '#fbfbfb',
-    contra_theme: '#4b4a56ff',
+    preto: '#4b4a56ff',
     background: '#f5f5f3ff',
     receita: '#598e88ff',
     despesa: '#db5e5eff',
@@ -41,12 +41,12 @@ function TabNavigator() {
       screenOptions={{
         tabBarItemStyle: { width: 114,height:70 },
         tabBarScrollEnabled: true,
-        tabBarIndicatorStyle: { backgroundColor: Theme.colors.background, height: 6 },
-        tabBarActiveTintColor: Theme.colors.theme,
+        tabBarIndicatorStyle: { backgroundColor: Tema.cores.background, height: 6 },
+        tabBarActiveTintColor: Tema.cores.botao,
         tabBarInactiveTintColor: '#7aa49fff',
-        tabBarStyle: { backgroundColor: Theme.colors.receita},
+        tabBarStyle: { backgroundColor: Tema.cores.receita},
         tabBarLabelStyle: {
-          fontFamily:Theme.font.bold
+          fontFamily:Tema.font.bold
         },
       }}
     >
@@ -87,20 +87,20 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer theme={Theme}>
-      <StatusBar backgroundColor={Theme.colors.receita} barStyle={'light-content'} />
+    <NavigationContainer theme={Tema}>
+      <StatusBar backgroundColor={Tema.cores.receita} barStyle={'light-content'} />
       <AppProvider>
         <Stack.Navigator
           initialRouteName="LoginScreen"
           screenOptions={({ navigation, route }) => ({
             headerStyle: {
-              backgroundColor: Theme.colors.receita,
+              backgroundColor: Tema.cores.receita,
             },
             headerTitleStyle: {
               fontFamily: 'Roboto-Medium',
               fontSize: 18,
             },
-            headerTintColor: Theme.colors.botao,
+            headerTintColor: Tema.cores.botao,
           })}
         >
           <Stack.Screen

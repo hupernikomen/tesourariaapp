@@ -8,7 +8,7 @@ import Botao from '../../componentes/Botao'
 import Load from '../../componentes/load';
 
 export default function Pagamento() {
-  const { colors } = useTheme()
+  const { cores } = useTheme()
   const route = useRoute()
   const { RegistrarPagamentoParcela, formatoMoeda, load } = useContext(AppContext)
   const [currentDate, setCurrentData] = useState(new Date())
@@ -76,7 +76,7 @@ export default function Pagamento() {
       </View>
 
 
-      <Botao acao={() => setShow(true)} texto={`Data do Pagamento: ${currentDate.toLocaleDateString('pt-BR')}`} corBotao={colors.contra_theme} corTexto={colors.contra_theme} />
+      <Botao acao={() => setShow(true)} texto={`Data do Pagamento: ${currentDate.toLocaleDateString('pt-BR')}`} corBotao={cores.preto} corTexto={cores.preto} />
       <Botao acao={registrarPagamento} texto={`Confirmar Pagamento`} />
     </View>
   );

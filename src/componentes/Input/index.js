@@ -1,5 +1,4 @@
 import { View, Text, TextInput, StyleSheet, Pressable } from 'react-native';
-import Icone from '../Icone';
 
 export default function Input({ mostrar = true,list = [], iconName, editable = true, type = 'default', title, value, setValue, multiline = true, maxlength, info, onpress, place }) {
 

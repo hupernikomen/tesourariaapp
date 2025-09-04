@@ -12,7 +12,7 @@ export default function Relatorio() {
   const { BuscarSaldo, resumoFinanceiro, formatoMoeda } = useContext(AppContext);
   const [dadosFiltrados, setDadosFiltrados] = useState([]);
   const width = Dimensions.get('window').width;
-  const { colors } = useTheme();
+  const { cores } = useTheme();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -440,12 +440,12 @@ export default function Relatorio() {
                   <Icone
                     nome={isReceitasExpanded ? 'chevron-down' : 'chevron-forward'}
                     size={18}
-                    color={colors.contra_theme}
+                    color={cores.preto}
                     style={styles.iconLeft}
                   />
                   <Text style={styles.sectionTitle}>Receitas</Text>
                 </View>
-                <Text style={[styles.detailValue, { color: colors.receita }]}>
+                <Text style={[styles.detailValue, { color: cores.receita }]}>
                   + {formatoMoeda.format(mesData.receita)}
                 </Text>
               </TouchableOpacity>
@@ -455,7 +455,7 @@ export default function Relatorio() {
                 {receitas.map((item) => (
                   <View key={item.tipo} style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
-                    <Text style={[styles.detailValue, { color: colors.receita }]}>
+                    <Text style={[styles.detailValue, { color: cores.receita }]}>
                       + {formatoMoeda.format(item.total)}
                     </Text>
                   </View>
@@ -469,7 +469,7 @@ export default function Relatorio() {
                   <Icone
                     nome={isDespesasExpanded ? 'chevron-down' : 'chevron-forward'}
                     size={16}
-                    color={colors.contra_theme}
+                    color={cores.preto}
                     style={styles.iconLeft}
                   />
                   <Text style={styles.sectionTitle}>Despesas</Text>
@@ -488,7 +488,7 @@ export default function Relatorio() {
                         <Icone
                           nome={expandedTipos[item.tipo] ? 'chevron-down' : 'chevron-forward'}
                           size={16}
-                          color={colors.contra_theme}
+                          color={cores.preto}
                           style={styles.iconLeft}
                         />
                         <Text style={styles.detailLabel}>{item.tipo.toUpperCase()}</Text>
@@ -516,12 +516,12 @@ export default function Relatorio() {
                   <Icone
                     nome={mesData.saldo >= 0 ? 'trending-up' : 'trending-down'}
                     size={18}
-                    color={colors.contra_theme}
+                    color={cores.preto}
                     style={styles.iconLeft}
                   />
                   <Text style={styles.sectionTitle}>Saldo</Text>
                 </View>
-                <Text style={[styles.detailValue, { color: mesData.saldo >= 0 ? colors.receita : colors.despesa }]}>
+                <Text style={[styles.detailValue, { color: mesData.saldo >= 0 ? cores.receita : cores.despesa }]}>
                   {mesData.saldo >= 0 ? '+' : '-'} {formatoMoeda.format(Math.abs(mesData.saldo))}
                 </Text>
               </View>
@@ -531,7 +531,7 @@ export default function Relatorio() {
           <Botao texto={'Gerar e Compartilhar PDF'} icone={'share-social-outline'} acao={() => {
 
             generatePDF(mesData)
-          }} corBotao={colors.receita} />
+          }} corBotao={cores.receita} />
         </ScrollView>
       </View>
     );
@@ -551,13 +551,14 @@ export default function Relatorio() {
       screenOptions={{
         tabBarScrollEnabled: true,
         tabBarItemStyle: { width: width },
+        tabBarIndicatorStyle: { backgroundColor: cores.background, height:6 },
         tabBarActiveTintColor: '#333',
         tabBarInactiveTintColor: '#ddd',
-        tabBarLabelStyle: { fontFamily: 'Raleway-Bold', color: colors.contra_theme, fontSize: 20 },
+        tabBarLabelStyle: { fontFamily: 'Raleway-Bold', color: cores.preto, fontSize: 20 },
         tabBarStyle: {
           height: 70,
           justifyContent: 'center',
-          backgroundColor: colors.botao,
+          backgroundColor: cores.botao,
           elevation: 0,
         },
       }}

@@ -7,10 +7,11 @@ import { getStorage, ref, deleteObject } from 'firebase/storage';
 import { useTheme } from '@react-navigation/native';
 import Icone from '../../componentes/Icone';
 import Load from '../../componentes/load';
+import Avisos from '../../componentes/Avisos';
 
 export default function Lixeira() {
-  const { colors } = useTheme();
-  const { HistoricoMovimentos, BuscarLixeira, lixo, formatoMoeda, load, setLoad, ResumoFinanceiro } = useContext(AppContext);
+  const { cores } = useTheme();
+  const { HistoricoMovimentos, BuscarLixeira, lixo, formatoMoeda, load, setLoad, ResumoFinanceiro, setAvisos, avisos, setAviso,aviso } = useContext(AppContext);
 
   const DIASEXCLUSAO = 15;
 
@@ -19,6 +20,7 @@ export default function Lixeira() {
     setLoad(true);
     Promise.all([ExcluirItensAntigos(), BuscarLixeira()]).finally(() => setLoad(false));
   }, []);
+
 
   async function ExcluirItensAntigos() {
     try {
@@ -82,6 +84,8 @@ export default function Lixeira() {
       await Promise.all([setDoc(destinoDoc, itemRestaurado), deleteDoc(lixeiraDoc), HistoricoMovimentos(), ResumoFinanceiro(), BuscarLixeira()]).finally(() => {
         setLoad(false);
       });
+
+      setAviso({ titulo: 'Sucesso', mensagem: 'Item reestaurado aos itens pagos' })
     } catch (e) {
       console.log('Erro ao restaurar o registro:', e.message, e.stack);
     }
@@ -90,14 +94,15 @@ export default function Lixeira() {
   if (load) return <Load />;
 
   const RenderItem = ({ item }) => {
+
     return (
       <View style={{ flexDirection: 'row', marginHorizontal: 14, alignItems: 'center', gap: 14, }}>
-        <View style={{ padding: 14, backgroundColor: colors.botao, flex: 1, borderRadius: 7 }}>
+        <View style={{ padding: 14, backgroundColor: cores.botao, flex: 1, borderRadius: 7 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={{ fontSize: 11, textTransform: 'uppercase' }}>{item.tipo}</Text>
             {/* <View style={{ flexDirection: "row", alignItems: 'center', alignSelf: 'flex-end', gap: 7 }}>
               <Icone nome={'time-outline'} size={14} />
-              <Text style={{ fontFamily: 'Roboto-Light', fontSize: 13, color: colors.contra_theme }}>
+              <Text style={{ fontFamily: 'Roboto-Light', fontSize: 13, color: colors.preto }}>
                 {calcularTempoRestante(item.dataexclusao)}
               </Text>
             </View> */}
@@ -108,9 +113,9 @@ export default function Lixeira() {
         </View>
         <TouchableOpacity
           onPress={() => RestaurarRegistro(item)}
-          style={{ elevation: 3, padding: 7, backgroundColor: colors.contra_theme, width: 50, height: 60, alignItems: 'center', justifyContent: 'center', borderRadius: 7 }}
+          style={{ elevation: 3, padding: 7, backgroundColor: cores.preto, width: 50, height: 60, alignItems: 'center', justifyContent: 'center', borderRadius: 7 }}
         >
-          <Icone nome={'repeat'} color={colors.botao} />
+          <Icone nome={'repeat'} color={cores.botao} />
         </TouchableOpacity>
       </View>
     );
@@ -118,6 +123,7 @@ export default function Lixeira() {
 
   return (
     <View style={styles.container}>
+      <Avisos visible={aviso} setAvisos={setAvisos} message={aviso.mensagem} title={aviso.titulo} />
       <FlatList
         contentContainerStyle={{ paddingVertical: 14 }}
         showsVerticalScrollIndicator={false}
@@ -127,9 +133,10 @@ export default function Lixeira() {
             <Text style={styles.emptyListText}>Lixeira vazia.</Text>
           </View>
         }
-
         data={lixo}
         renderItem={({ item }) => <RenderItem item={item} />}
+        keyExtractor={(item) => item.id} // Garante chaves únicas
+
       />
     </View>
   );

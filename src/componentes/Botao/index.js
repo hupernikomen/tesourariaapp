@@ -4,11 +4,11 @@ import { useTheme } from '@react-navigation/native';
 
 export default function Botao({ icone, acao, texto,  corBotao, altura = 55, reload }) {
   
-  const {colors} = useTheme()
+  const {cores} = useTheme()
   
   return (
     <Pressable style={{
-      backgroundColor: corBotao || colors.receita,
+      backgroundColor: corBotao || cores.receita,
       height: altura,
       borderRadius: 7,
       alignItems: 'center',
@@ -18,11 +18,11 @@ export default function Botao({ icone, acao, texto,  corBotao, altura = 55, relo
 
     }} onPress={acao}>
       {reload ?
-        <ActivityIndicator color={colors.botao} />
+        <ActivityIndicator color={cores.botao} />
         :
         <View style={{ flexDirection: 'row', alignItems: "center", gap: 14 }}>
-          {!!icone ? <Icone size={20} color={colors.botao} nome={icone} /> : null}
-          <Text style={{ color: colors.botao }}>{texto}</Text>
+          {!!icone ? <Icone size={20} color={cores.botao} nome={icone} /> : null}
+          <Text style={{ color: cores.botao }}>{texto}</Text>
         </View>
       }
     </Pressable>

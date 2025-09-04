@@ -4,7 +4,7 @@ import { AppContext } from "../../context/appContext";
 import { useNavigation, useTheme } from '@react-navigation/native';
 
 export default function Bxsaldo({ dados }) {
-  const { colors } = useTheme();
+  const { cores } = useTheme();
   const { obterNomeMes, formatoMoeda, resumoFinanceiro, loadSaldo } = useContext(AppContext);
   const navigation = useNavigation();
 
@@ -85,29 +85,29 @@ export default function Bxsaldo({ dados }) {
 
   return (
     <View>
-      <View style={[styles.headerContainer, { backgroundColor: colors.botao }]}>
+      <View style={[styles.headerContainer, { backgroundColor: cores.botao }]}>
         <Animated.View style={[styles.animatedContainer, { transform: [{ translateY: slideAnim }], opacity: opacityAnim }]}>
           <View style={styles.balanceContainer}>
-            <Text style={[styles.monthText, { color: colors.contra_theme }]}>
+            <Text style={[styles.monthText, { color: cores.preto }]}>
               {obterNomeMes(new Date().getMonth() - 1).toUpperCase()}
             </Text>
-            <Text style={[styles.balanceText, { color: colors.contra_theme }]}>
+            <Text style={[styles.balanceText, { color: cores.preto }]}>
               {formatoMoeda.format(obterSaldoMesAnterior(resumoFinanceiro))}
             </Text>
           </View>
 
           <View style={styles.balanceContainer}>
-            <Text style={[styles.monthText, { color: colors.contra_theme }]}>
+            <Text style={[styles.monthText, { color: cores.preto }]}>
               {obterNomeMes(new Date().getMonth()).toUpperCase()}
             </Text>
-            <Text style={[styles.balanceText, { color: colors.contra_theme }]}>
+            <Text style={[styles.balanceText, { color: cores.preto }]}>
               {formatoMoeda.format(dados.saldo)}
             </Text>
           </View>
 
           <TouchableOpacity onPress={() => navigation.navigate('Futuro')} style={styles.balanceContainer}>
-            <Animated.Text style={[styles.monthText, { color: colors.contra_theme, opacity: isVencido ? fadeAnim : 1}]}>FUTURO</Animated.Text>
-            <Text style={[styles.balanceText, { color: colors.contra_theme }]}>
+            <Animated.Text style={[styles.monthText, { color: cores.preto, opacity: isVencido ? fadeAnim : 1}]}>FUTURO</Animated.Text>
+            <Text style={[styles.balanceText, { color: cores.preto }]}>
               {formatoMoeda.format(-dados.futurosTotal + dados.saldo)}
             </Text>
           </TouchableOpacity>

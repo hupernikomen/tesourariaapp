@@ -5,10 +5,11 @@ import { AppContext } from '../../context/appContext';
 import Bxsaldo from '../../componentes/bxsaldo';
 import Item from '../../componentes/Item';
 import Load from '../../componentes/load';
+import Avisos from '../../componentes/Avisos';
 
 export default function Home() {
-  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, load, setLoad, HistoricoMovimentos, notificacao, setNotificacao, BuscarRegistrosFuturos, BuscarSaldo } = useContext(AppContext);
-  const { colors } = useTheme();
+  const { saldo, dadosFinancas, futurosTotal, dadosParcelas, load, setLoad, HistoricoMovimentos, notificacao, setNotificacao, BuscarRegistrosFuturos, BuscarSaldo, avisos, setAvisos, aviso, setAviso } = useContext(AppContext);
+  const { cores } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const slideAnim = useRef(new Animated.Value(-100)).current;
 
@@ -59,6 +60,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      <Avisos visible={aviso} setAvisos={setAvisos} message={aviso.mensagem} title={aviso.titulo} />
       <FlatList
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={<View style={styles.itemSeparator} />}
@@ -74,25 +76,27 @@ export default function Home() {
             <View style={styles.notificationContainer}>
               {notificacao && (
                 <Animated.View style={[styles.notification, { transform: [{ translateY: slideAnim }] }]}>
-                  <Text style={[styles.notificationText, { backgroundColor: colors.contra_theme, color: '#fff' }]}>
+                  <Text style={[styles.notificationText, { backgroundColor: cores.preto, color: '#fff' }]}>
                     {notificacao}
                   </Text>
                 </Animated.View>
               )}
             </View>
             {sortedRegistros.length > 0 ? <View style={[styles.sectionDivider, { borderBottomColor: '#e0e0e0' }]}>
-              <Text style={[styles.sectionTitle, { backgroundColor: colors.background }]}>ÚLTIMOS REGISTROS</Text>
+              <Text style={[styles.sectionTitle, { backgroundColor: cores.background }]}>ÚLTIMOS REGISTROS</Text>
             </View> : null}
           </View>
         }
         data={sortedRegistros}
+
         renderItem={({ item }) => <Item item={item} />}
+
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.contra_theme]}
-            tintColor={colors.contra_theme}
+            colors={[cores.preto]}
+            tintColor={cores.preto}
           />
         }
       />

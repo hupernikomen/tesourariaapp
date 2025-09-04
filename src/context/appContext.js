@@ -20,12 +20,24 @@ export function AppProvider({ children }) {
   const [lixo, setLixo] = useState([])
   const navigation = useNavigation()
 
+  const [avisos, setAvisos] = useState(false);
+  const [aviso, setAviso] = useState('');
+
   useEffect(() => {
 
     Promise.all([BuscarUsuarioAsyncStorage(), HistoricoMovimentos()])
 
 
   }, []);
+
+
+
+  useEffect(() => {
+
+    if (!!aviso.mensagem) {
+      setAvisos(true)
+    }
+  }, [aviso])
 
 
   async function BuscarUsuarioAsyncStorage() {
@@ -350,11 +362,12 @@ export function AppProvider({ children }) {
         dataexclusao: Date.now(), // Adiciona a data de exclusão
       };
 
-      setNotificacao('REGISTRO MOVIDO PARA A LIXEIRA');
       await setDoc(lixeiraDoc, itemParaLixeira);
       await deleteDoc(docRegistrosFinanceiros);
 
       await Promise.all([BuscarLixeira(), ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
+
+      setAviso({titulo:'Sucesso', mensagem:'Registro movido para a lixeira'})
 
     } catch (e) {
       console.log('Erro ao mover o registro para a lixeira:', e);
@@ -415,13 +428,13 @@ export function AppProvider({ children }) {
 
       await Promise.all([BuscarRegistrosFuturos(), ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
 
-      
+
     } catch (e) {
       console.error('Erro ao registrar pagamento da parcela:', e);
       throw e;
 
     } finally {
-      
+
       navigation.navigate('Main')
 
       setIsSwiped(false);
@@ -495,7 +508,10 @@ export function AppProvider({ children }) {
       calcularMediaGastos,
       notificacao, setNotificacao,
       BuscarLixeira,
-      lixo
+      lixo,
+      setAviso, aviso,
+      setAvisos, avisos
+
     }}>
       {children}
     </AppContext.Provider>

@@ -22,7 +22,7 @@ const LoginScreen = () => {
 
   const [load, setLoad] = useState(true)
 
-  const { colors } = useTheme();
+  const { cores } = useTheme();
   const NUMLETRAS = 5;
 
   useEffect(() => {
@@ -145,7 +145,7 @@ const LoginScreen = () => {
     const icons = [];
 
     for (let i = 0; i < selectedCount; i++) {
-      icons.push(<Icone key={`sharp-${i}`} nome="medical-outline" size={18} color={colors.contra_theme} />);
+      icons.push(<Icone key={`sharp-${i}`} nome="medical-outline" size={18} color={cores.preto} />);
     }
 
     for (let i = selectedCount; i < totalLength; i++) {
@@ -164,7 +164,6 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={{marginVertical:28, fontFamily:'Roboto-Medium', fontSize:20, padding:14, borderRadius:7, backgroundColor:colors.botao}}>PSHT</Text>
       {fetchError ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{fetchError}</Text>
@@ -183,12 +182,13 @@ const LoginScreen = () => {
           ) : (
             <View style={styles.lettersContainer}>
 
+
               {currentLetters.map((letter, index) => {
                 return (
 
                   <TouchableOpacity
                     key={index}
-                    style={[styles.letterButton, { backgroundColor: colors.botao }]}
+                    style={[styles.letterButton, { backgroundColor: cores.botao }]}
                     onPress={() => handleLetterPress(letter)}
                     disabled={targetWords.length === 0}
                   >
@@ -199,9 +199,17 @@ const LoginScreen = () => {
                   </TouchableOpacity>
                 )
               })}
-              <TouchableOpacity onPress={handleClearPassword} style={[styles.letterButton, { backgroundColor: colors.botao }]}>
+
+              <TouchableOpacity onPress={handleClearPassword} style={[styles.letterButton, { backgroundColor: cores.botao }]}>
                 <Icone nome="backspace-outline" size={26} color="#333" />
               </TouchableOpacity>
+              <View style={[styles.letterButton, { backgroundColor: cores.botao }]}>
+                <View>
+
+                  <Text style={{ fontFamily: 'Roboto-Light', fontSize: 12, marginBottom: -4 }}>APP</Text>
+                  <Text style={styles.letterText}>PSHT</Text>
+                </View>
+              </View>
             </View>
           )}
         </>

@@ -40,6 +40,7 @@ export default function Futuro() {
             <Text style={styles.emptyListText}>Nenhum registro até o momento.</Text>
           </View>
         }
+        
         data={sortedParcelas}
         renderItem={({ item }) => <Item item={item} />}
         keyExtractor={(item, index) => `${item.id}-${item.parcela}-${index}`}

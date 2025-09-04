@@ -4,17 +4,17 @@ import Texto from '../Texto';
 import { AppContext } from '../../context/appContext';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import Icone from '../Icone';
-
+import Avisos from '../Avisos'
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from '../../firebaseConnection';
 
 export default function Item({ item }) {
-  const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro, setNotificacao } = useContext(AppContext);
+  const { formatoMoeda, swipedItemId, setSwipedItemId, ExcluiRegistro, setAviso, aviso, setAvisos, avisos } = useContext(AppContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [imagemSelecionada, setImagemSelecionada] = useState(null);
   const [isSwiped, setIsSwiped] = useState(false);
   const translateX = useState(new Animated.Value(0))[0];
-  const { colors } = useTheme();
+  const { cores } = useTheme();
   const navigation = useNavigation()
 
   useEffect(() => {
@@ -55,23 +55,23 @@ export default function Item({ item }) {
 
 
   async function verificarRegistroPorId(id) {
-try {
-    // Referência à coleção 'registros'
-    const registrosRef = collection(db, 'registros');
-    
-    // Cria uma consulta para buscar documentos onde o campo 'id' é igual ao valor fornecido
-    const q = query(registrosRef, where("id", "==", id));
-    
-    // Executa a consulta
-    const querySnapshot = await getDocs(q);
+    try {
+      // Referência à coleção 'registros'
+      const registrosRef = collection(db, 'registros');
 
-    // Retorna true se pelo menos um documento for encontrado, false caso contrário
-    return !querySnapshot.empty;
-  } catch (error) {
-    console.error('Erro ao verificar campo id na coleção registros:', error.message);
-    return false; // Retorna false em caso de erro
+      // Cria uma consulta para buscar documentos onde o campo 'id' é igual ao valor fornecido
+      const q = query(registrosRef, where("id", "==", id));
+
+      // Executa a consulta
+      const querySnapshot = await getDocs(q);
+
+      // Retorna true se pelo menos um documento for encontrado, false caso contrário
+      return !querySnapshot.empty;
+    } catch (error) {
+      console.error('Erro ao verificar campo id na coleção registros:', error.message);
+      return false; // Retorna false em caso de erro
+    }
   }
-}
 
 
 
@@ -83,7 +83,12 @@ try {
       setModalVisible(true);
 
     } else if (!item.pago && !isSwiped) {
-      if (item.parcela > await buscarPrimeiraParcela(item?.id)) return
+
+      if (item.parcela > await buscarPrimeiraParcela(item?.id)) {
+        setAviso({ titulo: 'Aviso', mensagem: 'Existe uma parcela pendente anterior a essa para este pagamento.' })
+        return
+
+      }
 
       navigation.navigate('Pagamento', item)
     }
@@ -117,8 +122,8 @@ try {
 
 
     if (timeDifference > twentyFourHoursInMs || item.parcelaQuit || item.parcela > 1) {
-      // setNotificacao('Item invalido para exclusão')
-      return; // Block long press if item is paid and older than 24 hours
+      setAviso({ titulo: 'Aviso', mensagem: 'Não é possivel editar ou excluir esse item.' })
+      return
     }
 
     // Existing condition for unpaid items or paid items within 24 hours
@@ -148,26 +153,28 @@ try {
   return (
     <>
 
+      <Avisos visible={avisos} setAvisos={setAvisos} message={aviso.mensagem} title={aviso.titulo} />
+
       <View style={styles.container}>
         <Animated.View style={[styles.animatedContainer, { transform: [{ translateX }] }]}>
           <TouchableOpacity
             activeOpacity={1}
             onPress={toqueItem}
             onLongPress={handleLongPress}
-            style={[styles.itemContainer, { backgroundColor: colors.botao }]}
+            style={[styles.itemContainer, { backgroundColor: cores.botao }]}
           >
 
             <View style={styles.itemContent}>
               <View
                 style={[
                   styles.dateTypeContainer,
-                  { backgroundColor: item.movimentacao === 'despesa' ? colors.despesa : colors.receita },
+                  { backgroundColor: item.movimentacao === 'despesa' ? cores.despesa : cores.receita },
                 ]}
               >
                 <Texto
                   texto={`${new Intl.DateTimeFormat('pt-BR', options).format(item.dataDoc)}`}
                   size={12}
-                  estilo={[styles.dateText, { backgroundColor: colors.botao }]}
+                  estilo={[styles.dateText, { backgroundColor: cores.botao }]}
                 />
                 <Texto
                   texto={`${item?.tipo.replace('_', ' ').toUpperCase()} ${item.parcela ? `${item?.parcela}/${item.recorrencia}` : ''}`}
@@ -217,7 +224,7 @@ try {
           <View style={styles.swipeActions}>
 
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.contra_theme }]}
+              style={[styles.actionButton, { backgroundColor: cores.preto }]}
               onPress={() => ExcluiRegistro(item)}
             >
               <Icone nome="trash-outline" size={24} color="#fff" />
@@ -232,7 +239,7 @@ try {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
+        <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {imagemSelecionada && (
               <Image
@@ -241,14 +248,9 @@ try {
                 resizeMode="contain"
               />
             )}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Icone name="close" size={24} color="#fff" />
-            </TouchableOpacity>
+
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
     </>
   );
@@ -314,8 +316,9 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     justifyContent: 'center',
+    overflow: 'hidden',
     alignItems: 'center',
   },
   modalContent: {
@@ -324,19 +327,14 @@ const styles = StyleSheet.create({
     height: '70%',
     overflow: 'hidden',
     position: 'relative',
-    padding: 7,
-    elevation: 15,
+    padding: 2,
+    elevation: 14,
+    borderRadius: 14,
   },
   modalImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 14,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    backgroundColor: '#333',
-    borderRadius: 20,
-    padding: 5,
-  },
+
 });
