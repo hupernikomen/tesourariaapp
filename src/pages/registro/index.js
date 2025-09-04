@@ -13,7 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomPickerModal from '../../componentes/picker';
 
 export default function AddRegistros() {
-  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, load, setLoad, setAviso, setAvisos } = useContext(AppContext);
+  const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, load, setLoad, setAviso } = useContext(AppContext);
   const navigation = useNavigation();
   const { cores } = useTheme();
 
@@ -36,8 +36,9 @@ export default function AddRegistros() {
     (async () => {
       const cameraStt = await Camera.requestCameraPermissionsAsync();
       setPermissaoCamera(cameraStt.status === 'granted');
-      await BuscarMinisterios();
-      await BuscarTipos();
+
+      await Promise.all(BuscarMinisterios(), BuscarTipos())
+
     })();
   }, []);
 
@@ -87,6 +88,7 @@ export default function AddRegistros() {
       return tiposArray;
     } catch (error) {
       console.log("Erro ao buscar tipos em AddRegistros", error);
+      setAviso({ titulo: 'Ops', mensagem: `Algo deu errado, verifique com o desenvolvedor` })
     }
   }
 
@@ -101,8 +103,10 @@ export default function AddRegistros() {
       }));
       setMinisterios(tiposArray);
       return tiposArray;
+
     } catch (error) {
       console.log("Erro ao buscar tipos em AddRegistros", error);
+      setAviso({ titulo: 'Ops', mensagem: `Algo deu errado, verifique com o desenvolvedor` })
     }
   }
 
@@ -145,8 +149,6 @@ export default function AddRegistros() {
           pago: true,
         });
 
-        setAvisos(true)
-        setAviso({ titulo: 'Sucesso', mensagem: `Registro do tipo '${tipoSelecionado.label}' realizado` })
 
       } else {
         const parcelas = [];
@@ -178,8 +180,15 @@ export default function AddRegistros() {
         });
 
       }
+
+      setAviso({ titulo: 'Sucesso', mensagem: `Registro do tipo '${tipoSelecionado.label}' realizado` })
+
+
     } catch (e) {
       console.log('Erro ao adicionar documento:', e);
+      setAviso({ titulo: 'Ops', mensagem: `Algo deu errado, verifique com o desenvolvedor` })
+
+
     } finally {
       setLoad(false);
       setTipoSelecionado(null);
@@ -227,9 +236,11 @@ export default function AddRegistros() {
         setSelectedImage(result.assets[0].uri);
         setImagem(result.assets[0].uri);
       }
+      
     } catch (error) {
       console.error('Erro ao acessar câmera:', error);
-      alert('Ocorreu um erro ao tentar abrir a câmera');
+      setAviso({ titulo: 'Ops', mensagem: `Algo deu errado, verifique com o desenvolvedor` })
+
     } finally {
       setLoad(false);
     }

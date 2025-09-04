@@ -85,7 +85,7 @@ export default function Lixeira() {
         setLoad(false);
       });
 
-      setAviso({ titulo: 'Sucesso', mensagem: 'O item foi reestaurado à página de registros' })
+      setAviso({ titulo: 'Sucesso', mensagem: 'Item restaurado à página de registros' })
     } catch (e) {
       console.log('Erro ao restaurar o registro:', e.message, e.stack);
     }

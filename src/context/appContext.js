@@ -190,7 +190,7 @@ export function AppProvider({ children }) {
 
 
       if (saldoDoc.exists()) {
-        const atual = saldoDoc.data().atual;
+        const atual = saldoDoc?.data().atual;
         setSaldo(atual);
         await ResumoFinanceiro();
         return atual; // Retorna o valor do campo 'atual'
@@ -359,7 +359,7 @@ export function AppProvider({ children }) {
 
       await Promise.all([BuscarLixeira(), ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
 
-      setAviso({titulo:'Sucesso', mensagem:'Registro movido para a lixeira'})
+      setAviso({titulo:'Sucesso', mensagem:'Registro será excluido automaticamente da lixeira após 15 dias'})
 
     } catch (e) {
       console.log('Erro ao mover o registro para a lixeira:', e);
@@ -392,7 +392,7 @@ export function AppProvider({ children }) {
       }
 
       await addDoc(collection(db, 'registros'), {
-        id: item.id,
+        parcelaId: item.id,
         idUsuario: usuarioDoAS.usuarioId,
         reg: item.dataDoc,
         dataDoc: new Date(dataDoc).getTime(),
@@ -416,10 +416,8 @@ export function AppProvider({ children }) {
         await deleteDoc(docRef);
       }
 
-      setNotificacao('PAGAMENTO REGISTRADO')
-
       await Promise.all([BuscarRegistrosFuturos(), ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
-
+      setAviso({titulo:'Sucesso', mensagem:'O pagamento da parcela foi registrado'})
 
     } catch (e) {
       console.error('Erro ao registrar pagamento da parcela:', e);

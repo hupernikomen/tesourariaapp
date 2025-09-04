@@ -107,7 +107,6 @@ const LoginScreen = () => {
 
           await AsyncStorage.setItem('usuarioAsyncStorage', JSON.stringify(usuario));
           setUsuarioDoAS(usuario);
-          setNotificacao(`Você está logado em: ${usuario?.nome}`)
           navigation.reset({
             index: 0,
             routes: [{ name: 'Main' }],

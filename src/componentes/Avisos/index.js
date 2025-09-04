@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   alertContainer: {
     backgroundColor: '#fff',
     borderRadius: 10,
-    padding: 20,
+    padding: 14,
     width: '80%',
     alignItems: 'center',
     elevation: 7
@@ -37,14 +37,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Roboto-Bold',
     fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
     marginBottom: 10,
   },
   message: {
     fontFamily: 'Roboto-Light',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 7,
   },
 
 });

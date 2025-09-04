@@ -9,7 +9,7 @@ import { useTheme } from '@react-navigation/native';
 import Icone from '../../componentes/Icone';
 
 export default function Relatorio() {
-  const { BuscarSaldo, resumoFinanceiro, formatoMoeda } = useContext(AppContext);
+  const { BuscarSaldo, resumoFinanceiro, formatoMoeda, usuarioDoAS } = useContext(AppContext);
   const [dadosFiltrados, setDadosFiltrados] = useState([]);
   const width = Dimensions.get('window').width;
   const { cores } = useTheme();
@@ -20,6 +20,7 @@ export default function Relatorio() {
     };
 
     fetchData();
+    
   }, []);
 
   useEffect(() => {
@@ -340,7 +341,7 @@ export default function Relatorio() {
                   ` : ''}
                 </div>
                 <div class="footer">
-                  Relatório de ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')} | Igreja Batista no PSH
+                  Relatório de ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')} | ${usuarioDoAS.nome}
                 </div>
               </div>
               <div class="detail-column">
