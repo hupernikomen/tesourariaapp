@@ -182,6 +182,7 @@ export default function Item({ item }) {
                   estilo={styles.typeText}
                 />
               </View>
+
               <Texto
                 texto={`${item.movimentacao === 'despesa' ? '-' : '+'} ${formatoMoeda.format(item.valor)}`}
                 size={12}

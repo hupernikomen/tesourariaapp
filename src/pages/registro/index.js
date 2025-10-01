@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { db } from '../../firebaseConnection';
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { AppContext } from '../../context/appContext';
@@ -20,6 +20,7 @@ export default function AddRegistros() {
   const [data, setData] = useState(new Date());
   const [detalhamento, setDetalhamento] = useState('');
   const [valor, setValor] = useState('');
+  const [valorInicial, setValorInicial] = useState('');
   const [selectedImage, setSelectedImage] = useState(undefined);
   const [imagem, setImagem] = useState('');
   const [recorrencia, setRecorrencia] = useState('');
@@ -30,6 +31,7 @@ export default function AddRegistros() {
   const [tipoSelecionado, setTipoSelecionado] = useState(null);
   const [tipos, setTipos] = useState([]);
   const [montaTela, setMontaTela] = useState([]);
+  const [tipoInicial, setTipoInicial] = useState('');
 
 
   useEffect(() => {
@@ -44,6 +46,8 @@ export default function AddRegistros() {
 
 
   useEffect(() => {
+    console.log(tipoSelecionado?.label, 'teste');
+
 
     switch (tipoSelecionado?.label) {
       case 'Dízimos':
@@ -57,6 +61,9 @@ export default function AddRegistros() {
       case 'Compras Parceladas':
         setMontaTela(['Imagem da Nota', 'Nº de Prestações', 'Ministerio', 'Valor', 'Detalhamento'])
         break;
+      case 'Prebendas':
+        setMontaTela(['Valor', 'Detalhamento'])
+        break
       case 'Contas Recorrentes':
         setMontaTela(['Imagem da Nota', 'Valor', 'Detalhamento'])
         break
@@ -64,7 +71,8 @@ export default function AddRegistros() {
         setMontaTela(['Nº de Prestações', 'Valor', 'Detalhamento'])
         break
       case 'Ofertas Missionárias':
-        setMontaTela(['Valor', 'Detalhamento'])
+      case 'Saldo Inicial':
+        setMontaTela(['Valor Inicial', 'Tipo Inicial'])
         break
       default:
         break;
@@ -114,20 +122,35 @@ export default function AddRegistros() {
   async function Registrar() {
 
 
-    const isValidString = (str) => {
-      if (typeof str !== 'string' || str.trim() === '') return false;
-      const validPattern = /^[A-Za-zÀ-ÿ0-9\s.,;!?()-]+$/;
-      return validPattern.test(str) && str.trim().length >= 1;
-    };
 
-    if (!tipoSelecionado || !valor || !isValidString(detalhamento) || load) {
-      console.log(
-        !tipoSelecionado ? 'Categoria não selecionada' :
-          !valor ? 'Valor não informado' :
-            !isValidString(detalhamento) ? 'Detalhamento inválido' :
-              'Em recarga'
+
+    // if (!tipoSelecionado || !valor || !valorInicial || load) {
+    //   console.log(
+    //     !tipoSelecionado ? 'Categoria não selecionada' :
+    //       !valor && !valorInicial ? 'Valor não informado' :
+    //         'Em recarga'
+    //   );
+    //   return;
+    // }
+
+
+
+    // Verifica se já existe um registro de Saldo Inicial para o usuário
+    if (tipoSelecionado.label === 'Saldo Inicial') {
+      const q = query(
+        collection(db, 'registros'),
+        where('idUsuario', '==', usuarioDoAS.usuarioId),
+        where('tipo', '==', 'Saldo Inicial')
       );
-      return;
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        console.log('Registro de Saldo Inicial já existe para o usuário:', usuarioDoAS.usuarioId);
+        setAviso({
+          titulo: 'Erro',
+          mensagem: 'Já existe um registro de Saldo Inicial para este usuário',
+        });
+        return;
+      }
     }
 
     setLoad(true);
@@ -141,8 +164,8 @@ export default function AddRegistros() {
           reg: Date.now(),
           dataDoc: data.getTime(),
           tipo: tipoSelecionado.label,
-          valor: parseFloat(valor),
-          movimentacao: tipoSelecionado.type,
+          valor: parseFloat(valor) || parseFloat(valorInicial),
+          movimentacao: tipoSelecionado.label === 'Saldo Inicial' ? tipoInicial.type : tipoSelecionado.type,
           ministerio: tipoSelecionado.type === 'despesa' ? ministerioSelecionado : '',
           imageUrl,
           detalhamento,
@@ -196,6 +219,8 @@ export default function AddRegistros() {
       setValor('');
       setRecorrencia('');
       setDetalhamento('');
+      setTipoInicial('');
+      setValorInicial('')
       setMinisterioSelecionado('');
       setImagem('');
       setSelectedImage(undefined);
@@ -236,7 +261,7 @@ export default function AddRegistros() {
         setSelectedImage(result.assets[0].uri);
         setImagem(result.assets[0].uri);
       }
-      
+
     } catch (error) {
       console.error('Erro ao acessar câmera:', error);
       setAviso({ titulo: 'Ops', mensagem: `Algo deu errado, verifique com o desenvolvedor` })
@@ -248,11 +273,9 @@ export default function AddRegistros() {
 
   const getCurrentMonthRange = () => {
     const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const sevenDaysBeforeFirst = new Date(firstDayOfMonth);
-    sevenDaysBeforeFirst.setDate(firstDayOfMonth.getDate() - 1);
+    const firstDayOfThirdMonthBefore = new Date(now.getFullYear(), now.getMonth() - 4, 1);
     const today = new Date(now);
-    return { minimumDate: sevenDaysBeforeFirst, maximumDate: today };
+    return { minimumDate: firstDayOfThirdMonthBefore, maximumDate: today };
   };
 
   const { minimumDate, maximumDate } = getCurrentMonthRange();
@@ -318,6 +341,22 @@ export default function AddRegistros() {
         title={tipoSelecionado?.parcela ? 'Total a pagar *' : 'Valor *'}
         value={valor}
         setValue={setValor}
+        type="numeric"
+      />
+
+      <CustomPickerModal
+        mostrar={montaTela.includes('Tipo Inicial')}
+        titulo={'Positivo Ou Negativo *'}
+        itens={[{ label: 'Positivo', type: 'receita' }, { label: 'Negativo', type: 'despesa' }]}
+        selectedValue={tipoInicial}
+        setSelectedValue={setTipoInicial}
+      />
+
+      <Input
+        mostrar={montaTela.includes('Valor Inicial')}
+        title={'Valor Inicial'}
+        value={valorInicial}
+        setValue={setValorInicial}
         type="numeric"
       />
 

@@ -359,7 +359,7 @@ export function AppProvider({ children }) {
 
       await Promise.all([BuscarLixeira(), ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
 
-      setAviso({titulo:'Sucesso', mensagem:'Registro será excluido automaticamente da lixeira após 15 dias'})
+      setAviso({titulo:'Sucesso', mensagem:'Registro movido para a lixeira'})
 
     } catch (e) {
       console.log('Erro ao mover o registro para a lixeira:', e);
