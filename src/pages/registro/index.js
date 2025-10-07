@@ -62,6 +62,7 @@ export default function AddRegistros() {
         setMontaTela(['Imagem da Nota', 'Nº de Prestações', 'Ministerio', 'Valor', 'Detalhamento'])
         break;
       case 'Prebendas':
+      case 'Entradas Aleatórias':
         setMontaTela(['Valor', 'Detalhamento'])
         break
       case 'Contas Recorrentes':
