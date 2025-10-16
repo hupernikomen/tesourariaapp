@@ -354,7 +354,7 @@ export default function Relatorio() {
           : 'Data Inválida';
         return `
                   <div class="detail-row">
-                    <span class="detail-label">${formattedDate} - ${det.tipo === 'Dízimos' ? '********' : det.detalhamento}</span>
+                    <span class="detail-label">${formattedDate} - ${det.tipo === 'Dízimos Recolhidos' ? '********' : det.detalhamento}</span>
                     <span class="detail-value ${det.movimentacao === 'receita' ? 'positive' : 'negative'}">
                       ${det.movimentacao === 'receita' ? '+' : '-'} ${formatoMoeda.format(det.valor)}
                     </span>
