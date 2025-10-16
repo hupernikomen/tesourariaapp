@@ -205,7 +205,7 @@ export default function Item({ item }) {
               <View style={{ alignSelf: 'flex-end', flexDirection: 'row', gap: 14 }}>
 
                 {!!item.imageUrl && (
-                  <Icone size={14} nome="paperclip" color='#000' />
+                  <Icone size={14} nome="paper-clip" color='#000' />
                 )}
 
                 {timeDifference < twentyFourHoursInMs && !item.parcelaQuit || item?.parcela === 1 ? (

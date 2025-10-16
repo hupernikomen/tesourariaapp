@@ -6,6 +6,8 @@ export default function Input({ mostrar = true,list = [], iconName, editable = t
     return
   }
 
+  
+
   const stl = StyleSheet.create({
     box: {
       minHeight: 60,

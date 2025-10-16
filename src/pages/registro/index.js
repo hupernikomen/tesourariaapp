@@ -13,7 +13,9 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomPickerModal from '../../componentes/picker';
 
 export default function AddRegistros() {
+
   const { ResumoFinanceiro, HistoricoMovimentos, usuarioDoAS, load, setLoad, setAviso } = useContext(AppContext);
+
   const navigation = useNavigation();
   const { cores } = useTheme();
 
@@ -33,6 +35,9 @@ export default function AddRegistros() {
   const [montaTela, setMontaTela] = useState([]);
   const [tipoInicial, setTipoInicial] = useState('');
 
+  useEffect(() => {
+    Limpar()
+  }, [tipoSelecionado])
 
   useEffect(() => {
     (async () => {
@@ -46,32 +51,28 @@ export default function AddRegistros() {
 
 
   useEffect(() => {
-    console.log(tipoSelecionado?.label, 'teste');
-
 
     switch (tipoSelecionado?.label) {
-      case 'Dízimos':
-      case 'Ofertas':
+      case 'Dízimos Recolhidos':
+      case 'Ofertas Recolhidas':
       case 'Ofertas Alçadas':
-        setMontaTela(['Dizimos', 'Valor', 'Detalhamento'])
-        break;
+      case 'Prebendas':
+      case 'Ofertas Missionárias':
+      case 'Valores Arrecadados':
+        setMontaTela(['Valor', 'Detalhamento'])
+        break
       case 'Compras à Vista':
         setMontaTela(['Imagem da Nota', 'Ministerio', 'Valor', 'Detalhamento'])
         break
       case 'Compras Parceladas':
         setMontaTela(['Imagem da Nota', 'Nº de Prestações', 'Ministerio', 'Valor', 'Detalhamento'])
         break;
-      case 'Prebendas':
-      case 'Entradas Aleatórias':
-        setMontaTela(['Valor', 'Detalhamento'])
-        break
       case 'Contas Recorrentes':
         setMontaTela(['Imagem da Nota', 'Valor', 'Detalhamento'])
         break
       case 'Empréstimos':
         setMontaTela(['Nº de Prestações', 'Valor', 'Detalhamento'])
         break
-      case 'Ofertas Missionárias':
       case 'Saldo Inicial':
         setMontaTela(['Valor Inicial', 'Tipo Inicial'])
         break
@@ -80,8 +81,6 @@ export default function AddRegistros() {
     }
 
   }, [tipoSelecionado])
-
-
 
 
 
@@ -120,19 +119,21 @@ export default function AddRegistros() {
   }
 
 
+  function Limpar() {
+
+    setData(new Date());
+    setValor('');
+    setRecorrencia('');
+    setDetalhamento('');
+    setTipoInicial('');
+    setValorInicial('')
+    setMinisterioSelecionado('');
+    setImagem('');
+    setSelectedImage(undefined);
+  }
+
   async function Registrar() {
 
-
-
-
-    // if (!tipoSelecionado || !valor || !valorInicial || load) {
-    //   console.log(
-    //     !tipoSelecionado ? 'Categoria não selecionada' :
-    //       !valor && !valorInicial ? 'Valor não informado' :
-    //         'Em recarga'
-    //   );
-    //   return;
-    // }
 
 
 
@@ -216,15 +217,7 @@ export default function AddRegistros() {
     } finally {
       setLoad(false);
       setTipoSelecionado(null);
-      setData(new Date());
-      setValor('');
-      setRecorrencia('');
-      setDetalhamento('');
-      setTipoInicial('');
-      setValorInicial('')
-      setMinisterioSelecionado('');
-      setImagem('');
-      setSelectedImage(undefined);
+      Limpar()
 
       await Promise.all([ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
 
@@ -366,7 +359,7 @@ export default function AddRegistros() {
         title={'Nº de Prestações *'}
         value={recorrencia}
         setValue={setRecorrencia}
-        type="numeric"
+        type="number-pad"
         maxlength={2}
       />
 

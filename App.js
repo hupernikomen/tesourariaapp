@@ -39,9 +39,9 @@ function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarItemStyle: { width: 114,height:70 },
+        tabBarItemStyle: { width: 114,height:60 },
         tabBarScrollEnabled: true,
-        tabBarIndicatorStyle: { backgroundColor: Tema.cores.background, height: 6 },
+        tabBarIndicatorStyle: { backgroundColor: Tema.cores.background, height: 3 },
         tabBarActiveTintColor: Tema.cores.botao,
         tabBarInactiveTintColor: '#7aa49fff',
         tabBarStyle: { backgroundColor: Tema.cores.receita},
