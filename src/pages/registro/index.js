@@ -121,7 +121,7 @@ export default function AddRegistros() {
 
   function Limpar() {
 
-    setData(new Date());
+
     setValor('');
     setRecorrencia('');
     setDetalhamento('');
@@ -134,7 +134,11 @@ export default function AddRegistros() {
 
   async function Registrar() {
 
-
+    if (montaTela.includes("Valor") && valor <= 0) return
+    if (montaTela.includes("Valor Inicial") && !tipoInicial) return
+    if (montaTela.includes("Valor Inicial") && !valorInicial) return
+    if (montaTela.includes("Ministerio") && !ministerioSelecionado) return
+    if (montaTela.includes("Detalhamento") && !detalhamento) return
 
 
     // Verifica se já existe um registro de Saldo Inicial para o usuário
@@ -217,6 +221,7 @@ export default function AddRegistros() {
     } finally {
       setLoad(false);
       setTipoSelecionado(null);
+      setData(new Date());
       Limpar()
 
       await Promise.all([ResumoFinanceiro(), HistoricoMovimentos()]).finally(() => setLoad(false))
@@ -335,7 +340,9 @@ export default function AddRegistros() {
         title={tipoSelecionado?.parcela ? 'Total a pagar *' : 'Valor *'}
         value={valor}
         setValue={setValor}
+        place={'0,00'}
         type="numeric"
+        maxlength={7}
       />
 
       <CustomPickerModal
