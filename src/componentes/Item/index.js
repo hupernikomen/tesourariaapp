@@ -108,23 +108,23 @@ export default function Item({ item }) {
   const primeiroDiaMesAtual = new Date(anoAtual, mesAtual, 1).getTime();
   const ultimoDiaMesAnterior = primeiroDiaMesAtual - 1;
 
-  const dataItem = new Date(item.reg);
+  const dataItem = new Date(item.dataDoc);
   const dataLimite = new Date(ultimoDiaMesAnterior);
   const dataItemFormatada = new Date(dataItem.getFullYear(), dataItem.getMonth(), dataItem.getDate()).getTime();
   const dataLimiteFormatada = new Date(dataLimite.getFullYear(), dataLimite.getMonth(), dataLimite.getDate()).getTime();
 
-  const twentyFourHoursInMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  const diasParaExclusao = 30 * 24 * 60 * 60 * 1000;
   const timeDifference = dataAtual.getTime() - dataItem.getTime();
-
 
 
   const handleLongPress = async () => {
 
 
-    if (timeDifference > twentyFourHoursInMs || item.parcelaQuit || item.parcela > 1) {
+    if (timeDifference > diasParaExclusao || item.parcelaQuit || item.parcela > 1) {
       setAviso({ titulo: 'Aviso', mensagem: 'Não é possivel editar ou excluir esse item.' })
       return
     }
+
 
     // Existing condition for unpaid items or paid items within 24 hours
     if (dataItemFormatada < dataLimiteFormatada) {
@@ -208,7 +208,7 @@ export default function Item({ item }) {
                   <Icone size={14} nome="paper-clip" color='#000' />
                 )}
 
-                {timeDifference < twentyFourHoursInMs && !item.parcelaQuit || item?.parcela === 1 ? (
+                {timeDifference < diasParaExclusao && !item.parcelaQuit || item?.parcela === 1 ? (
                   <Icone size={14} nome="lock-open-outline" color='#000' />
                 ) : (
                   <Icone size={14} nome="lock-closed-outline" color='#000' />

@@ -26,7 +26,6 @@ export function AppProvider({ children }) {
 
     Promise.all([BuscarUsuarioAsyncStorage(), HistoricoMovimentos()])
 
-
   }, []);
 
 
@@ -64,6 +63,8 @@ export function AppProvider({ children }) {
         where('idUsuario', '==', usuarioDoAS?.usuarioId),
         orderBy('reg', 'desc')
       );
+
+      
       const snapshot = await getDocs(registrosEncontrados);
 
       const registrosFuturos = snapshot.docs.map((doc) => {
@@ -85,14 +86,14 @@ export function AppProvider({ children }) {
       setDadosParcelas(registrosFuturos);
       setFuturosTotal(futurosTotal);
     } catch (e) {
-      console.log('Erro ao buscar documentos: ', e);
+      console.log('Erro ao buscar documentos', e);
     }
   }
 
   function calcularMediaGastos(ministerio, transacoes) {
 
     if (!transacoes || !Array.isArray(transacoes)) {
-      console.warn('transacoes inválido:', transacoes);
+      console.log('transacoes inválido:', transacoes);
       return { mediaSemanal: 0, mediaMensal: 0 };
     }
 

@@ -88,7 +88,7 @@ export default function App() {
 
   return (
     <NavigationContainer theme={Tema}>
-      <StatusBar backgroundColor={Tema.cores.receita} barStyle={'light-content'} />
+      <StatusBar backgroundColor={Tema.cores.receita} barStyle={'light-content'} translucent={false} />
       <AppProvider>
         <Stack.Navigator
           initialRouteName="LoginScreen"
