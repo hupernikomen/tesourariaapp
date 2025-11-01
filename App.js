@@ -1,4 +1,3 @@
-import { StatusBar } from 'react-native';
 import * as Font from 'expo-font';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -12,6 +11,9 @@ import { AppProvider } from './src/context/appContext';
 import LoginScreen from './src/pages/login';
 import Pagamento from './src/pages/pagamento';
 import Lixeira from './src/pages/lixeira';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -27,7 +29,7 @@ const Tema = {
     despesa: '#db5e5eff',
     alerta: '#E39B0E',
   },
-  font:{
+  font: {
     padrao: 'Roboto-Regular',
     fina: 'Roboto-Light',
     bold: 'Roboto-Medium'
@@ -35,27 +37,29 @@ const Tema = {
 };
 
 function TabNavigator() {
-  
+
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarItemStyle: { width: 114,height:60 },
-        tabBarScrollEnabled: true,
-        tabBarIndicatorStyle: { backgroundColor: Tema.cores.background, height: 3 },
-        tabBarActiveTintColor: Tema.cores.botao,
-        tabBarInactiveTintColor: '#7aa49fff',
-        tabBarStyle: { backgroundColor: Tema.cores.receita},
-        tabBarLabelStyle: {
-          fontFamily:Tema.font.bold
-        },
-      }}
-    >
-      <Tab.Screen name="Home" component={Home} options={{ title: 'FEED' }} />
-      <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO' }} />
-      <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
-      <Tab.Screen name="Relatorio" component={Relatorio} options={{ title: 'RELATÓRIO' }} />
-      <Tab.Screen name="Lixeira" component={Lixeira} options={{ title: 'LIXEIRA' }} />
-    </Tab.Navigator>
+    <SafeAreaView style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarItemStyle: { width: 114, height: 60 },
+          tabBarScrollEnabled: true,
+          tabBarIndicatorStyle: { backgroundColor: Tema.cores.background, height: 3 },
+          tabBarActiveTintColor: Tema.cores.botao,
+          tabBarInactiveTintColor: '#7aa49fff',
+          tabBarStyle: { backgroundColor: Tema.cores.receita },
+          tabBarLabelStyle: {
+            fontFamily: Tema.font.bold
+          },
+        }}
+      >
+        <Tab.Screen name="Home" component={Home} options={{ title: 'FEED' }} />
+        <Tab.Screen name="Futuro" component={Futuro} options={{ title: 'FUTURO' }} />
+        <Tab.Screen name="Registro" component={Registro} options={{ title: 'REGISTRAR' }} />
+        <Tab.Screen name="Relatorio" component={Relatorio} options={{ title: 'RELATÓRIO' }} />
+        <Tab.Screen name="Lixeira" component={Lixeira} options={{ title: 'LIXEIRA' }} />
+      </Tab.Navigator>
+    </SafeAreaView>
   );
 }
 
@@ -83,12 +87,15 @@ export default function App() {
 
 
   if (!fontsLoaded) {
-    return null; 
+    return null;
   }
 
   return (
-    <NavigationContainer theme={Tema}>
-      <StatusBar backgroundColor={Tema.cores.receita} barStyle={'light-content'} translucent={false} />
+    <SafeAreaView style={{flex: 1}}>
+
+<StatusBar style='light' backgroundColor={Tema.cores.receita}/>
+    <NavigationContainer theme={Tema} >
+
       <AppProvider>
         <Stack.Navigator
           initialRouteName="LoginScreen"
@@ -127,5 +134,6 @@ export default function App() {
         </Stack.Navigator>
       </AppProvider>
     </NavigationContainer>
+        </SafeAreaView>
   );
 }

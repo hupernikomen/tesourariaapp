@@ -142,7 +142,7 @@ export default function AddRegistros() {
 
 
     // Verifica se já existe um registro de Saldo Inicial para o usuário
-    if (tipoSelecionado.label === 'Saldo Inicial') {
+    if (tipoSelecionado?.label === 'Saldo Inicial') {
       const q = query(
         collection(db, 'registros'),
         where('idUsuario', '==', usuarioDoAS.usuarioId),
@@ -169,9 +169,9 @@ export default function AddRegistros() {
           idUsuario: usuarioDoAS.usuarioId,
           reg: Date.now(),
           dataDoc: data.getTime(),
-          tipo: tipoSelecionado.label,
+          tipo: tipoSelecionado?.label,
           valor: parseFloat(valor) || parseFloat(valorInicial),
-          movimentacao: tipoSelecionado.label === 'Saldo Inicial' ? tipoInicial.type : tipoSelecionado.type,
+          movimentacao: tipoSelecionado?.label === 'Saldo Inicial' ? tipoInicial.type : tipoSelecionado.type,
           ministerio: tipoSelecionado.type === 'despesa' ? ministerioSelecionado : '',
           imageUrl,
           detalhamento,
@@ -198,7 +198,7 @@ export default function AddRegistros() {
         await addDoc(collection(db, 'futuro'), {
           idUsuario: usuarioDoAS.usuarioId,
           reg: Date.now(),
-          tipo: tipoSelecionado.label,
+          tipo: tipoSelecionado?.label,
           recorrencia: parseInt(recorrencia),
           movimentacao: tipoSelecionado.type,
           ministerio: tipoSelecionado.type === 'despesa' ? ministerioSelecionado : '',
@@ -210,7 +210,7 @@ export default function AddRegistros() {
 
       }
 
-      setAviso({ titulo: 'Sucesso', mensagem: `Registro do tipo '${tipoSelecionado.label}' realizado` })
+      setAviso({ titulo: 'Sucesso', mensagem: `Registro do tipo '${tipoSelecionado?.label}' realizado` })
 
 
     } catch (e) {
@@ -370,9 +370,10 @@ export default function AddRegistros() {
         maxlength={2}
       />
 
+
       <Input
         mostrar={montaTela.includes('Detalhamento')}
-        title={'Detalhamento *'}
+        title={tipoSelecionado?.label === 'Dizimos Recolhidos'? 'Irmão':'Detalhamento *'}
         value={detalhamento}
         setValue={setDetalhamento}
       />
